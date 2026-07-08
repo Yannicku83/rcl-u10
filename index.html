@@ -236,7 +236,7 @@ textarea.fi{resize:vertical;min-height:60px}
 .pool-nm{font-size:13px;font-weight:800;color:var(--dk)}
 
 /* CONFIRM MODAL */
-.cfm-ov{position:fixed;inset:0;background:rgba(10,30,50,.55);z-index:80;display:none;align-items:center;justify-content:center;padding:24px}
+.cfm-ov{position:fixed;inset:0;background:rgba(10,30,50,.55);z-index:300;display:none;align-items:center;justify-content:center;padding:24px}
 .cfm-ov.open{display:flex}
 .cfm-box{background:var(--card);border-radius:var(--r);box-shadow:0 8px 30px rgba(0,0,0,.25);padding:18px 16px;max-width:340px;width:100%}
 .cfm-msg{font-size:13.5px;font-weight:600;line-height:1.5;text-align:center;margin-bottom:14px}
@@ -351,7 +351,15 @@ textarea.fi{resize:vertical;min-height:60px}
 <!-- HOME -->
 <section id="tab-home" class="tab active">
   <div id="h-syncstat" onclick="openSyncOv()" style="font-size:11px;color:var(--mut);text-align:center;background:var(--card);border-radius:8px;padding:7px;margin-bottom:10px;cursor:pointer;box-shadow:var(--sh)"></div>
-  <button class="btn btn-mg btn-w" onclick="openChat()" style="margin-bottom:14px">&#128172; <span id="chat-home-btn">Chat coachs</span></button>
+  <div id="chat-home-card" onclick="openChat()" style="margin-bottom:14px;cursor:pointer;background:var(--card);border-radius:12px;padding:12px 14px;box-shadow:var(--sh);display:flex;align-items:flex-start;gap:12px">
+    <div style="font-size:24px">&#128172;</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:700;color:var(--mg);margin-bottom:4px"><span id="chat-home-btn">Chat coachs</span></div>
+      <div id="chat-home-preview" style="font-size:12px;color:var(--text)"></div>
+    </div>
+    <span id="chat-home-dot" style="display:none;width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:4px"></span>
+    <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
+  </div>
   <div class="stat-grid" id="h-stats"></div>
   <div id="home-cal"></div>
   <div id="h-upcoming"></div>
@@ -472,7 +480,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='2.47';
+const APP_VER='2.50';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -824,7 +832,7 @@ const I18N = {
   'chatNeedFb':'Le chat nécessite la synchro Firebase active. Configure d&#39;abord la synchro (bouton en haut de l&#39;accueil).',
   'chatSetupTitle':'Rejoindre le chat','chatNameLbl':'Ton nom (affiché)','chatNamePh':'Ex : Yannick','chatCodeLbl':'Code du chat','chatCodePh':'Ex : rcl-u10-chat','chatCodeHint':'Les coachs avec le même code discutent ensemble. Un code par équipe.',
   'chatJoinBtn':'Rejoindre','chatLeave':'Quitter','chatEmpty':'Aucun message. Lance la discussion !','chatInputPh':'Écrire un message...',
-  'chatNeedName':'Indique ton nom','chatNeedCode':'Indique le code du chat','chatSendErr':'⚠️ Envoi impossible',
+  'chatNeedName':'Indique ton nom','chatNeedCode':'Indique le code du chat','chatSendErr':'⚠️ Envoi impossible','chatTapDelete':'Appuyer pour supprimer','chatConfirmDelete':'Supprimer ce message ?','chatDeleteErr':'⚠️ Suppression impossible','chatHomeHint':'Appuyer pour discuter avec les coachs','chatNoMsgYet':'Aucun message pour l&#39;instant','chatYou':'Toi',
   'flrGenerating':'⏳ Génération de la feuille FLR...',
   'flrReady':'✅ Feuille FLR téléchargée',
   'flrError':'⚠️ Erreur génération PDF (vérifiez la connexion)',
@@ -1162,7 +1170,7 @@ const I18N = {
   'chatNeedFb':'Chat requires active Firebase sync. Set up sync first (button at top of home).',
   'chatSetupTitle':'Join the chat','chatNameLbl':'Your name (shown)','chatNamePh':'e.g. Yannick','chatCodeLbl':'Chat code','chatCodePh':'e.g. rcl-u10-chat','chatCodeHint':'Coaches with the same code chat together. One code per team.',
   'chatJoinBtn':'Join','chatLeave':'Leave','chatEmpty':'No messages yet. Start the conversation!','chatInputPh':'Write a message...',
-  'chatNeedName':'Enter your name','chatNeedCode':'Enter the chat code','chatSendErr':'⚠️ Could not send',
+  'chatNeedName':'Enter your name','chatNeedCode':'Enter the chat code','chatSendErr':'⚠️ Could not send','chatTapDelete':'Tap to delete','chatConfirmDelete':'Delete this message?','chatDeleteErr':'⚠️ Could not delete','chatHomeHint':'Tap to chat with coaches','chatNoMsgYet':'No messages yet','chatYou':'You',
   'flrGenerating':'⏳ Generating FLR sheet...',
   'flrReady':'✅ FLR sheet downloaded',
   'flrError':'⚠️ PDF generation error (check connection)',
@@ -1560,6 +1568,7 @@ function rHome(){
       syncEl.textContent='\u21c5 '+tr('syncTapToSetup');
     }
   }
+  chatHomePreview();
 
 }
 
@@ -1597,8 +1606,11 @@ function rCoaches(){
   if(!cl.length){ document.getElementById('p-list').innerHTML='<div class="empty"><div class="empty-ic">&#128227;</div><p>'+(q?tr('noPlayerFound'):tr('noCoachYet'))+'</p></div>'; return; }
   document.getElementById('p-list').innerHTML=cl.map(co=>{
     const roleTxt=co.role?tr('role_'+co.role):'';
+    const cavatar=co.photo?
+      '<div class="pnum" style="background-image:url(\''+co.photo+'\');background-size:cover;background-position:center"></div>':
+      '<div class="pnum" style="background:var(--mg)">'+esc((co.firstName[0]||'')+(co.lastName[0]||''))+'</div>';
     return '<div class="pc" onclick="togCD('+co.id+')">'+
-      '<div class="pnum" style="background:var(--mg)">'+esc((co.firstName[0]||'')+(co.lastName[0]||''))+'</div>'+
+      cavatar+
       '<div class="pinfo"><div class="pname">'+esc(co.firstName)+' '+esc(co.lastName)+'</div>'+
       '<div class="pmeta">'+roleTxt+'</div></div>'+
       '<span style="color:var(--mut);font-size:14px">&rsaquo;</span></div>'+
@@ -1616,8 +1628,17 @@ function togCD(id){ const el=document.getElementById('cd-'+id); if(el) el.style.
 function openCF(eid){
   const co=eid?S.coaches.find(x=>x.id===eid):null;
   const roles=['coach','manager','assistant'];
+  _pfPhotoData=undefined; _pfPhotoOrig=co?.photo||null;
   document.getElementById('pf-con').innerHTML=
     '<div class="pform"><div class="card-title">'+(co?tr('editCoachTitle'):tr('addCoachTitle'))+'</div>'+
+    '<div class="pf-photo-wrap"><div style="position:relative">'+
+      '<div id="pf-photo-circle" class="pf-photo-circle" onclick="document.getElementById(\'pf-photo-input\').click()"'+(co?.photo?' style="background-image:url(\''+co.photo+'\')"':'')+'>'+
+        (co?.photo?'':'<span class="cam-ic">&#128247;</span>')+
+      '</div>'+
+      '<button type="button" id="pf-photo-rm" class="pf-photo-remove" onclick="removePFPhoto(event)" style="display:'+(co?.photo?'flex':'none')+'" title="'+tr('removePhotoTitle')+'">&#215;</button>'+
+      '<input type="file" accept="image/*" id="pf-photo-input" style="display:none" onchange="handlePhotoSelect(event)">'+
+    '</div></div>'+
+    '<div class="pf-photo-hint">'+(co?.photo?tr('tapChangePhoto'):tr('tapAddPhoto'))+'</div>'+
     '<div class="frow"><div class="fg"><label class="fl">'+tr('firstName')+'</label><input class="fi" id="cf-fn" value="'+esc(co?.firstName||'')+'"></div>'+
     '<div class="fg"><label class="fl">'+tr('lastName')+'</label><input class="fi" id="cf-ln" value="'+esc(co?.lastName||'')+'"></div></div>'+
     '<div class="fg"><label class="fl">'+tr('roleLbl')+'</label><select class="fs" id="cf-role">'+roles.map(r=>'<option value="'+r+'"'+((co?.role||'coach')===r?' selected':'')+'>'+tr('role_'+r)+'</option>').join('')+'</select></div>'+
@@ -1633,7 +1654,8 @@ function saveC(eid){
   if(!fn||!ln){ toast(tr('toastNameRequired')); return; }
   const d={firstName:fn,lastName:ln,role:document.getElementById('cf-role').value,
     phone:document.getElementById('cf-tel').value.trim(),email:document.getElementById('cf-em').value.trim(),
-    licenseNo:document.getElementById('cf-lic').value.trim()};
+    licenseNo:document.getElementById('cf-lic').value.trim(),
+    photo:(_pfPhotoData!==undefined?_pfPhotoData:_pfPhotoOrig)};
   if(eid){const i=S.coaches.findIndex(x=>x.id===eid);if(i>=0)S.coaches[i]={...S.coaches[i],...d};toast(tr('toastCoachUpdated'));}
   else{S.coaches.push({id:gid('coaches'),...d});toast(tr('toastCoachAdded'));}
   save();document.getElementById('pf-con').innerHTML='';rCoaches();
@@ -1661,14 +1683,16 @@ function handlePhotoSelect(ev){
   reader.onload=e=>{
     const img=new Image();
     img.onload=()=>{
-      const size=200;
+      const size=180; // 180px : net pour un avatar rond, léger pour Firebase
       const minDim=Math.min(img.width,img.height);
       const sx=(img.width-minDim)/2, sy=(img.height-minDim)/2;
       const canvas=document.createElement('canvas');
       canvas.width=size; canvas.height=size;
       const ctx=canvas.getContext('2d');
+      // Lissage de qualité pour éviter l'effet pixelisé
+      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
       ctx.drawImage(img,sx,sy,minDim,minDim,0,0,size,size);
-      _pfPhotoData=canvas.toDataURL('image/jpeg',0.75);
+      _pfPhotoData=canvas.toDataURL('image/jpeg',0.72);
       rPFPhoto();
     };
     img.src=e.target.result;
@@ -3336,6 +3360,45 @@ function chatSaveCfg(){
   try{ localStorage.setItem('rcl_chat_cfg', JSON.stringify({code:_chat.code, name:_chat.name})); }catch(e){}
 }
 
+// Aperçu des 4 derniers messages sur l'accueil (lecture ponctuelle, économe)
+async function chatHomePreview(){
+  const card=document.getElementById('chat-home-preview');
+  const dot=document.getElementById('chat-home-dot');
+  if(!card) return;
+  if(!_fb.cfg || !_chat.code || !_chat.name){
+    card.innerHTML='<span style="color:var(--mut)">'+tr('chatHomeHint')+'</span>';
+    if(dot) dot.style.display='none';
+    return;
+  }
+  try{
+    if(!_fb.sdk){
+      const V='10.12.2';
+      const appMod=await import('https://www.gstatic.com/firebasejs/'+V+'/firebase-app.js');
+      const fsMod=await import('https://www.gstatic.com/firebasejs/'+V+'/firebase-firestore.js');
+      _fb.sdk={appMod,fsMod};
+    }
+    const {appMod,fsMod}=_fb.sdk;
+    if(!_fb.app){ _fb.app=appMod.initializeApp(_fb.cfg); _fb.db=fsMod.getFirestore(_fb.app); }
+    const col=fsMod.collection(_fb.db,'chats',_chat.code,'messages');
+    const q=fsMod.query(col, fsMod.orderBy('ts','desc'), fsMod.limit(4));
+    const snap=await fsMod.getDocs(q);
+    if(snap.empty){ card.innerHTML='<span style="color:var(--mut)">'+tr('chatNoMsgYet')+'</span>'; if(dot) dot.style.display='none'; return; }
+    const arr=[];
+    snap.forEach(d=>{ const x=d.data(); arr.push({id:d.id, author:x.author||'?', text:x.text||'', ts:x.ts?(x.ts.toMillis?x.ts.toMillis():x.ts):0}); });
+    arr.sort((a,b)=>a.ts-b.ts); // chronologique (plus ancien en haut)
+    // Afficher les 4 messages en liste compacte
+    card.innerHTML=arr.map(m=>{
+      const who=m.author===_chat.name?tr('chatYou'):esc(m.author);
+      return '<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5"><b style="color:var(--mg)">'+who+'</b> : '+esc(m.text)+'</div>';
+    }).join('');
+    // Point rouge si le dernier message n'est pas de moi et non vu
+    const last=arr[arr.length-1];
+    let lastSeen=null;
+    try{ lastSeen=localStorage.getItem('rcl_chat_lastseen'); }catch(e){}
+    if(dot) dot.style.display=(last.id!==lastSeen && last.author!==_chat.name)?'block':'none';
+  }catch(e){ card.innerHTML='<span style="color:var(--mut)">'+tr('chatHomeHint')+'</span>'; if(dot) dot.style.display='none'; }
+}
+
 // Ouvrir l'écran chat
 function openChat(){
   const ov=document.getElementById('chat-ov');
@@ -3389,9 +3452,10 @@ function rChat(){
     _chat.msgs.forEach(m=>{
       const mine=m.author===_chat.name;
       const time=m.ts?new Date(m.ts).toLocaleTimeString(LANG==='en'?'en-GB':'fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
+      const delAttr=mine?' onclick="chatAskDelete(\''+esc(m.id)+'\')" style="cursor:pointer" title="'+tr('chatTapDelete')+'"':'';
       html+='<div class="chat-msg'+(mine?' mine':'')+'">'+
         (mine?'':'<div class="chat-author">'+esc(m.author)+'</div>')+
-        '<div class="chat-bubble">'+esc(m.text)+'</div>'+
+        '<div class="chat-bubble"'+delAttr+'>'+esc(m.text)+'</div>'+
         '<div class="chat-time">'+time+'</div></div>';
     });
   }
@@ -3404,7 +3468,7 @@ function rChat(){
   body.innerHTML=html;
   // Scroll en bas
   const box=document.getElementById('chat-msgs');
-  if(box) box.scrollTop=box.scrollHeight;
+  if(box){ box.scrollTop=box.scrollHeight; requestAnimationFrame(()=>{ box.scrollTop=box.scrollHeight; }); setTimeout(()=>{ if(box) box.scrollTop=box.scrollHeight; }, 60); }
 }
 
 function chatJoin(){
@@ -3447,6 +3511,8 @@ async function chatConnect(){
         snap.forEach(doc=>{ const d=doc.data(); arr.push({id:doc.id, author:d.author||'?', text:d.text||'', ts:d.ts?(d.ts.toMillis?d.ts.toMillis():d.ts):0}); });
         arr.sort((a,b)=>a.ts-b.ts); // ordre chronologique
         _chat.msgs=arr;
+        // Marquer le dernier message comme vu (éteint le point rouge de l'accueil)
+        if(arr.length){ try{ localStorage.setItem('rcl_chat_lastseen', arr[arr.length-1].id); }catch(e){} }
         _chat.status='online';
         if(_chat.open) rChat();
       },
@@ -3489,6 +3555,18 @@ async function chatSend(){
 }
 
 // Supprime les messages au-delà des 100 derniers
+// Supprimer un de ses propres messages (avec confirmation)
+function chatAskDelete(msgId){
+  const m=_chat.msgs.find(x=>x.id===msgId);
+  if(!m || m.author!==_chat.name) return; // sécurité : seulement ses messages
+  confirmBox(tr('chatConfirmDelete'), async ()=>{
+    try{
+      const {fsMod}=_fb.sdk;
+      await fsMod.deleteDoc(fsMod.doc(_fb.db,'chats',_chat.code,'messages',msgId));
+      // Le listener temps réel mettra à jour le fil automatiquement
+    }catch(e){ console.error('Chat delete failed',e); toast(tr('chatDeleteErr')); }
+  });
+}
 async function chatCleanup(){
   try{
     const {fsMod}=_fb.sdk;
@@ -4230,10 +4308,10 @@ window.addEventListener('DOMContentLoaded',()=>{
   const _at=document.getElementById('app-title'); if(_at) _at.textContent=APP_NAME;
   updateHeaderDate(); document.getElementById('lang-btn').textContent=LANG==='fr'?'EN':'FR'; applyStaticI18n();
   setSessionSubTab('Entra\u00eenement');
-  rHome();
-  // Synchro live : reconnexion auto si configur\u00e9e
+  // Charger les configs avant l'accueil (pour l'aperçu chat)
   fbLoadCfg();
   chatLoadCfg();
+  rHome();
   const _cb=document.getElementById('chat-home-btn'); if(_cb) _cb.textContent=tr('chatHomeBtn');
   const _ct=document.getElementById('chat-topttl'); if(_ct) _ct.textContent=tr('chatTopTitle');
   const _cbk=document.getElementById('chat-back-lbl'); if(_cbk) _cbk.textContent=tr('chatBack');
