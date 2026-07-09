@@ -576,7 +576,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='2.65';
+const APP_VER='2.66';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -949,7 +949,7 @@ const I18N = {
   'helpEthicsQuote':'« On évalue pour mieux accompagner, pas pour classer les enfants. »','helpBack':'Retour','helpTitle':'Guide du coach','helpCycleCredit':'Source : World Rugby',
   'pollNeedSync':'Active la synchro Firebase pour utiliser les sondages','pollShareTitle':'Sondage de présence','pollShareIntro':'Partage ce lien avec les parents. Ils indiqueront si leur enfant sera présent.','pollShareWA':'Partager sur WhatsApp','pollCopyLink':'Copier le lien','pollLinkCopied':'Lien copié !','pollShareMsg':'Présence {event} — merci d\u2019indiquer si votre enfant sera là :','pollShareBtn':'Sondage présence',
   'btnClose':'Fermer',
-  'pollLoading':'Chargement…','pollNotFound':'Sondage introuvable ou expiré','pollError':'Une erreur est survenue','pollPickChild':'Choisis ton enfant','pollChooseChild':'— Sélectionne —','pollAlreadyIn':'déjà inscrits','pollPresent':'Présent','pollAbsent':'Absent','pollInjured':'Blessé','pollResults':'Qui vient ?','pollThanks':'Merci, réponse enregistrée !','pollIntentionsTitle':'Réponses des parents','pollApplyBtn':'Pré-remplir les présences','pollApplyHint':'Applique les réponses des parents comme point de départ. Confirme chaque présence le jour J.','pollApplyConfirm':'Pré-remplir les présences avec les réponses des parents ?','pollApplied':'✅ Présences pré-remplies',
+  'pollLoading':'Chargement…','pollNotFound':'Sondage introuvable ou expiré','pollError':'Une erreur est survenue','pollPickChild':'Choisis ton enfant','pollChooseChild':'— Sélectionne —','pollAlreadyIn':'déjà inscrits','pollPresent':'Présent','pollAbsent':'Absent','pollInjured':'Blessé','pollResults':'Qui vient ?','pollThanks':'Merci, réponse enregistrée !','pollYourAnswer':'Ta réponse :','pollIntentionsTitle':'Réponses des parents','pollApplyBtn':'Pré-remplir les présences','pollApplyHint':'Applique les réponses des parents comme point de départ. Confirme chaque présence le jour J.','pollApplyConfirm':'Pré-remplir les présences avec les réponses des parents ?','pollApplied':'✅ Présences pré-remplies',
   'anTabTeam':'Équipe','anTabPlayer':'Par joueur','anTabGoals':'Objectifs','anTabGuide':'Guide','anHomeBtn':'Analyse & progression','anHomeHint':'Suivi de la progression du groupe','anHomeAttendance':'présence','anHomeEvals':'suivis',
   'princ_recup':'Récupération & pression','princ_avancer':'Avancer & soutien','princ_lecture':'Lecture du jeu & discipline','princ_rythme':'Rythme & continuité',
   'anAttendanceTitle':'Assiduité','anPrinciplesTitle':'Principes de jeu','anPlayingTimeTitle':'Temps de jeu cumulé',
@@ -1306,7 +1306,7 @@ const I18N = {
   'helpEthicsQuote':'"We assess progress to coach better, never to rank children."','helpBack':'Back','helpTitle':'Coach guide','helpCycleCredit':'Source: World Rugby',
   'pollNeedSync':'Enable Firebase sync to use polls','pollShareTitle':'Attendance poll','pollShareIntro':'Share this link with parents. They\u2019ll indicate if their child will attend.','pollShareWA':'Share on WhatsApp','pollCopyLink':'Copy link','pollLinkCopied':'Link copied!','pollShareMsg':'Attendance {event} — please tell us if your child will be there:','pollShareBtn':'Attendance poll',
   'btnClose':'Close',
-  'pollLoading':'Loading…','pollNotFound':'Poll not found or expired','pollError':'An error occurred','pollPickChild':'Choose your child','pollChooseChild':'— Select —','pollAlreadyIn':'already in','pollPresent':'Present','pollAbsent':'Absent','pollInjured':'Injured','pollResults':'Who\u2019s coming?','pollThanks':'Thanks, response saved!','pollIntentionsTitle':'Parent responses','pollApplyBtn':'Pre-fill attendance','pollApplyHint':'Applies parent responses as a starting point. Confirm each attendance on match day.','pollApplyConfirm':'Pre-fill attendance with parent responses?','pollApplied':'✅ Attendance pre-filled',
+  'pollLoading':'Loading…','pollNotFound':'Poll not found or expired','pollError':'An error occurred','pollPickChild':'Choose your child','pollChooseChild':'— Select —','pollAlreadyIn':'already in','pollPresent':'Present','pollAbsent':'Absent','pollInjured':'Injured','pollResults':'Who\u2019s coming?','pollThanks':'Thanks, response saved!','pollYourAnswer':'Your answer:','pollIntentionsTitle':'Parent responses','pollApplyBtn':'Pre-fill attendance','pollApplyHint':'Applies parent responses as a starting point. Confirm each attendance on match day.','pollApplyConfirm':'Pre-fill attendance with parent responses?','pollApplied':'✅ Attendance pre-filled',
   'anTabTeam':'Team','anTabPlayer':'Per player','anTabGoals':'Goals','anTabGuide':'Guide','anHomeBtn':'Analysis & progress','anHomeHint':'Track the group’s progress','anHomeAttendance':'attendance','anHomeEvals':'tracked',
   'princ_recup':'Recovery & pressure','princ_avancer':'Advance & support','princ_lecture':'Game reading & discipline','princ_rythme':'Tempo & continuity',
   'anAttendanceTitle':'Attendance','anPrinciplesTitle':'Game principles','anPlayingTimeTitle':'Cumulative playing time',
@@ -2273,6 +2273,7 @@ async function pollLoadResponses(sid, cb){
 
 // ═══ CÔTÉ PARENT : afficher et enregistrer une réponse ═══
 async function pollRenderParentPage(ctx){
+  LANG='en'; // Sondage en anglais par défaut (bouton FR/EN disponible)
   document.body.innerHTML='<div id="poll-parent-root" style="max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg)"></div>';
   const root=document.getElementById('poll-parent-root');
   root.innerHTML='<div style="padding:40px 20px;text-align:center;color:var(--mut)">'+tr('pollLoading')+'</div>';
@@ -2310,6 +2311,7 @@ async function pollRenderParentPage(ctx){
 }
 
 let _pollCtx=null;
+let _pollLastChild=null;
 
 function pollDrawParent(){
   const root=document.getElementById('poll-parent-root');
@@ -2318,7 +2320,8 @@ function pollDrawParent(){
   const counts={present:0, absent:0, injured:0};
   Object.values(responses||{}).forEach(r=>{ if(counts[r.status]!==undefined) counts[r.status]++; });
 
-  let html='<div style="background:var(--dk);color:#fff;padding:20px 18px;text-align:center">'+
+  let html='<div style="background:var(--dk);color:#fff;padding:20px 18px;text-align:center;position:relative">'+
+    '<button onclick="pollToggleLang()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">'+(LANG==='en'?'FR':'EN')+'</button>'+
     '<div style="font-size:20px;font-weight:800">'+esc(APP_NAME)+'</div>'+
     '<div style="font-size:14px;opacity:.9;margin-top:4px">'+esc(sessionTitle(session))+'</div>'+
     '<div style="font-size:13px;opacity:.8;margin-top:2px">'+fdFull(session.date)+'</div></div>';
@@ -2336,11 +2339,19 @@ function pollDrawParent(){
     players.map(p=>{
       const r=responses[p.id];
       const mark=r?(r.status==='present'?' \u2705':r.status==='absent'?' \u274C':' \u{1F915}'):'';
-      return '<option value="'+p.id+'">'+esc(p.firstName)+' '+esc((p.lastName||'')[0]||'')+'.'+mark+'</option>';
+      const selAttr=(_pollLastChild===p.id)?' selected':'';
+      return '<option value="'+p.id+'"'+selAttr+'>'+esc(p.firstName)+' '+esc((p.lastName||'')[0]||'')+'.'+mark+'</option>';
     }).join('')+'</select>';
 
+  // Message de confirmation de la réponse actuelle (si l'enfant a déjà répondu)
+  if(_pollLastChild && responses[_pollLastChild]){
+    const cur=responses[_pollLastChild].status;
+    const curLbl=cur==='present'?'\u2705 '+tr('pollPresent'):cur==='absent'?'\u274C '+tr('pollAbsent'):'\u{1F915} '+tr('pollInjured');
+    html+='<div style="background:var(--lg);border-radius:8px;padding:10px;text-align:center;font-size:13px;font-weight:700;color:var(--dk);margin-bottom:14px">'+tr('pollYourAnswer')+' '+curLbl+'</div>';
+  }
+
   // Boutons de réponse (cachés jusqu'à sélection)
-  html+='<div id="poll-answer" style="display:none">'+
+  html+='<div id="poll-answer" style="display:'+(_pollLastChild?'block':'none')+'">'+
     '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">'+
     '<button class="poll-btn" style="background:#22C55E" onclick="pollRespond(\'present\')">\u2705 '+tr('pollPresent')+'</button>'+
     '<button class="poll-btn" style="background:#EE2837" onclick="pollRespond(\'absent\')">\u274C '+tr('pollAbsent')+'</button>'+
@@ -2372,7 +2383,10 @@ function pollDrawParent(){
 
 function pollSelectChild(){
   const pid=document.getElementById('poll-child').value;
+  _pollLastChild=pid?parseInt(pid):null;
   document.getElementById('poll-answer').style.display=pid?'block':'none';
+  // Redessiner pour montrer la réponse actuelle si déjà répondu
+  if(_pollLastChild) pollDrawParent();
 }
 
 async function pollRespond(status){
@@ -2382,12 +2396,18 @@ async function pollRespond(status){
     const {fsMod}=_fb.sdk;
     await fsMod.setDoc(fsMod.doc(_fb.db,'polls',_pollCtx.ctx.code,'s'+_pollCtx.ctx.sid, String(pid)),
       { status, ts:Date.now(), playerId:pid });
-    // Mettre à jour localement et redessiner
+    // Mettre à jour localement et redessiner pour voir l'effet immédiatement
     if(!_pollCtx.responses) _pollCtx.responses={};
     _pollCtx.responses[pid]={status, ts:Date.now()};
+    _pollLastChild=pid; // garder l'enfant sélectionné après redraw
     toast(tr('pollThanks'));
     pollDrawParent();
   }catch(e){ console.error('Poll respond failed',e); toast(tr('pollError')); }
+}
+// Bascule FR/EN sur la page parent
+function pollToggleLang(){
+  LANG = LANG==='en' ? 'fr' : 'en';
+  pollDrawParent();
 }
 
 // Titre lisible d'une séance (réutilisé)
@@ -2514,11 +2534,11 @@ function saveC(eid){
   save();document.getElementById('pf-con').innerHTML='';rCoaches();
 }
 let _cfmYes=null;
-function confirmBox(msg,onYes){
+function confirmBox(msg,onYes,yesLabel){
   _cfmYes=onYes;
   document.getElementById('cfm-msg').textContent=msg;
   document.getElementById('cfm-no').textContent=tr('btnCancel');
-  document.getElementById('cfm-yes').textContent=tr('btnDelete');
+  document.getElementById('cfm-yes').textContent=yesLabel||tr('btnDelete');
   document.getElementById('cfm-ov').classList.add('open');
 }
 function cfmNo(){ _cfmYes=null; document.getElementById('cfm-ov').classList.remove('open'); }
@@ -3726,7 +3746,7 @@ function applyPollIntentions(sid){
     });
     save(); rAtt();
     toast(tr('pollApplied'));
-  });
+  }, tr('pollApplyBtn'));
 }
 function coachNames(ids){
   return (ids||[]).map(id=>{const co=S.coaches.find(x=>x.id===id);return co?esc(co.firstName)+' '+esc(co.lastName[0]||'')+'.':null;}).filter(Boolean);
