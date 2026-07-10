@@ -576,7 +576,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='2.66';
+const APP_VER='2.67';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -947,7 +947,7 @@ const I18N = {
   'helpPrinciplesTitle':'Nos 4 principes de développement','helpEthicsTitle':'Suivre sans juger',
   'helpEthicsBody':'Le suivi est un outil pour orienter les entraînements, pas un bulletin de notes. C&#39;est une photo d&#39;un instant, qui varie selon la fatigue et l&#39;adversaire. On regarde d&#39;abord la tendance (progresse-t-il ?) plutôt que la note. Pas de classement, pas d&#39;étiquette. Chaque enfant a droit au même temps de jeu. En cas de doute, le regard du coach prime sur le chiffre.',
   'helpEthicsQuote':'« On évalue pour mieux accompagner, pas pour classer les enfants. »','helpBack':'Retour','helpTitle':'Guide du coach','helpCycleCredit':'Source : World Rugby',
-  'pollNeedSync':'Active la synchro Firebase pour utiliser les sondages','pollShareTitle':'Sondage de présence','pollShareIntro':'Partage ce lien avec les parents. Ils indiqueront si leur enfant sera présent.','pollShareWA':'Partager sur WhatsApp','pollCopyLink':'Copier le lien','pollLinkCopied':'Lien copié !','pollShareMsg':'Présence {event} — merci d\u2019indiquer si votre enfant sera là :','pollShareBtn':'Sondage présence',
+  'pollNeedSync':'Active la synchro Firebase pour utiliser les sondages','pollShareTitle':'Sondage de présence','pollShareIntro':'Partage ce lien avec les parents. Ils indiqueront si leur enfant sera présent.','pollShareWA':'Partager sur WhatsApp','pollCopyLink':'Copier le lien','pollOpenPage':'Ouvrir la page sondage','pollLinkCopied':'Lien copié !','pollShareMsg':'Présence {event} — merci d\u2019indiquer si votre enfant sera là :','pollShareBtn':'Sondage présence',
   'btnClose':'Fermer',
   'pollLoading':'Chargement…','pollNotFound':'Sondage introuvable ou expiré','pollError':'Une erreur est survenue','pollPickChild':'Choisis ton enfant','pollChooseChild':'— Sélectionne —','pollAlreadyIn':'déjà inscrits','pollPresent':'Présent','pollAbsent':'Absent','pollInjured':'Blessé','pollResults':'Qui vient ?','pollThanks':'Merci, réponse enregistrée !','pollYourAnswer':'Ta réponse :','pollIntentionsTitle':'Réponses des parents','pollApplyBtn':'Pré-remplir les présences','pollApplyHint':'Applique les réponses des parents comme point de départ. Confirme chaque présence le jour J.','pollApplyConfirm':'Pré-remplir les présences avec les réponses des parents ?','pollApplied':'✅ Présences pré-remplies',
   'anTabTeam':'Équipe','anTabPlayer':'Par joueur','anTabGoals':'Objectifs','anTabGuide':'Guide','anHomeBtn':'Analyse & progression','anHomeHint':'Suivi de la progression du groupe','anHomeAttendance':'présence','anHomeEvals':'suivis',
@@ -1304,7 +1304,7 @@ const I18N = {
   'helpPrinciplesTitle':'Our 4 development principles','helpEthicsTitle':'Track without judging',
   'helpEthicsBody':'Tracking is a tool to guide training, not a report card. It&#39;s a snapshot of one moment, varying with fatigue and opponent. We look at the trend (is he progressing?) rather than the score. No rankings, no labels. Every child gets equal playing time. When in doubt, the coach&#39;s eye prevails over the number.',
   'helpEthicsQuote':'"We assess progress to coach better, never to rank children."','helpBack':'Back','helpTitle':'Coach guide','helpCycleCredit':'Source: World Rugby',
-  'pollNeedSync':'Enable Firebase sync to use polls','pollShareTitle':'Attendance poll','pollShareIntro':'Share this link with parents. They\u2019ll indicate if their child will attend.','pollShareWA':'Share on WhatsApp','pollCopyLink':'Copy link','pollLinkCopied':'Link copied!','pollShareMsg':'Attendance {event} — please tell us if your child will be there:','pollShareBtn':'Attendance poll',
+  'pollNeedSync':'Enable Firebase sync to use polls','pollShareTitle':'Attendance poll','pollShareIntro':'Share this link with parents. They\u2019ll indicate if their child will attend.','pollShareWA':'Share on WhatsApp','pollCopyLink':'Copy link','pollOpenPage':'Open poll page','pollLinkCopied':'Link copied!','pollShareMsg':'Attendance {event} — please tell us if your child will be there:','pollShareBtn':'Attendance poll',
   'btnClose':'Close',
   'pollLoading':'Loading…','pollNotFound':'Poll not found or expired','pollError':'An error occurred','pollPickChild':'Choose your child','pollChooseChild':'— Select —','pollAlreadyIn':'already in','pollPresent':'Present','pollAbsent':'Absent','pollInjured':'Injured','pollResults':'Who\u2019s coming?','pollThanks':'Thanks, response saved!','pollYourAnswer':'Your answer:','pollIntentionsTitle':'Parent responses','pollApplyBtn':'Pre-fill attendance','pollApplyHint':'Applies parent responses as a starting point. Confirm each attendance on match day.','pollApplyConfirm':'Pre-fill attendance with parent responses?','pollApplied':'✅ Attendance pre-filled',
   'anTabTeam':'Team','anTabPlayer':'Per player','anTabGoals':'Goals','anTabGuide':'Guide','anHomeBtn':'Analysis & progress','anHomeHint':'Track the group’s progress','anHomeAttendance':'attendance','anHomeEvals':'tracked',
@@ -2236,6 +2236,7 @@ async function openPollShare(sid){
       '<div style="background:var(--bg);border:1px solid var(--brd);border-radius:8px;padding:10px;font-size:12px;color:var(--mut);word-break:break-all;margin-bottom:12px">'+esc(link)+'</div>'+
       '<button class="btn btn-mg btn-w" style="margin-bottom:8px" onclick="pollShareWhatsApp(\''+encodeURIComponent(msg)+'\')">\u{1F4AC} '+tr('pollShareWA')+'</button>'+
       '<button class="btn btn-out btn-w" style="margin-bottom:8px" onclick="pollCopyLink(\''+encodeURIComponent(link)+'\')">\u{1F517} '+tr('pollCopyLink')+'</button>'+
+      '<button class="btn btn-out btn-w" style="margin-bottom:8px" onclick="pollOpenPage(\''+encodeURIComponent(link)+'\')">\u{1F441} '+tr('pollOpenPage')+'</button>'+
       '<button class="btn btn-out btn-w" onclick="closePollShare()">'+tr('btnClose')+'</button>';
   }
   const ov=document.getElementById('poll-share-ov');
@@ -2249,6 +2250,10 @@ function pollCopyLink(encodedLink){
   const link=decodeURIComponent(encodedLink);
   if(navigator.clipboard){ navigator.clipboard.writeText(link).then(()=>toast(tr('pollLinkCopied'))); }
   else toast(link);
+}
+function pollOpenPage(encodedLink){
+  const link=decodeURIComponent(encodedLink);
+  window.open(link, '_blank');
 }
 
 // Charge les réponses du sondage pour une séance (temps réel) — côté coach
