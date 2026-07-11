@@ -632,7 +632,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='2.88';
+const APP_VER='2.89';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -2367,10 +2367,23 @@ function voteKey(sid, team){ return 's'+sid+(team?'_'+team.replace(/[^a-zA-Z0-9]
 // Liste des joueurs concernés par le vote (selon équipe si tournoi multi-équipes)
 function votePlayers(session, team){
   if(!session) return [];
-  let pids;
-  if(team && session.teamAssign && session.teamAssign[team]){
-    pids=new Set(session.teamAssign[team]);
-  } else {
+  let pids=new Set();
+  if(session.type==='Tournoi'){
+    // Tournoi : récupérer les joueurs qui ont joué (dans les squads des matchs)
+    if(team){
+      // Équipe RCL précise : joueurs des matchs de cette équipe
+      (session.matches||[]).forEach(m=>{
+        if(m.home===team || m.away===team){
+          (m.squad||[]).forEach(sp=>pids.add(sp.pid));
+        }
+      });
+    }
+    if(!pids.size){
+      // Pas d'équipe précise (ou rien trouvé) : tous les joueurs du tournoi
+      pids=tournoiSquadPids(session);
+    }
+  } else if(session.type==='Match'){
+    // Match : le squad du match
     pids=new Set((session.squad||[]).map(sp=>sp.pid));
   }
   let list=(S.players||[]).filter(p=>pids.has(p.id));
@@ -2529,9 +2542,20 @@ async function voteSubmit(){
 
 // Bloc MVP affiché sous une séance match/tournoi (dans Présences)
 function mvpBlockHtml(sid, team){
-  const key=team||'';
-  return '<button class="btn btn-out btn-w btn-sm" style="margin-top:8px" onclick="openMvpPanel('+sid+',\''+esc(key)+'\')">\u{1F3C6} '+tr('mvpBtn')+(team?' — '+esc(team):'')+'</button>'+
-    '<div id="mvp-panel-'+sid+(team?'-'+team.replace(/[^a-zA-Z0-9]/g,''):'')+'"></div>';
+  const s=S.sessions.find(x=>x.id===sid);
+  // Tournoi avec plusieurs équipes RCL → un bouton de vote par équipe
+  if(s && s.type==='Tournoi'){
+    const teams=getRclTeams(s);
+    if(teams.length>1){
+      return teams.map(t=>mvpOneButton(sid,t)).join('');
+    }
+  }
+  return mvpOneButton(sid, team||'');
+}
+function mvpOneButton(sid, team){
+  const suffix=sid+(team?'-'+team.replace(/[^a-zA-Z0-9]/g,''):'');
+  return '<button class="btn btn-out btn-w btn-sm" style="margin-top:8px" onclick="openMvpPanel('+sid+',\''+esc(team)+'\')">\u{1F3C6} '+tr('mvpBtn')+(team?' — '+esc(team):'')+'</button>'+
+    '<div id="mvp-panel-'+suffix+'"></div>';
 }
 
 let _mvpCache={};
@@ -4650,7 +4674,8 @@ function rAtt(){
         '<div style="font-size:12px;color:var(--mut)">'+tr('calledLbl')+'</div></div>'+
         '<div style="font-size:11px;color:var(--mg);background:var(--lg);border-radius:8px;padding:5px 9px;text-align:center;line-height:1.4">'+
           '&#128260; '+tr('autoAttMatchInfo')+'</div></div>'+
-      '<div class="card" style="padding:10px 14px">'+
+      pollBlockHtml(sid)+mvpBlockHtml(sid,'')+rAttCoachInfo(s)+
+      '<div class="card" style="padding:10px 14px;margin-top:10px">'+
       pl.map(p=>{
         const sp=squad.find(x=>x.pid===p.id);
         if(!sp) return '<div class="att-row">'+
@@ -4667,7 +4692,7 @@ function rAtt(){
           '<div class="pnum-sm">'+(p.number||'?')+'</div>'+
           '<div class="att-nm">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
           '<div style="font-size:11px;font-weight:600">'+roleIcon+' '+roleLbl+ptLbl+'</div></div>';
-      }).join('')+'</div>'+rAttCoachInfo(s)+pollBlockHtml(sid)+mvpBlockHtml(sid,'');
+      }).join('')+'</div>';
     if(_fb.cfg && _fb.code) loadPollIntentions(sid);
     return;
   }
@@ -4684,7 +4709,8 @@ function rAtt(){
         '<div style="font-size:12px;color:var(--mut)">'+tr('participatesLbl')+'</div></div>'+
         '<div style="font-size:11px;color:var(--mg);background:var(--lg);border-radius:8px;padding:5px 9px;text-align:center;line-height:1.4">'+
           '&#128260; '+tr('autoAttTournoiInfo')+'</div></div>'+
-      '<div class="card" style="padding:10px 14px">'+
+      pollBlockHtml(sid)+mvpBlockHtml(sid,'')+rAttCoachInfo(s)+
+      '<div class="card" style="padding:10px 14px;margin-top:10px">'+
       pl.map(p=>{
         const matchCount=playerTournoiMatchCount(s,p.id);
         const totalRclM=rclMatches.length;
@@ -4703,7 +4729,7 @@ function rAtt(){
             '<span style="color:var(--mg)">&#9899;</span> '+matchCount+(totalRclM>0?'/'+totalRclM:'')+' '+tr('matchNbLbl')+
             (totalPt>0?' &bull; '+fmtT(totalPt):'')+
           '</div></div>';
-      }).join('')+'</div>'+rAttCoachInfo(s)+pollBlockHtml(sid)+mvpBlockHtml(sid,'');
+      }).join('')+'</div>';
     if(_fb.cfg && _fb.code) loadPollIntentions(sid);
     return;
   }
