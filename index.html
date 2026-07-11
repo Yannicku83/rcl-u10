@@ -399,6 +399,7 @@ textarea.fi{resize:vertical;min-height:60px}
 #resviewer-ov:fullscreen{background:var(--card)}
 #resviewer-ov:fullscreen #resviewer-body{height:calc(100vh - 52px)}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <!-- WELCOME / CONNECT SCREEN (pré-configuré) -->
@@ -631,7 +632,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='2.78';
+const APP_VER='2.88';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -1014,7 +1015,7 @@ const I18N = {
   'pollNeedSync':'Active la synchro Firebase pour utiliser les sondages','pollShareIntro':'Partage ce lien avec les parents. Ils indiqueront si leur enfant sera présent.','pollShareWA':'Partager sur WhatsApp','pollCopyLink':'Copier le lien','pollOpenPage':'Ouvrir la page sondage','pollLinkCopied':'Lien copié !','pollShareMsg':'Présence {event} — merci d\u2019indiquer si votre enfant sera là :','pollShareBtn':'Sondage présence',
   'btnClose':'Fermer',
   'pollLoading':'Chargement…','pollNotFound':'Sondage introuvable ou expiré','pollError':'Une erreur est survenue','pollPickChild':'Choisis ton enfant','pollChooseChild':'— Sélectionne —','pollAlreadyIn':'déjà inscrits','pollPresent':'Présent','pollAbsent':'Absent','pollInjured':'Blessé','pollResults':'Qui vient ?','pollThanks':'Merci, réponse enregistrée !','pollYourAnswer':'Ta réponse :','pollIntentionsTitle':'Réponses des parents','pollApplyBtn':'Pré-remplir les présences','pollApplyHint':'Applique les réponses des parents comme point de départ. Confirme chaque présence le jour J.','pollApplyConfirm':'Pré-remplir les présences avec les réponses des parents ?','pollApplied':'✅ Présences pré-remplies',
-  'mvpBtn':'Joueur du match','mvpPlayersChoice':'Choix des joueurs','mvpCoachesChoice':'Choix des coachs','mvpVotes':'votes','mvpNoVotes':'Aucun vote pour l\u2019instant','mvpTallyHint':'Décompte (caché aux joueurs jusqu\u2019à la clôture)','mvpCloseBtn':'Clôturer le vote','mvpClosed':'✅ Vote clôturé','mvpNone':'Aucun','mvpTieTitle':'Égalité','mvpTieHint':'Il y a une égalité en tête. Choisis le gagnant :','mvpConfirmWinner':'Désigner gagnant','mvpSetCoachChoice':'Définir le choix des coachs','mvpEditCoachChoice':'Modifier le choix des coachs','mvpCoachChoosePlayer':'Joueur choisi','mvpCoachReason':'Explication','mvpNeedPlayer':'Choisis un joueur','mvpCoachSaved':'✅ Choix des coachs enregistré',
+  'mvpBtn':'Joueur du match','potmBtn':'Générer l\u2019image','mvpWriteSynthesis':'Rédiger la synthèse','mvpEditSynthesis':'Modifier la synthèse','mvpSynthesisTitle':'Synthèse des commentaires','mvpAllComments':'Commentaires des joueurs','mvpNoComments':'Aucun commentaire reçu.','mvpSynthesisLbl':'Ta synthèse (apparaîtra sur l\u2019image)','mvpSynthesisPh':'Ex : Beau jeu en équipe et bonne défense','mvpSynthesisHint':'Résume les commentaires des joueurs en une phrase pour l\u2019image.','mvpSynthesisSaved':'✅ Synthèse enregistrée','potmGenerating':'Création de l\u2019image…','potmDone':'✅ Image téléchargée','potmError':'Erreur lors de la génération','potmNeedResult':'Clôture d\u2019abord le vote pour désigner les gagnants','mvpShareBtn':'Partager le lien de vote','mvpReopenBtn':'Rouvrir le vote','mvpReopenConfirm':'Rouvrir ce vote ? Les joueurs pourront voter à nouveau.','mvpReopened':'Vote rouvert','mvpPlayersChoice':'Choix des joueurs','mvpCoachesChoice':'Choix des coachs','mvpVotes':'votes','mvpNoVotes':'Aucun vote pour l\u2019instant','mvpTallyHint':'Décompte (caché aux joueurs jusqu\u2019à la clôture)','mvpCloseBtn':'Clôturer le vote','mvpClosed':'✅ Vote clôturé','mvpNone':'Aucun','mvpTieTitle':'Égalité','mvpTieHint':'Il y a une égalité en tête. Choisis le gagnant :','mvpConfirmWinner':'Désigner gagnant','mvpSetCoachChoice':'Définir le choix des coachs','mvpEditCoachChoice':'Modifier le choix des coachs','mvpCoachChoosePlayer':'Joueur choisi','mvpCoachReason':'Explication','mvpNeedPlayer':'Choisis un joueur','mvpCoachSaved':'✅ Choix des coachs enregistré',
   'voteTitle':'Joueur du match','voteShareMsg':'Vote pour le joueur du match {event} :','voteShareIntro':'Partage ce lien avec les joueurs. Chacun vote pour un coéquipier (pas pour lui-même) avec une explication.','voteWhoAreYou':'Qui es-tu ?','voteWhoHint':'Choisis ton prénom (tu ne pourras pas voter pour toi-même).','voteContinue':'Continuer','voteAs':'Tu votes en tant que','voteChange':'changer','voteForWho':'Pour qui votes-tu ?','voteWhy':'Pourquoi ?','voteWhyPh':'Ex : super défense et beau jeu en équipe','voteSubmit':'Voter','voteThanks':'Merci pour ton vote !','voteThanksSub':'Le résultat sera annoncé par le coach.','voteNeedVoter':'Choisis ton prénom','voteNeedChoice':'Choisis un joueur','voteNeedReason':'Explique ton choix','voteClosed':'Le vote est terminé. Merci !',
   'resTitle':'Ressources','resHomeBtn':'Ressources & documents','resHomeHint':'Règlements, docs du club, tournois','resCountSingular':'document','resCountPlural':'documents','resEmpty':'Aucun document pour l\u2019instant. Ajoute un lien vers un règlement, une doc du club, etc.','resAdd':'Ajouter un document','resNewTitle':'Nouveau document','resTitleLbl':'Titre','resTitlePh':'Ex : Règlement tournoi U10','resCatLbl':'Catégorie','resUrlLbl':'Lien (URL)','resUrlHint':'Colle le lien de partage depuis Google Drive, Dropbox, le site de la fédération, etc.','resNoteLbl':'Note (optionnel)','resNotePh':'Ex : Version 2026','resOpen':'Ouvrir','resNoPreview':'Aperçu non disponible pour ce lien. Ouvre-le directement.','resOpenExt':'Ouvrir le document','resNeedTitle':'Indique un titre','resNeedUrl':'Indique un lien','resAdded':'✅ Document ajouté','resDeleted':'Document supprimé','resConfirmDelete':'Supprimer ce document ?',
   'resCat_reglement':'Règlements','resCat_club':'Documents du club','resCat_tournoi':'Tournois','resCat_formation':'Formation','resCat_autre':'Autres',
@@ -1375,7 +1376,7 @@ const I18N = {
   'pollNeedSync':'Enable Firebase sync to use polls','pollShareIntro':'Share this link with parents. They\u2019ll indicate if their child will attend.','pollShareWA':'Share on WhatsApp','pollCopyLink':'Copy link','pollOpenPage':'Open poll page','pollLinkCopied':'Link copied!','pollShareMsg':'Attendance {event} — please tell us if your child will be there:','pollShareBtn':'Attendance poll',
   'btnClose':'Close',
   'pollLoading':'Loading…','pollNotFound':'Poll not found or expired','pollError':'An error occurred','pollPickChild':'Choose your child','pollChooseChild':'— Select —','pollAlreadyIn':'already in','pollPresent':'Present','pollAbsent':'Absent','pollInjured':'Injured','pollResults':'Who\u2019s coming?','pollThanks':'Thanks, response saved!','pollYourAnswer':'Your answer:','pollIntentionsTitle':'Parent responses','pollApplyBtn':'Pre-fill attendance','pollApplyHint':'Applies parent responses as a starting point. Confirm each attendance on match day.','pollApplyConfirm':'Pre-fill attendance with parent responses?','pollApplied':'✅ Attendance pre-filled',
-  'mvpBtn':'Player of the match','mvpPlayersChoice':'Players\u2019 choice','mvpCoachesChoice':'Coaches\u2019 choice','mvpVotes':'votes','mvpNoVotes':'No votes yet','mvpTallyHint':'Tally (hidden from players until closing)','mvpCloseBtn':'Close voting','mvpClosed':'✅ Voting closed','mvpNone':'None','mvpTieTitle':'Tie','mvpTieHint':'There is a tie at the top. Pick the winner:','mvpConfirmWinner':'Set winner','mvpSetCoachChoice':'Set coaches\u2019 choice','mvpEditCoachChoice':'Edit coaches\u2019 choice','mvpCoachChoosePlayer':'Chosen player','mvpCoachReason':'Reason','mvpNeedPlayer':'Pick a player','mvpCoachSaved':'✅ Coaches\u2019 choice saved',
+  'mvpBtn':'Player of the match','potmBtn':'Generate image','mvpWriteSynthesis':'Write summary','mvpEditSynthesis':'Edit summary','mvpSynthesisTitle':'Comments summary','mvpAllComments':'Player comments','mvpNoComments':'No comments received.','mvpSynthesisLbl':'Your summary (shown on the image)','mvpSynthesisPh':'e.g. Great team play and solid defense','mvpSynthesisHint':'Summarize the players\u2019 comments in one sentence for the image.','mvpSynthesisSaved':'✅ Summary saved','potmGenerating':'Creating image…','potmDone':'✅ Image downloaded','potmError':'Error while generating','potmNeedResult':'Close the vote first to set the winners','mvpShareBtn':'Share voting link','mvpReopenBtn':'Reopen voting','mvpReopenConfirm':'Reopen this vote? Players will be able to vote again.','mvpReopened':'Voting reopened','mvpPlayersChoice':'Players\u2019 choice','mvpCoachesChoice':'Coaches\u2019 choice','mvpVotes':'votes','mvpNoVotes':'No votes yet','mvpTallyHint':'Tally (hidden from players until closing)','mvpCloseBtn':'Close voting','mvpClosed':'✅ Voting closed','mvpNone':'None','mvpTieTitle':'Tie','mvpTieHint':'There is a tie at the top. Pick the winner:','mvpConfirmWinner':'Set winner','mvpSetCoachChoice':'Set coaches\u2019 choice','mvpEditCoachChoice':'Edit coaches\u2019 choice','mvpCoachChoosePlayer':'Chosen player','mvpCoachReason':'Reason','mvpNeedPlayer':'Pick a player','mvpCoachSaved':'✅ Coaches\u2019 choice saved',
   'voteTitle':'Player of the match','voteShareMsg':'Vote for the player of the match {event}:','voteShareIntro':'Share this link with players. Each votes for a teammate (not themselves) with a reason.','voteWhoAreYou':'Who are you?','voteWhoHint':'Pick your first name (you won\u2019t be able to vote for yourself).','voteContinue':'Continue','voteAs':'You are voting as','voteChange':'change','voteForWho':'Who do you vote for?','voteWhy':'Why?','voteWhyPh':'e.g. great defense and nice team play','voteSubmit':'Vote','voteThanks':'Thanks for your vote!','voteThanksSub':'The result will be announced by the coach.','voteNeedVoter':'Pick your first name','voteNeedChoice':'Pick a player','voteNeedReason':'Explain your choice','voteClosed':'Voting is closed. Thanks!',
   'resTitle':'Resources','resHomeBtn':'Resources & documents','resHomeHint':'Rules, club docs, tournaments','resCountSingular':'document','resCountPlural':'documents','resEmpty':'No documents yet. Add a link to a rulebook, club doc, etc.','resAdd':'Add a document','resNewTitle':'New document','resTitleLbl':'Title','resTitlePh':'e.g. U10 tournament rules','resCatLbl':'Category','resUrlLbl':'Link (URL)','resUrlHint':'Paste the share link from Google Drive, Dropbox, the federation website, etc.','resNoteLbl':'Note (optional)','resNotePh':'e.g. 2026 version','resOpen':'Open','resNoPreview':'Preview not available for this link. Open it directly.','resOpenExt':'Open document','resNeedTitle':'Enter a title','resNeedUrl':'Enter a link','resAdded':'✅ Document added','resDeleted':'Document deleted','resConfirmDelete':'Delete this document?',
   'resCat_reglement':'Rulebooks','resCat_club':'Club documents','resCat_tournoi':'Tournaments','resCat_formation':'Training','resCat_autre':'Other',
@@ -1945,6 +1946,57 @@ function principleAvgOverEvals(evals, princ){
 }
 
 // ═══ Assiduité ═══
+// Statistiques de présence d'un joueur (ou global si playerId=null), séances PASSÉES uniquement.
+// Retourne le détail (entraînements/matchs/tournois) + le taux global cohérent partout.
+function playerAttendanceStats(playerId){
+  const todayStr=today();
+  const past=s=>s.date && s.date<=todayStr; // uniquement les séances jusqu'à aujourd'hui
+  const trainSessions=S.sessions.filter(s=>s.type==='Entra\u00eenement' && past(s));
+  const matchSessions=S.sessions.filter(s=>s.type==='Match' && past(s));
+  const tournoiSessions=S.sessions.filter(s=>s.type==='Tournoi' && past(s));
+
+  // Entraînements : présences P sur le nombre total d'entraînements passés
+  const trainIds=new Set(trainSessions.map(s=>s.id));
+  let trainP, trainTot=trainSessions.length;
+  if(playerId){
+    trainP=S.attendance.filter(a=>a.playerId===playerId && a.status==='P' && trainIds.has(a.sessionId)).length;
+  } else {
+    // global équipe : moyenne des présences P sur (nb entraînements × nb joueurs)
+    trainP=S.attendance.filter(a=>a.status==='P' && trainIds.has(a.sessionId)).length;
+    trainTot=trainSessions.length*(S.players.length||1);
+  }
+  const trainPct=trainTot?Math.round(trainP/trainTot*100):null;
+
+  // Matchs : participations (dans le squad) sur nombre de matchs passés
+  let matchPart, matchTot=matchSessions.length;
+  if(playerId){
+    matchPart=matchSessions.filter(s=>matchSquadPids(s).has(playerId)).length;
+  } else {
+    matchPart=matchSessions.reduce((acc,s)=>acc+matchSquadPids(s).size,0);
+    matchTot=matchSessions.length*(S.players.length||1);
+  }
+  const matchPct=matchTot?Math.round(matchPart/matchTot*100):null;
+
+  // Tournois : participations sur nombre de tournois passés
+  let tournoiPart, tournoiTot=tournoiSessions.length;
+  if(playerId){
+    tournoiPart=tournoiSessions.filter(s=>tournoiSquadPids(s).has(playerId)).length;
+  } else {
+    tournoiPart=tournoiSessions.reduce((acc,s)=>acc+tournoiSquadPids(s).size,0);
+    tournoiTot=tournoiSessions.length*(S.players.length||1);
+  }
+  const tournoiPct=tournoiTot?Math.round(tournoiPart/tournoiTot*100):null;
+
+  // Taux global : somme des présences/participations sur le total des séances passées
+  const totPresent=trainP+matchPart+tournoiPart;
+  const totSessions=trainTot+matchTot+tournoiTot;
+  const globalPct=totSessions?Math.round(totPresent/totSessions*100):null;
+
+  return {
+    trainPct, matchPct, tournoiPct, globalPct,
+    trainCount:trainSessions.length, matchCount:matchSessions.length, tournoiCount:tournoiSessions.length
+  };
+}
 // Taux de présence global sur les N dernières séances (tous types) triées par date
 function attendanceRate(playerId, sessions){
   const relevant=sessions.filter(s=>S.attendance.some(a=>a.sessionId===s.id&&(playerId?a.playerId===playerId:true)));
@@ -2145,10 +2197,20 @@ function rAnalysePlayerDetail(){
   }
   html+='</div>';
 
-  // Assiduité du joueur
-  const rate=attendanceRate(pid, S.sessions);
+  // Assiduité du joueur (taux global + détail, séances passées uniquement)
+  const st=playerAttendanceStats(pid);
   html+='<div class="an-card"><div class="an-card-title">\u{1F4C5} '+tr('anAttendanceTitle')+'</div>';
-  html+=rate!==null?'<div style="font-size:26px;font-weight:800;color:var(--mg)">'+rate+'%</div>':'<div class="an-empty">'+tr('anNoData')+'</div>';
+  if(st.globalPct!==null){
+    html+='<div style="font-size:26px;font-weight:800;color:var(--mg)">'+st.globalPct+'%</div>';
+    // Détail par type de séance
+    let det=[];
+    if(st.trainCount) det.push(tr('statTrainings')+' '+(st.trainPct!==null?st.trainPct:0)+'%');
+    if(st.matchCount) det.push((st.matchPct!==null?st.matchPct:0)+'% '+tr('statMatches').toLowerCase());
+    if(st.tournoiCount) det.push((st.tournoiPct!==null?st.tournoiPct:0)+'% '+tr('statTournois').toLowerCase());
+    if(det.length) html+='<div style="font-size:11.5px;color:var(--mut);margin-top:4px">'+det.join(' &bull; ')+'</div>';
+  } else {
+    html+='<div class="an-empty">'+tr('anNoData')+'</div>';
+  }
   html+='</div>';
 
   // Temps de jeu du joueur vs moyenne équipe
@@ -2233,7 +2295,7 @@ function analyseHomePreview(){
   const box=document.getElementById('analyse-home-preview');
   if(!box) return;
   if(!S.players.length){ box.textContent=tr('anHomeHint'); return; }
-  const rate=attendanceRate(null, S.sessions);
+  const rate=playerAttendanceStats(null).globalPct;
   const teamEvals=evalsForTeam();
   const nEval=teamEvals.length;
   const parts=[];
@@ -2518,6 +2580,8 @@ function rMvpPanel(sid, team){
   html+='<div style="font-size:12px;font-weight:800;color:var(--dk);margin-bottom:8px">\u{1F3C6} '+tr('mvpPlayersChoice')+' \u2014 '+nVotes+' '+tr('mvpVotes')+'</div>';
 
   if(!closed){
+    // Bouton partager le lien de vote aux joueurs
+    html+='<button class="btn btn-out btn-sm btn-w" style="margin-bottom:8px" onclick="openVoteShare('+sid+',\''+esc(team||'')+'\')">\u{1F517} '+tr('mvpShareBtn')+'</button>';
     // Vote en cours : le coach voit le décompte (résultats cachés aux joueurs)
     if(!ranked.length){
       html+='<div style="font-size:12px;color:var(--mut);font-style:italic;margin-bottom:8px">'+tr('mvpNoVotes')+'</div>';
@@ -2537,6 +2601,11 @@ function rMvpPanel(sid, team){
     html+='<div style="background:#FEF3E0;border-radius:8px;padding:10px;margin-bottom:8px">'+
       '<div style="font-size:15px;font-weight:800;color:#F59E0B">'+(pc&&pc.playerId?pName(pc.playerId):tr('mvpNone'))+'</div>'+
       (pc&&pc.reason?'<div style="font-size:11px;color:var(--mut);margin-top:2px;font-style:italic">\u201C'+esc(pc.reason)+'\u201D</div>':'')+'</div>';
+    // Bouton rédiger/modifier la synthèse des commentaires (pour l'image)
+    const nComments=pc&&pc.comments?pc.comments.length:0;
+    html+='<button class="btn btn-out btn-sm btn-w" style="margin-bottom:8px" onclick="openSynthesisForm('+sid+',\''+esc(team||'')+'\')">'+(pc&&pc.reason?tr('mvpEditSynthesis'):tr('mvpWriteSynthesis'))+(nComments?' ('+nComments+')':'')+'</button>';
+    // Bouton rouvrir le vote (revenir en arrière)
+    html+='<button class="btn btn-out btn-sm btn-w" onclick="mvpReopen('+sid+',\''+esc(team||'')+'\')">\u21A9 '+tr('mvpReopenBtn')+'</button>';
   }
 
   // ── Coaches' choice ──
@@ -2548,6 +2617,11 @@ function rMvpPanel(sid, team){
       (cc.reason?'<div style="font-size:11px;color:var(--mut);margin-top:2px;font-style:italic">\u201C'+esc(cc.reason)+'\u201D</div>':'')+'</div>';
   }
   html+='<button class="btn btn-out btn-sm btn-w" onclick="openCoachChoiceForm('+sid+',\''+esc(team||'')+'\')">'+(cc&&cc.playerId?tr('mvpEditCoachChoice'):tr('mvpSetCoachChoice'))+'</button>';
+
+  // Bouton générer l'image (visible quand le vote est clôturé + au moins un gagnant)
+  if(closed && ((existing.playersChoice&&existing.playersChoice.playerId)||(cc&&cc.playerId))){
+    html+='<button class="btn btn-mg btn-w" style="margin-top:10px" onclick="generatePotmImage('+sid+',\''+esc(team||'')+'\')">\u{1F5BC}\uFE0F '+tr('potmBtn')+'</button>';
+  }
 
   html+='</div>';
   panel.innerHTML=html;
@@ -2576,9 +2650,21 @@ function mvpClose(sid, team){
     return;
   }
   const winner=ranked.length?ranked[0].pid:null;
-  const winnerReason=winner&&reasons[winner]?reasons[winner][0]:'';
-  mvpSaveResult(sid, team, {playerId:winner, reason:winnerReason}, null, true);
+  // On stocke TOUS les commentaires reçus pour le gagnant (le coach en fera la synthèse)
+  const winnerComments=winner&&reasons[winner]?reasons[winner]:[];
+  mvpSaveResult(sid, team, {playerId:winner, reason:'', comments:winnerComments}, null, true);
   openMvpPanel(sid, team); openMvpPanel(sid, team); // refresh
+}
+
+// Rouvrir un vote clôturé (revenir en arrière) : les joueurs peuvent voter à nouveau
+function mvpReopen(sid, team){
+  confirmBox(tr('mvpReopenConfirm'), ()=>{
+    const existing=(S.mvpResults||[]).find(r=>r.sessionId===sid && (r.team||'')===(team||''));
+    if(existing){ existing.closed=false; save(); }
+    // Recharger le panneau (2 appels = toggle refresh)
+    openMvpPanel(sid, team); openMvpPanel(sid, team);
+    toast(tr('mvpReopened'));
+  }, tr('mvpReopenBtn'));
 }
 
 function openMvpTieBreaker(sid, team, topPids, reasons){
@@ -2596,8 +2682,8 @@ function openMvpTieBreaker(sid, team, topPids, reasons){
 function mvpResolveTie(sid, team){
   const pid=parseInt(document.getElementById('mvp-tie-sel').value);
   const reasons=window._mvpTieReasons||{};
-  const reason=reasons[pid]?reasons[pid][0]:'';
-  mvpSaveResult(sid, team, {playerId:pid, reason}, null, true);
+  const comments=reasons[pid]?reasons[pid]:[];
+  mvpSaveResult(sid, team, {playerId:pid, reason:'', comments}, null, true);
   closePollShare();
   openMvpPanel(sid, team); openMvpPanel(sid, team);
   toast(tr('mvpClosed'));
@@ -2631,6 +2717,42 @@ function saveCoachChoice(sid, team){
   toast(tr('mvpCoachSaved'));
 }
 
+// Formulaire de synthèse : le coach voit tous les commentaires des joueurs et rédige LA citation
+function openSynthesisForm(sid, team){
+  const existing=(S.mvpResults||[]).find(r=>r.sessionId===sid && (r.team||'')===(team||''));
+  if(!existing || !existing.playersChoice){ return; }
+  const pc=existing.playersChoice;
+  const comments=pc.comments||[];
+  const body=document.getElementById('poll-share-body');
+  document.getElementById('poll-share-title').textContent=tr('mvpSynthesisTitle');
+  let commentsHtml='';
+  if(comments.length){
+    commentsHtml='<div style="font-size:12px;font-weight:700;color:var(--dk);margin-bottom:6px">'+tr('mvpAllComments')+' ('+comments.length+')</div>'+
+      '<div style="background:var(--bg);border-radius:8px;padding:10px;margin-bottom:12px;max-height:160px;overflow-y:auto">'+
+      comments.map(cm=>'<div style="font-size:12px;color:var(--text);margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--brd)">\u201C'+esc(cm)+'\u201D</div>').join('')+
+      '</div>';
+  } else {
+    commentsHtml='<div style="font-size:12px;color:var(--mut);font-style:italic;margin-bottom:12px">'+tr('mvpNoComments')+'</div>';
+  }
+  body.innerHTML=commentsHtml+
+    '<div class="fg"><label class="fl">'+tr('mvpSynthesisLbl')+'</label>'+
+    '<textarea class="fi" id="mvp-synth" rows="3" placeholder="'+tr('mvpSynthesisPh')+'" style="resize:vertical;min-height:70px">'+(pc.reason?esc(pc.reason):'')+'</textarea></div>'+
+    '<div style="font-size:11px;color:var(--mut);margin-bottom:10px">'+tr('mvpSynthesisHint')+'</div>'+
+    '<button class="btn btn-mg btn-w" style="margin-bottom:8px" onclick="saveSynthesis('+sid+',\''+esc(team||'')+'\')">'+tr('btnSave')+'</button>'+
+    '<button class="btn btn-out btn-w" onclick="closePollShare()">'+tr('btnCancel')+'</button>';
+  document.getElementById('poll-share-ov').classList.add('open');
+}
+function saveSynthesis(sid, team){
+  const synth=(document.getElementById('mvp-synth').value||'').trim();
+  const existing=(S.mvpResults||[]).find(r=>r.sessionId===sid && (r.team||'')===(team||''));
+  if(!existing || !existing.playersChoice) return;
+  existing.playersChoice.reason=synth;
+  save();
+  closePollShare();
+  openMvpPanel(sid, team); openMvpPanel(sid, team);
+  toast(tr('mvpSynthesisSaved'));
+}
+
 // Sauvegarde/mise à jour d'un résultat MVP
 function mvpSaveResult(sid, team, playersChoice, coachesChoice, closed){
   if(!S.mvpResults) S.mvpResults=[];
@@ -2640,6 +2762,194 @@ function mvpSaveResult(sid, team, playersChoice, coachesChoice, closed){
   if(coachesChoice!==null) r.coachesChoice=coachesChoice;
   if(closed!==undefined && closed!==null) r.closed=closed;
   save();
+}
+
+// ═══════════════════════════════════════════
+// GÉNÉRATION IMAGE "Player of the Tournament" (visuel téléchargeable)
+// Reproduit le design RCL : fond bleu clair, titre condensé, photos rondes,
+// Players' choice / Coaches' choice, citations, nom du tournoi + date.
+// ═══════════════════════════════════════════
+const POTM_LOGO='data:image/png;base64,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';
+
+// Charge une image (base64 ou url) en Promise
+function potmLoadImg(src){
+  return new Promise((resolve)=>{
+    if(!src){ resolve(null); return; }
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>resolve(img);
+    img.onerror=()=>resolve(null);
+    img.src=src;
+  });
+}
+
+// Dessine une image "cover" dans un cercle (comme les photos rondes des visuels)
+function potmDrawCircleImg(ctx, img, cx, cy, r){
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.closePath();
+  ctx.clip();
+  if(img){
+    // cover : remplir le cercle sans déformer
+    const size=r*2;
+    const ratio=Math.max(size/img.width, size/img.height);
+    const w=img.width*ratio, h=img.height*ratio;
+    ctx.drawImage(img, cx-w/2, cy-h/2, w, h);
+  } else {
+    ctx.fillStyle='#9BB8CE';
+    ctx.fillRect(cx-r, cy-r, r*2, r*2);
+  }
+  ctx.restore();
+}
+
+// Texte multi-lignes centré (retour à la ligne automatique)
+function potmWrapText(ctx, text, cx, y, maxW, lineH){
+  const words=(text||'').split(' ');
+  let line='', lines=[];
+  words.forEach(w=>{
+    const test=line?line+' '+w:w;
+    if(ctx.measureText(test).width>maxW && line){ lines.push(line); line=w; }
+    else line=test;
+  });
+  if(line) lines.push(line);
+  lines.forEach((ln,i)=>ctx.fillText(ln, cx, y+i*lineH));
+  return lines.length;
+}
+
+// Dessine un texte courbé en arc de cercle (au-dessus d'un cercle, centré en haut)
+// cx,cy = centre du cercle ; radius = rayon de l'arc du texte ; couleur/police déjà définis
+function potmArcText(ctx, text, cx, cy, radius, font, color){
+  ctx.save();
+  ctx.font=font;
+  ctx.fillStyle=color;
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  // Largeur angulaire totale : somme des largeurs de lettres / rayon
+  const chars=text.split('');
+  const widths=chars.map(ch=>ctx.measureText(ch).width);
+  const totalW=widths.reduce((a,b)=>a+b,0);
+  const totalAngle=totalW/radius;
+  // On centre l'arc sur le sommet du cercle (-90° = haut)
+  let angle=-Math.PI/2 - totalAngle/2;
+  for(let i=0;i<chars.length;i++){
+    const w=widths[i];
+    angle+=(w/2)/radius;
+    const x=cx+Math.cos(angle)*radius;
+    const y=cy+Math.sin(angle)*radius;
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(angle+Math.PI/2); // orienter la lettre tangentiellement
+    ctx.fillText(chars[i],0,0);
+    ctx.restore();
+    angle+=(w/2)/radius;
+  }
+  ctx.restore();
+}
+
+// Génère et télécharge l'image pour une équipe
+async function generatePotmImage(sid, team){
+  const s=S.sessions.find(x=>x.id===sid);
+  if(!s){ toast(tr('potmError')); return; }
+  const existing=(S.mvpResults||[]).find(r=>r.sessionId===sid && (r.team||'')===(team||''));
+  if(!existing){ toast(tr('potmNeedResult')); return; }
+
+  toast(tr('potmGenerating'));
+
+  // Charger les polices web (Fredoka = arrondie et sympathique, utilisée partout)
+  try{
+    await Promise.all([
+      document.fonts.load('500 60px "Fredoka"'),
+      document.fonts.load('600 60px "Fredoka"'),
+      document.fonts.load('700 92px "Fredoka"'),
+    ]);
+  }catch(e){}
+
+  const pName=id=>{ const p=(S.players||[]).find(x=>x.id===id); return p?p.firstName:''; };
+  const pPhoto=id=>{ const p=(S.players||[]).find(x=>x.id===id); return p?p.photo:null; };
+
+  const pc=existing.playersChoice||{};
+  const cc=existing.coachesChoice||{};
+
+  // Charger les 2 photos
+  const [imgP, imgC, logo]=await Promise.all([
+    potmLoadImg(pPhoto(pc.playerId)),
+    potmLoadImg(pPhoto(cc.playerId)),
+    potmLoadImg(POTM_LOGO)
+  ]);
+
+  // Canvas 1080x1080
+  const W=1080, H=1080;
+  const cv=document.createElement('canvas');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+
+  const DK='#123E63', RED='#EE3124', BG='#B8D6E8', WHITE='#fff';
+
+  // Fond
+  ctx.fillStyle=BG; ctx.fillRect(0,0,W,H);
+
+  // Logo
+  if(logo){ ctx.drawImage(logo, 40, 40, 150, 150); }
+
+  // Titre "PLAYER OF THE" / "TOURNAMENT" — centré entre le logo et le bord droit
+  ctx.fillStyle=DK;
+  ctx.textAlign='center';
+  ctx.font='700 92px "Fredoka", sans-serif';
+  const titleCx=(210+W)/2; // centré dans l'espace après le logo
+  ctx.fillText('PLAYER OF THE', titleCx, 115);
+  ctx.fillText('TOURNAMENT', titleCx, 215);
+
+  // Ligne séparatrice rouge/blanc
+  ctx.fillStyle=WHITE; ctx.fillRect(0, 300, W, 8);
+  ctx.fillStyle=RED; ctx.fillRect(0, 308, W, 6);
+
+  // Photos rondes (descendues) — seules les photos + labels rouges bougent
+  const rR=175;
+  const cyPhoto=600;
+  const cxLeft=290, cxRight=790;
+  potmDrawCircleImg(ctx, imgP, cxLeft, cyPhoto, rR);
+  potmDrawCircleImg(ctx, imgC, cxRight, cyPhoto, rR);
+
+  // Labels "Players' choice" / "Coaches' choice" en ARC DE CERCLE au-dessus des photos (rouge)
+  potmArcText(ctx, "Players\u2019 choice", cxLeft, cyPhoto, rR+42, '600 40px "Fredoka", sans-serif', RED);
+  potmArcText(ctx, "Coaches\u2019 choice", cxRight, cyPhoto, rR+42, '600 40px "Fredoka", sans-serif', RED);
+
+  // Noms (position fixe, ne suit pas les photos)
+  ctx.fillStyle=DK;
+  ctx.textAlign='center';
+  ctx.textBaseline='alphabetic';
+  ctx.font='700 52px "Fredoka", sans-serif';
+  const nameY=825;
+  ctx.fillText(pName(pc.playerId)||'-', cxLeft, nameY);
+  ctx.fillText(pName(cc.playerId)||'-', cxRight, nameY);
+
+  // Citations (position fixe)
+  ctx.font='500 32px "Fredoka", sans-serif';
+  const quoteY=875;
+  if(pc.reason) potmWrapText(ctx, '\u201C'+pc.reason+'\u201D', cxLeft, quoteY, 440, 40);
+  if(cc.reason) potmWrapText(ctx, '\u201C'+cc.reason+'\u201D', cxRight, quoteY, 440, 40);
+
+  // Bas : nom du tournoi + date
+  ctx.fillStyle=DK;
+  ctx.font='700 56px "Fredoka", sans-serif';
+  ctx.textAlign='center';
+  const title=(team?team+' \u2014 ':'')+sessionTitle(s);
+  const dateStr=fdFull(s.date);
+  potmWrapText(ctx, title, W/2, 1010, W-80, 62);
+  ctx.font='600 44px "Fredoka", sans-serif';
+  ctx.fillText(dateStr, W/2, 1065);
+
+  // Télécharger
+  cv.toBlob((blob)=>{
+    if(!blob){ toast(tr('potmError')); return; }
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const safe=(team||sessionTitle(s)||'potm').replace(/[^a-zA-Z0-9]/g,'_');
+    a.href=url; a.download='POTM_'+safe+'.png'; a.click();
+    URL.revokeObjectURL(url);
+    toast(tr('potmDone'));
+  }, 'image/png');
 }
 
 // ═══════════════════════════════════════════
@@ -3122,16 +3432,17 @@ function pollSelectChild(){
 async function pollRespond(status){
   const pid=parseInt(document.getElementById('poll-child').value);
   if(!pid || !_pollCtx) return;
+  // 1. Mise à jour visuelle IMMÉDIATE (avant l'écriture réseau, pour un retour instantané)
+  if(!_pollCtx.responses) _pollCtx.responses={};
+  _pollCtx.responses[pid]={status, ts:Date.now()};
+  _pollLastChild=pid; // garder l'enfant sélectionné après redraw
+  pollDrawParent();
+  toast(tr('pollThanks'));
+  // 2. Enregistrement Firebase en arrière-plan
   try{
     const {fsMod}=_fb.sdk;
     await fsMod.setDoc(fsMod.doc(_fb.db,'polls',_pollCtx.ctx.code,'s'+_pollCtx.ctx.sid, String(pid)),
       { status, ts:Date.now(), playerId:pid });
-    // Mettre à jour localement et redessiner pour voir l'effet immédiatement
-    if(!_pollCtx.responses) _pollCtx.responses={};
-    _pollCtx.responses[pid]={status, ts:Date.now()};
-    _pollLastChild=pid; // garder l'enfant sélectionné après redraw
-    toast(tr('pollThanks'));
-    pollDrawParent();
   }catch(e){ console.error('Poll respond failed',e); toast(tr('pollError')); }
 }
 // Bascule FR/EN sur la page parent
@@ -3150,8 +3461,8 @@ function sessionTitle(s){
 
 function rHome(){
   rTodo();
-  const tp=S.attendance.filter(a=>a.status==='P').length, te=S.attendance.length;
-  const pct=te?Math.round(tp/te*100)+'%':'\u2013';
+  const gStat=playerAttendanceStats(null);
+  const pct=gStat.globalPct!==null?gStat.globalPct+'%':'\u2013';
   document.getElementById('h-stats').innerHTML=
     '<div class="stat-box"><div class="stat-num">'+S.players.length+'</div><div class="stat-lbl">'+tr('statPlayers')+'</div></div>'+
     '<div class="stat-box"><div class="stat-num">'+S.sessions.filter(s=>s.type==='Entra\u00eenement').length+'</div><div class="stat-lbl">'+tr('statTrainings')+'</div></div>'+
@@ -3328,23 +3639,10 @@ function rPlayers(){
 
   if(!pl.length){ document.getElementById('p-list').innerHTML='<div class="empty"><div class="empty-ic">&#128101;</div><p>'+(q?tr('noPlayerFound'):tr('noPlayerYet'))+'</p></div>'; return; }
 
-  // Stats globales (calcul hors boucle pour perf)
-  const matchSessions=S.sessions.filter(s=>s.type==='Match');
-  const tournoiSessions=S.sessions.filter(s=>s.type==='Tournoi');
-  const trainTotal=S.sessions.filter(s=>s.type==='Entra\u00eenement').length;
-
   document.getElementById('p-list').innerHTML=pl.map(p=>{
-    // Entraînement : % présence manuelle
-    const trainIds=new Set(S.sessions.filter(s=>s.type==='Entra\u00eenement').map(s=>s.id));
-    const trainRecs=S.attendance.filter(a=>a.playerId===p.id&&trainIds.has(a.sessionId));
-    const trainP=trainRecs.filter(a=>a.status==='P').length;
-    const eP=trainTotal?Math.round(trainP/trainTotal*100):null;
-
-    // Match : nb participé / total
-    const matchPartic=matchSessions.filter(s=>matchSquadPids(s).has(p.id)).length;
-
-    // Tournoi : nb participé / total
-    const tournoiPartic=tournoiSessions.filter(s=>tournoiSquadPids(s).has(p.id)).length;
+    // Statistiques de présence cohérentes (séances passées uniquement)
+    const st=playerAttendanceStats(p.id);
+    const eP=st.trainPct;
 
     // Éval : moyenne
     const evs=S.evaluations.filter(e=>e.playerId===p.id);
@@ -3357,16 +3655,14 @@ function rPlayers(){
 
     // Ligne stats : Entr. XX% • XX% matchs • XX% tournois
     let statsLine='';
-    if(trainTotal) statsLine+=tr('statTrainings')+' '+(eP!==null?eP+'%':'\u2013');
-    if(matchSessions.length){
+    if(st.trainCount) statsLine+=tr('statTrainings')+' '+(eP!==null?eP+'%':'\u2013');
+    if(st.matchCount){
       if(statsLine) statsLine+=' &bull; ';
-      const mPct=Math.round(matchPartic/matchSessions.length*100);
-      statsLine+=mPct+'% '+tr('statMatches').toLowerCase();
+      statsLine+=(st.matchPct!==null?st.matchPct:0)+'% '+tr('statMatches').toLowerCase();
     }
-    if(tournoiSessions.length){
+    if(st.tournoiCount){
       if(statsLine) statsLine+=' &bull; ';
-      const tPct=Math.round(tournoiPartic/tournoiSessions.length*100);
-      statsLine+=tPct+'% '+tr('statTournois').toLowerCase();
+      statsLine+=(st.tournoiPct!==null?st.tournoiPct:0)+'% '+tr('statTournois').toLowerCase();
     }
 
     return '<div class="pc" onclick="togPD('+p.id+')">'+
