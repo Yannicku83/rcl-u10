@@ -12,7 +12,7 @@
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);max-width:500px;margin:0 auto;min-height:100vh}
 
 /* HEADER */
-header{position:fixed;top:0;left:0;right:0;max-width:500px;margin:0 auto;height:56px;background:var(--dk);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+header{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;height:56px;background:var(--dk);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:1000;box-shadow:0 2px 12px rgba(0,0,0,.4)}
 .hdr-title{font-size:14px;font-weight:700;letter-spacing:.3px}
 .hdr-date{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px}
 .hdr-export{background:var(--gd);color:var(--dk);border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer}
@@ -350,6 +350,7 @@ textarea.fi{resize:vertical;min-height:60px}
 .chat-emoji-item:active,.chat-emoji-item:hover{background:var(--lg)}
 .todo-col{margin-bottom:10px}
 .todo-col-hd{font-size:12px;font-weight:800;color:var(--dk);text-transform:uppercase;letter-spacing:.3px;margin:6px 0 5px;display:flex;align-items:center}
+.todo-coach-hd{font-size:12px;font-weight:700;color:var(--mg);margin:8px 0 4px 2px;padding-left:6px;border-left:3px solid var(--lg)}
 .todo-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
 .todo-item{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--brd);border-radius:9px;padding:7px 9px;margin-bottom:5px}
 .todo-item-main{flex:1;min-width:0}
@@ -632,7 +633,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='2.90';
+const APP_VER='2.91';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -1789,13 +1790,13 @@ function coachName(id){ const co=S.coaches.find(c=>c.id===id); return co?co.firs
 
 const TODO_PREVIEW_MAX=5; // nombre de tâches affichées sur l'accueil
 // HTML d'une tâche (réutilisé accueil + page complète)
-function taskItemHtml(t){
+function taskItemHtml(t, hideCoach){
   const st=t.status;
   const who=t.assignee?coachName(t.assignee):'';
   return '<div class="todo-item">'+
     '<div class="todo-item-main">'+
       '<div class="todo-item-title">'+esc(t.title)+'</div>'+
-      (who?'<div class="todo-item-who">\u{1F464} '+esc(who)+'</div>':'')+
+      (who&&!hideCoach?'<div class="todo-item-who">\u{1F464} '+esc(who)+'</div>':'')+
     '</div>'+
     '<div class="todo-item-actions">'+
       (st!=='todo'?'<button class="todo-mini" onclick="event.stopPropagation();taskMove('+t.id+',-1)" title="'+tr('todoBack')+'">\u2039</button>':'')+
@@ -1861,13 +1862,25 @@ function rTasksFull(){
     html='<div style="font-size:13px;color:var(--mut);text-align:center;padding:40px 0">'+tr('todoEmpty')+'</div>';
   } else {
     TASK_STATUS.forEach(st=>{
-      const list=tasks.filter(t=>t.status===st).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      const list=tasks.filter(t=>t.status===st);
       const color=st==='todo'?'#EE2837':st==='doing'?'#E8A33D':'#3DA35D';
       html+='<div class="todo-col"><div class="todo-col-hd"><span class="todo-dot" style="background:'+color+'"></span>'+taskStatusLabel(st)+' <span style="color:var(--mut)">('+list.length+')</span></div>';
       if(!list.length){
         html+='<div style="font-size:11px;color:var(--mut);font-style:italic;padding:4px 0">\u2014</div>';
       } else {
-        list.forEach(t=>{ html+=taskItemHtml(t); });
+        // Grouper par coach : chaque coach (ordre de la liste des coachs), puis les non-assignées
+        const groups=[];
+        (S.coaches||[]).forEach(co=>{
+          const ts=list.filter(t=>t.assignee===co.id).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+          if(ts.length) groups.push({name:co.firstName+' '+co.lastName, tasks:ts});
+        });
+        const unassigned=list.filter(t=>!t.assignee).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+        if(unassigned.length) groups.push({name:tr('todoUnassigned'), tasks:unassigned});
+        // Rendu : nom du coach en sous-titre, puis ses tâches
+        groups.forEach(g=>{
+          html+='<div class="todo-coach-hd">\u{1F464} '+esc(g.name)+' <span style="color:var(--mut);font-weight:400">('+g.tasks.length+')</span></div>';
+          g.tasks.forEach(t=>{ html+=taskItemHtml(t, true); });
+        });
       }
       html+='</div>';
     });
