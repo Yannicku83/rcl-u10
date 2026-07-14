@@ -328,8 +328,8 @@ textarea.fi{resize:vertical;min-height:60px}
 
 .team-chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--brd);border-radius:20px;padding:5px 10px;font-size:12px;font-weight:600;margin:3px}
 .team-chip button{background:none;border:none;color:var(--mut);cursor:pointer;font-size:14px;line-height:1;padding:0}
-.chat-ov{position:fixed;top:0;left:0;right:0;bottom:64px;background:var(--bg);z-index:90;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column}
-.chat-ov.open{transform:translateX(0)}
+.chat-ov{position:fixed;top:56px;left:50%;transform:translateX(-50%) translateX(100%);width:100%;max-width:500px;bottom:64px;background:var(--bg);z-index:90;transition:transform .25s;display:flex;flex-direction:column}
+.chat-ov.open{transform:translateX(-50%)}
 .chat-topbar{background:var(--mg);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;font-weight:700;font-size:15px;flex-shrink:0}
 .chat-back{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;width:32px}
 .chat-body-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
@@ -396,7 +396,7 @@ textarea.fi{resize:vertical;min-height:60px}
 .welcome-app{font-size:15px;font-weight:800;color:var(--mg);margin-bottom:18px;text-align:center}
 .welcome-h1{font-size:24px;font-weight:800;color:var(--dk);margin-bottom:6px}
 .welcome-p{font-size:14px;color:var(--mut);text-align:center;margin-bottom:8px}
-.chat-ov.res-css-fs{bottom:0;z-index:9999}
+.chat-ov.res-css-fs{top:0;bottom:0;z-index:9999}
 #resviewer-ov:fullscreen{background:var(--card)}
 #resviewer-ov:fullscreen #resviewer-body{height:calc(100vh - 52px)}
 </style>
@@ -633,7 +633,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='2.91';
+const APP_VER='2.92';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
