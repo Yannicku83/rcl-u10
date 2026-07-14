@@ -160,8 +160,6 @@ nav{position:fixed;bottom:0;left:0;right:0;max-width:500px;margin:0 auto;height:
 textarea.fi{resize:vertical;min-height:60px}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-.radopt{flex:1;padding:9px 4px;border-radius:10px;border:1.5px solid var(--brd);text-align:center;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--mut)}
-.radopt.sel{border-color:var(--dk);background:var(--dk);color:#fff}
 .pform{background:var(--lg);border-radius:var(--r);padding:14px;margin-bottom:12px;border:1.5px solid #A8D5B7}
 
 /* TOURNAMENT */
@@ -320,15 +318,13 @@ textarea.fi{resize:vertical;min-height:60px}
 .empty{text-align:center;padding:36px 20px;color:var(--mut)}
 .empty-ic{font-size:40px;margin-bottom:10px}
 
-.ss-bar{background:var(--card);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;box-shadow:var(--sh)}
-.ss-bar label{font-size:11px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px}
 .tv-tabs{display:flex;gap:0;background:var(--brd);border-radius:10px;padding:3px;margin-bottom:12px}
 .tvt{flex:1;padding:8px;border:none;background:transparent;border-radius:8px;font-size:12px;font-weight:600;color:var(--mut);cursor:pointer}
 .tvt.active{background:var(--card);color:var(--dk)}
 
 .team-chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--brd);border-radius:20px;padding:5px 10px;font-size:12px;font-weight:600;margin:3px}
 .team-chip button{background:none;border:none;color:var(--mut);cursor:pointer;font-size:14px;line-height:1;padding:0}
-.chat-ov{position:fixed;top:56px;left:50%;transform:translateX(-50%) translateX(100%);width:100%;max-width:500px;bottom:64px;background:var(--bg);z-index:90;transition:transform .25s;display:flex;flex-direction:column}
+.chat-ov{position:fixed;top:56px;left:50%;transform:translateX(100vw);width:100%;max-width:500px;bottom:64px;background:var(--bg);z-index:90;transition:transform .25s;display:flex;flex-direction:column}
 .chat-ov.open{transform:translateX(-50%)}
 .chat-topbar{background:var(--mg);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;font-weight:700;font-size:15px;flex-shrink:0}
 .chat-back{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;width:32px}
@@ -386,7 +382,6 @@ textarea.fi{resize:vertical;min-height:60px}
 .an-goal-status{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:12px;flex-shrink:0;cursor:pointer;border:none}
 
 
-.an-gs-done{background:#E8F5E9;color:#3DA35D}
 .poll-btn{border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:800;color:#fff;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent}
 .poll-btn:active{opacity:.85}
 .welcome-ov{display:none;position:fixed;inset:0;z-index:500;background:linear-gradient(160deg,var(--dk),var(--mg));align-items:center;justify-content:center;padding:24px}
@@ -633,7 +628,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='2.92';
+const APP_VER='2.93';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -669,7 +664,6 @@ const CRIT = [
   {k:'rules',l:'Respect des r\u00e8gles'},{k:'fairPlay',l:'Fair-play'}
 ];
 const POSITIONS = ['Pilier','Talonneur','3\u00e8me ligne','Demi m\u00eal\u00e9e','Demi ouverture','Ailier','Centre','Arri\u00e8re','Polyvalent'];
-const SLbls = {P:'Pr\u00e9sent',A:'Absent',B:'Bless\u00e9 / Malade'};
 const STATUS_BTNS=[{c:'P',l:'P'},{c:'A',l:'Abs'},{c:'B',l:'Bl'}];
 // Langue d'affichage des dates (FR / EN)
 const WD_FR=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
@@ -2010,15 +2004,6 @@ function playerAttendanceStats(playerId){
     trainCount:trainSessions.length, matchCount:matchSessions.length, tournoiCount:tournoiSessions.length
   };
 }
-// Taux de présence global sur les N dernières séances (tous types) triées par date
-function attendanceRate(playerId, sessions){
-  const relevant=sessions.filter(s=>S.attendance.some(a=>a.sessionId===s.id&&(playerId?a.playerId===playerId:true)));
-  if(!relevant.length) return null;
-  const atts=S.attendance.filter(a=>relevant.some(s=>s.id===a.sessionId)&&(playerId?a.playerId===playerId:true));
-  if(!atts.length) return null;
-  const present=atts.filter(a=>a.status==='P').length;
-  return Math.round(present/atts.length*100);
-}
 // Tendance d'assiduité équipe : découpe les séances passées en 2 moitiés chronologiques, compare
 function attendanceTrend(){
   const past=S.sessions.filter(s=>s.date<=today()).sort((a,b)=>a.date.localeCompare(b.date));
@@ -3289,7 +3274,6 @@ async function welcomeFetchCoaches(){
 // SONDAGE DE PRÉSENCE — parents répondent via lien, réponses dans l'app
 // Réponses = intentions (pré-remplissage), le coach confirme le jour J
 // ═══════════════════════════════════════════
-const POLL_STATUS=['present','absent','injured']; // réponses possibles côté parent
 
 // Détecte si on est en mode "page parent" (URL avec ?poll=CODE&s=SESSIONID)
 function pollMode(){
