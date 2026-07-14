@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>RCL Analyse — Tableau croisé</title>
+<style>
+:root{
+  --dk:#004A7C; --mg:#005B96; --lg:#D9EAF5; --accent:#005B96; --accent-soft:#E3F0FA;
+  --bg:#F2F7FB; --card:#fff; --text:#0F2A40; --muted:#587791; --line:#D5E4EF;
+  --zone:#F7FAFD; --chip:#EAF2F9; --red:#EE2837; --grn:#22C55E;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;padding:14px;max-width:1100px;margin:0 auto}
+h1{font-size:20px;font-weight:800;color:var(--dk)}
+h1 span{font-size:13px;font-weight:500;color:var(--muted)}
+.topbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.dataset-pick{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,74,124,.08)}
+.dataset-pick label{font-size:13px;font-weight:700;color:var(--dk);display:block;margin-bottom:8px}
+.dataset-pick select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;color:var(--text);background:var(--bg)}
+.dataset-desc{font-size:12px;color:var(--muted);margin-top:8px}
+.layout{display:grid;grid-template-columns:250px 1fr;gap:14px}
+@media(max-width:720px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,74,124,.08)}
+.panel h2{font-size:14px;font-weight:800;color:var(--dk);margin-bottom:10px}
+.fields{display:flex;flex-wrap:wrap;gap:6px;min-height:40px}
+.chip{background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:5px}
+.chip:active{opacity:.7}
+.chip .tag{font-size:9px;background:var(--mg);color:#fff;border-radius:4px;padding:1px 4px}
+.chip.derived .tag{background:var(--muted)}
+.empty-hint{font-size:12px;color:var(--muted);font-style:italic}
+.zone{border:1.5px dashed var(--line);border-radius:9px;background:var(--zone);min-height:48px;padding:6px;display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.zone.over{border-color:var(--accent);background:var(--accent-soft)}
+.zone-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px}
+.zitem{background:var(--lg);border-radius:7px;padding:6px 9px;font-size:12.5px;display:flex;align-items:center;gap:6px;cursor:grab}
+.zitem select{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 3px;background:#fff}
+.zitem .flt{font-size:11px;color:var(--mg);cursor:pointer;text-decoration:underline}
+.zitem .x{margin-left:auto;color:var(--red);cursor:pointer;font-weight:700;padding:0 3px}
+.drop-note{font-size:10.5px;color:var(--muted);margin-top:2px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{background:var(--dk);color:#fff;font-weight:700;position:sticky;top:0}
+tbody th{background:var(--lg);color:var(--dk);font-weight:600}
+td.totalcol{background:#EEF6FC;font-weight:600}
+tr.total th,tr.total td{background:var(--mg);color:#fff;font-weight:700}
+.btn{background:var(--mg);color:#fff;border:none;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn.ghost{background:var(--lg);color:var(--dk)}
+.menu,.popup{position:fixed;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 8px 30px rgba(0,0,0,.18);z-index:100;padding:5px;max-height:60vh;overflow-y:auto}
+.menu div{padding:8px 12px;font-size:13px;cursor:pointer;border-radius:6px}
+.menu div:hover{background:var(--lg)}
+.popup{padding:10px;min-width:180px}
+.popup label{display:flex;align-items:center;gap:6px;font-size:12.5px;padding:3px 0;cursor:pointer}
+.pactions{display:flex;gap:6px;margin-bottom:8px}
+.pactions button{flex:1;font-size:11px;padding:5px;border:1px solid var(--line);border-radius:6px;background:var(--bg);cursor:pointer}
+.no-data{text-align:center;padding:40px 20px;color:var(--muted)}
+.no-data .ic{font-size:40px;margin-bottom:10px}
+.preset-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.preset-row button{font-size:11.5px;padding:6px 10px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--dk);cursor:pointer}
+.preset-row button:hover{background:var(--lg)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>RCL Analyse <span>· tableau croisé</span></h1>
+  <button class="btn ghost" onclick="reloadData()">↻ Recharger les données</button>
+</div>
+
+<div id="no-data" class="dataset-pick" style="display:none">
+  <div class="no-data">
+    <div class="ic">📊</div>
+    <div id="no-data-msg">Aucune donnée trouvée. Ouvre d'abord ton app RCL Coaching et clique sur « Analyser les données ».</div>
+  </div>
+</div>
+
+<div id="main" style="display:none">
+  <div class="dataset-pick">
+    <label for="datasetSel">📂 Base de données à analyser</label>
+    <select id="datasetSel" onchange="switchDataset()"></select>
+    <div class="dataset-desc" id="datasetDesc"></div>
+    <div class="preset-row" id="presetRow"></div>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <h2>Champs disponibles</h2>
+      <div class="fields" id="fieldList"></div>
+      <div style="margin-top:14px">
+        <p class="zone-label">🔽 Filtres</p>
+        <div class="zone" data-zone="filters"></div>
+        <p class="zone-label">📊 Colonnes</p>
+        <div class="zone" data-zone="cols"></div>
+        <p class="zone-label">📋 Lignes</p>
+        <div class="zone" data-zone="rows"></div>
+        <p class="zone-label">Σ Valeurs</p>
+        <div class="zone" data-zone="vals"></div>
+        <p class="drop-note">Touche un champ pour choisir sa zone, ou glisse-le. Dans « Valeurs », choisis l'agrégation.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 id="pivotTitle">Résultat</h2>
+      <div class="tablewrap" id="pivotWrap"><div class="empty-hint" style="padding:12px">Glisse des champs dans les zones (ou utilise un modèle rapide ci-dessus).</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const AGGS = {somme:"Somme", moyenne:"Moyenne", nombre:"Nombre", min:"Min", max:"Max", pctcol:"% colonne"};
+const nf = new Intl.NumberFormat("fr-FR",{maximumFractionDigits:1});
+const pf = new Intl.NumberFormat("fr-FR",{maximumFractionDigits:1});
+
+let rawRows = [], columns = [], derivedDefs = {};
+let zones = { filters:[], cols:[], rows:[], vals:[] };
+let filterSelections = {};
+let DATASETS = {}; // rempli au chargement des données RCL
+
+/* ═══════════════ CHARGEMENT DES DONNÉES RCL ═══════════════ */
+// Les données arrivent depuis l'app RCL via localStorage (même origine GitHub Pages)
+// ou via un objet window.RCL_DATA injecté.
+function loadRclData(){
+  let S=null, meta={cat:'', club:''};
+  // 1. Objet injecté directement
+  if(window.RCL_DATA && window.RCL_DATA.S){ S=window.RCL_DATA.S; meta=window.RCL_DATA.meta||meta; }
+  // 2. localStorage : clé de transfert dédiée
+  if(!S){
+    try{
+      const raw=localStorage.getItem('rcl_analyse_data');
+      if(raw){ const o=JSON.parse(raw); S=o.S; meta=o.meta||meta; }
+    }catch(e){}
+  }
+  // 3. localStorage : lire directement les données d'une catégorie (rcl_<CAT>_v2)
+  if(!S){
+    try{
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i);
+        if(/^rcl_.*_v2$/.test(k)){
+          const o=JSON.parse(localStorage.getItem(k));
+          if(o && o.S){ S=o.S; meta.cat=k.replace(/^rcl_/,'').replace(/_v2$/,''); break; }
+        }
+      }
+    }catch(e){}
+  }
+  return S ? {S, meta} : null;
+}
+
+/* ═══════════════ APLATISSEURS (S → tables plates) ═══════════════ */
+const CRIT = [
+  {k:'tackling',l:'Placage'},{k:'teamPlay',l:'Jeu en équipe'},
+  {k:'engagement',l:'Engagement'},{k:'ballHandling',l:'Prise de balle'},
+  {k:'jackling',l:'Gratter le ballon'},{k:'speed',l:'Vitesse'},
+  {k:'passes',l:'Passes'},{k:'rules',l:'Respect des règles'},{k:'fairPlay',l:'Fair-play'}
+];
+const STATUS_LBL = {P:'Présent', A:'Absent', B:'Blessé/Malade'};
+const MONTHS_FR = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+
+function playerName(S, pid){
+  const p=(S.players||[]).find(x=>x.id===pid);
+  return p ? (p.firstName+' '+(p.lastName||'')).trim() : '—';
+}
+function sessionLabel(s){
+  if(!s) return '—';
+  if(s.type==='Match') return 'Match vs '+(s.opponent||'?');
+  if(s.type==='Tournoi') return s.name||'Tournoi';
+  return 'Entraînement';
+}
+function dateParts(dStr){
+  if(!dStr) return {mois:'', annee:'', jour:''};
+  const d=new Date(dStr);
+  if(isNaN(d)) return {mois:'', annee:'', jour:dStr};
+  return { mois:MONTHS_FR[d.getMonth()]+' '+d.getFullYear(), annee:''+d.getFullYear(), jour:dStr };
+}
+
+// Base 1 : PRÉSENCES (une ligne par présence enregistrée)
+function flattenAttendance(S){
+  const rows=[];
+  (S.attendance||[]).forEach(a=>{
+    const s=(S.sessions||[]).find(x=>x.id===a.sessionId);
+    if(!s) return;
+    const dp=dateParts(s.date);
+    rows.push({
+      'Joueur':playerName(S,a.playerId),
+      'Type séance':s.type||'',
+      'Séance':sessionLabel(s),
+      'Date':s.date||'',
+      'Mois':dp.mois,
+      'Année':dp.annee,
+      'Statut':STATUS_LBL[a.status]||a.status||'',
+      'Présent (1/0)':a.status==='P'?1:0
+    });
+  });
+  return rows;
+}
+
+// Base 2 : TEMPS DE JEU (une ligne par joueur × match où il a joué)
+function flattenPlayingTime(S){
+  const rows=[];
+  (S.sessions||[]).filter(s=>s.type==='Match'||s.type==='Tournoi').forEach(s=>{
+    const dp=dateParts(s.date);
+    // matchs simples : squad ; tournois : matches[].squad
+    const squads = s.type==='Match' ? [s.squad||[]] : (s.matches||[]).map(m=>m.squad||[]);
+    squads.forEach(sq=>{
+      (sq||[]).forEach(sp=>{
+        const sec=sp.tTotal||0;
+        rows.push({
+          'Joueur':playerName(S,sp.pid),
+          'Type séance':s.type||'',
+          'Séance':sessionLabel(s),
+          'Date':s.date||'',
+          'Mois':dp.mois,
+          'Année':dp.annee,
+          'Rôle':sp.role==='field'?'Titulaire':(sp.role==='bench'?'Remplaçant':'Non retenu'),
+          'Minutes':Math.round(sec/60*10)/10,
+          'Matchs joués (1)':1
+        });
+      });
+    });
+  });
+  return rows;
+}
+
+// Base 3 : ÉVALUATIONS (une ligne par joueur × critère × évaluation)
+function flattenEvaluations(S){
+  const rows=[];
+  (S.evaluations||[]).forEach(ev=>{
+    const s=(S.sessions||[]).find(x=>x.id===ev.sessionId);
+    const dp=dateParts(s?s.date:'');
+    CRIT.forEach(c=>{
+      const val=ev[c.k];
+      if(val===undefined||val===null||val===0) return; // 0 = non évalué
+      rows.push({
+        'Joueur':playerName(S,ev.playerId),
+        'Critère':c.l,
+        'Niveau':val,
+        'Date':s?s.date:'',
+        'Mois':dp.mois,
+        'Année':dp.annee,
+        'Séance':sessionLabel(s)
+      });
+    });
+  });
+  return rows;
+}
+
+// Base 4 : JOUEUR DU MATCH (une ligne par résultat MVP)
+function flattenMvp(S){
+  const rows=[];
+  (S.mvpResults||[]).forEach(r=>{
+    const s=(S.sessions||[]).find(x=>x.id===r.sessionId);
+    const dp=dateParts(s?s.date:'');
+    if(r.playersChoice&&r.playersChoice.playerId){
+      rows.push({
+        'Joueur':playerName(S,r.playersChoice.playerId),
+        'Prix':"Choix des joueurs",
+        'Séance':sessionLabel(s),
+        'Équipe':r.team||'—',
+        'Date':s?s.date:'',
+        'Mois':dp.mois,
+        'Récompenses (1)':1
+      });
+    }
+    if(r.coachesChoice&&r.coachesChoice.playerId){
+      rows.push({
+        'Joueur':playerName(S,r.coachesChoice.playerId),
+        'Prix':"Choix des coachs",
+        'Séance':sessionLabel(s),
+        'Équipe':r.team||'—',
+        'Date':s?s.date:'',
+        'Mois':dp.mois,
+        'Récompenses (1)':1
+      });
+    }
+  });
+  return rows;
+}
+
+// Base 5 : PRÉSENCE COACHS (une ligne par présence coach enregistrée)
+const COACH_ROLE_LBL = {coach:'Coach', assistant:'Assistant', manager:'Responsable'};
+function coachName(S, cid){
+  const co=(S.coaches||[]).find(x=>x.id===cid);
+  return co ? (co.firstName+' '+(co.lastName||'')).trim() : '—';
+}
+function coachRole(S, cid){
+  const co=(S.coaches||[]).find(x=>x.id===cid);
+  return co ? (COACH_ROLE_LBL[co.role]||co.role||'') : '';
+}
+function flattenCoachAttendance(S){
+  const rows=[];
+  (S.coachAttendance||[]).forEach(a=>{
+    const s=(S.sessions||[]).find(x=>x.id===a.sessionId);
+    if(!s) return;
+    const dp=dateParts(s.date);
+    rows.push({
+      'Coach':coachName(S,a.coachId),
+      'Rôle':coachRole(S,a.coachId),
+      'Type séance':s.type||'',
+      'Séance':sessionLabel(s),
+      'Date':s.date||'',
+      'Mois':dp.mois,
+      'Année':dp.annee,
+      'Statut':STATUS_LBL[a.status]||a.status||'',
+      'Présent (1/0)':a.status==='P'?1:0
+    });
+  });
+  return rows;
+}
+
+// Définition des bases + modèles rapides
+function buildDatasets(S){
+  return {
+    attendance:{
+      label:'Présences',
+      desc:'Une ligne par présence. Analyse qui vient, quand, et les taux de présence.',
+      rows:flattenAttendance(S),
+      presets:[
+        {name:'Taux présence par joueur', rows:['Joueur'], cols:[], vals:[{field:'Présent (1/0)',agg:'moyenne'}]},
+        {name:'Présences par mois', rows:['Joueur'], cols:['Mois'], vals:[{field:'Présent (1/0)',agg:'somme'}]},
+        {name:'Par type de séance', rows:['Joueur'], cols:['Type séance'], vals:[{field:'Présent (1/0)',agg:'moyenne'}]}
+      ]
+    },
+    playtime:{
+      label:'Temps de jeu',
+      desc:'Une ligne par joueur et par match. Analyse les minutes jouées, titulaire/remplaçant.',
+      rows:flattenPlayingTime(S),
+      presets:[
+        {name:'Minutes totales par joueur', rows:['Joueur'], cols:[], vals:[{field:'Minutes',agg:'somme'}]},
+        {name:'Minutes par mois', rows:['Joueur'], cols:['Mois'], vals:[{field:'Minutes',agg:'somme'}]},
+        {name:'Matchs joués par joueur', rows:['Joueur'], cols:[], vals:[{field:'Matchs joués (1)',agg:'somme'}]}
+      ]
+    },
+    evaluations:{
+      label:'Évaluations',
+      desc:'Une ligne par critère évalué. Analyse la progression par critère et par joueur.',
+      rows:flattenEvaluations(S),
+      presets:[
+        {name:'Niveau moyen par joueur', rows:['Joueur'], cols:[], vals:[{field:'Niveau',agg:'moyenne'}]},
+        {name:'Par critère', rows:['Joueur'], cols:['Critère'], vals:[{field:'Niveau',agg:'moyenne'}]},
+        {name:'Progression par mois', rows:['Critère'], cols:['Mois'], vals:[{field:'Niveau',agg:'moyenne'}]}
+      ]
+    },
+    mvp:{
+      label:'Joueur du match',
+      desc:'Une ligne par récompense. Analyse qui a été élu et combien de fois.',
+      rows:flattenMvp(S),
+      presets:[
+        {name:'Récompenses par joueur', rows:['Joueur'], cols:[], vals:[{field:'Récompenses (1)',agg:'somme'}]},
+        {name:'Par type de prix', rows:['Joueur'], cols:['Prix'], vals:[{field:'Récompenses (1)',agg:'somme'}]}
+      ]
+    },
+    coachAttendance:{
+      label:'Présence coachs',
+      desc:'Une ligne par présence coach. Analyse la présence des coachs aux séances.',
+      rows:flattenCoachAttendance(S),
+      presets:[
+        {name:'Taux présence par coach', rows:['Coach'], cols:[], vals:[{field:'Présent (1/0)',agg:'moyenne'}]},
+        {name:'Présences par mois', rows:['Coach'], cols:['Mois'], vals:[{field:'Présent (1/0)',agg:'somme'}]},
+        {name:'Par type de séance', rows:['Coach'], cols:['Type séance'], vals:[{field:'Présent (1/0)',agg:'moyenne'}]}
+      ]
+    }
+  };
+}
+
+let CURRENT_DS=null;
+
+function switchDataset(){
+  const key=document.getElementById('datasetSel').value;
+  const ds=DATASETS[key];
+  if(!ds) return;
+  CURRENT_DS=key;
+  rawRows=ds.rows;
+  columns=rawRows.length?Object.keys(rawRows[0]):[];
+  derivedDefs={};
+  zones={filters:[],cols:[],rows:[],vals:[]};
+  filterSelections={};
+  document.getElementById('datasetDesc').textContent=ds.desc+' ('+rawRows.length+' lignes)';
+  // Modèles rapides
+  const pr=document.getElementById('presetRow');
+  pr.innerHTML=ds.presets.map((p,i)=>'<button onclick="applyPreset('+i+')">⚡ '+p.name+'</button>').join('');
+  renderFieldList(); renderZones(); renderPivot();
+}
+
+function applyPreset(i){
+  const ds=DATASETS[CURRENT_DS];
+  const p=ds.presets[i]; if(!p) return;
+  zones={filters:[],cols:[],rows:[],vals:[]};
+  filterSelections={};
+  (p.rows||[]).forEach(f=>zones.rows.push({field:f}));
+  (p.cols||[]).forEach(f=>zones.cols.push({field:f}));
+  (p.vals||[]).forEach(v=>zones.vals.push({field:v.field,agg:v.agg}));
+  renderZones(); renderPivot();
+}
+
+function reloadData(){ init(); }
+
+function init(){
+  const data=loadRclData();
+  if(!data){
+    document.getElementById('no-data').style.display='block';
+    document.getElementById('main').style.display='none';
+    return;
+  }
+  document.getElementById('no-data').style.display='none';
+  document.getElementById('main').style.display='block';
+  DATASETS=buildDatasets(data.S);
+  // Remplir le sélecteur — les bases vides sont désactivées (mais visibles pour info)
+  const sel=document.getElementById('datasetSel');
+  const entries=Object.entries(DATASETS);
+  const nonEmpty=entries.filter(([k,ds])=>ds.rows.length>0);
+  sel.innerHTML=entries.map(([k,ds])=>
+    '<option value="'+k+'"'+(ds.rows.length===0?' disabled':'')+'>'+ds.label+' ('+ds.rows.length+')'+(ds.rows.length===0?' — vide':'')+'</option>'
+  ).join('');
+  // Sélectionner la première base non vide par défaut
+  if(nonEmpty.length){ sel.value=nonEmpty[0][0]; }
+  switchDataset();
+}
+
+/* ═══════════════ MOTEUR PIVOT (réutilisé) ═══════════════ */
+function fieldValue(row, field){
+  if(derivedDefs[field]) return derivedDefs[field](row);
+  const v = row[field];
+  return (v===undefined||v===null||v==="") ? "(vide)" : v;
+}
+function allFields(){ return [...columns, ...Object.keys(derivedDefs)]; }
+function toNum(v){
+  if(v===undefined||v===null) return NaN;
+  const s = String(v).replace(/\s/g,"").replace(",",".");
+  if(s==="") return NaN;
+  const n = parseFloat(s); return isNaN(n)?NaN:n;
+}
+function isNumericField(f){
+  if(derivedDefs[f]) return false;
+  const sample = rawRows.filter(r=>r[f]!=="").slice(0,80);
+  if(!sample.length) return false;
+  return sample.filter(r=>!isNaN(toNum(r[f]))).length/sample.length >= 0.8;
+}
+function renderFieldList(){
+  const el = document.getElementById("fieldList");
+  el.innerHTML="";
+  if(!allFields().length){ el.innerHTML='<div class="empty-hint">Aucun champ.</div>'; return; }
+  for(const f of allFields()){
+    const d = document.createElement("div");
+    d.className = "chip"+(derivedDefs[f]?" derived":"");
+    d.draggable = true;
+    d.innerHTML = escapeHtml(f) + (isNumericField(f)?'<span class="tag">123</span>':'');
+    d.addEventListener("dragstart", ev=> ev.dataTransfer.setData("text/plain", JSON.stringify({field:f,from:null,idx:-1})));
+    d.addEventListener("click", ev=> fieldMenu(ev, f));
+    el.appendChild(d);
+  }
+}
+function fieldMenu(ev, field){
+  closePopups();
+  const m = document.createElement("div"); m.className="menu";
+  [["filters","Ajouter aux filtres"],["cols","Ajouter aux colonnes"],["rows","Ajouter aux lignes"],["vals","Ajouter aux valeurs (Σ)"]].forEach(([z,label])=>{
+    const it=document.createElement("div"); it.textContent=label;
+    it.onclick=()=>{ addToZone(z,field); closePopups(); };
+    m.appendChild(it);
+  });
+  document.body.appendChild(m);
+  positionPopup(m, ev.clientX, ev.clientY);
+  setTimeout(()=>document.addEventListener("click", closePopups, {once:true}),0);
+}
+document.querySelectorAll(".zone").forEach(z=>{
+  z.addEventListener("dragover", ev=>{ ev.preventDefault(); z.classList.add("over"); });
+  z.addEventListener("dragleave", ()=> z.classList.remove("over"));
+  z.addEventListener("drop", ev=>{
+    ev.preventDefault(); z.classList.remove("over");
+    try{
+      const data = JSON.parse(ev.dataTransfer.getData("text/plain"));
+      if(data.from) removeFromZone(data.from, data.idx, false);
+      addToZone(z.dataset.zone, data.field);
+    }catch(e){}
+  });
+});
+function addToZone(zone, field){
+  if(zone!=="vals" && zones[zone].some(i=>i.field===field)) { renderZones(); renderPivot(); return; }
+  if(zone==="vals") zones.vals.push({field, agg: isNumericField(field)?"somme":"nombre"});
+  else zones[zone].push({field});
+  renderZones(); renderPivot();
+}
+function removeFromZone(zone, idx, refresh){
+  const it = zones[zone].splice(idx,1)[0];
+  if(zone==="filters" && it) delete filterSelections[it.field];
+  if(refresh){ renderZones(); renderPivot(); }
+}
+function renderZones(){
+  document.querySelectorAll(".zone").forEach(z=>{
+    const zn = z.dataset.zone;
+    z.innerHTML="";
+    if(!zones[zn].length){ z.innerHTML='<div class="empty-hint">Déposer un champ ici</div>'; return; }
+    zones[zn].forEach((it,idx)=>{
+      const d=document.createElement("div"); d.className="zitem"; d.draggable=true;
+      let inner = escapeHtml(it.field);
+      if(zn==="vals"){
+        inner += ' <select data-idx="'+idx+'">'+Object.entries(AGGS).map(([k,v])=>'<option value="'+k+'"'+(it.agg===k?" selected":"")+'>'+v+'</option>').join("")+'</select>';
+      }
+      if(zn==="filters"){
+        const sel = filterSelections[it.field];
+        inner += ' <span class="flt" data-idx="'+idx+'">'+(sel? sel.size+" sél." : "tous")+'</span>';
+      }
+      d.innerHTML = inner + '<span class="x" title="Retirer">×</span>';
+      d.addEventListener("dragstart", ev=> ev.dataTransfer.setData("text/plain", JSON.stringify({field:it.field,from:zn,idx})));
+      d.querySelector(".x").onclick=()=> removeFromZone(zn, idx, true);
+      const s=d.querySelector("select");
+      if(s) s.onchange=e=>{ zones.vals[idx].agg=e.target.value; renderPivot(); };
+      const flt=d.querySelector(".flt");
+      if(flt) flt.onclick=ev=>{ ev.stopPropagation(); openFilterPopup(ev, it.field); };
+      z.appendChild(d);
+    });
+  });
+}
+function openFilterPopup(ev, field){
+  closePopups();
+  const uniq = [...new Set(rawRows.map(r=>fieldValue(r,field)))].sort(smartCompare);
+  const p=document.createElement("div"); p.className="popup";
+  p.addEventListener("click", e=>e.stopPropagation());
+  const act=document.createElement("div"); act.className="pactions";
+  const bAll=document.createElement("button"); bAll.textContent="Tout";
+  const bNone=document.createElement("button"); bNone.textContent="Aucun";
+  act.append(bAll,bNone); p.appendChild(act);
+  const boxes=[];
+  const current = filterSelections[field];
+  uniq.forEach(v=>{
+    const l=document.createElement("label");
+    const cb=document.createElement("input"); cb.type="checkbox";
+    cb.checked = !current || current.has(v);
+    cb.onchange=apply;
+    l.append(cb, document.createTextNode(" "+v));
+    boxes.push([cb,v]); p.appendChild(l);
+  });
+  bAll.onclick=()=>{ boxes.forEach(([cb])=>cb.checked=true); apply(); };
+  bNone.onclick=()=>{ boxes.forEach(([cb])=>cb.checked=false); apply(); };
+  function apply(){
+    const on = boxes.filter(([cb])=>cb.checked).map(([,v])=>v);
+    if(on.length===uniq.length) delete filterSelections[field];
+    else filterSelections[field] = new Set(on);
+    renderPivot(); renderZones();
+    document.body.appendChild(p);
+  }
+  document.body.appendChild(p);
+  positionPopup(p, ev.clientX, ev.clientY);
+  setTimeout(()=>document.addEventListener("click", closePopups, {once:true}),0);
+}
+function closePopups(){ document.querySelectorAll(".popup,.menu").forEach(e=>e.remove()); }
+function positionPopup(el,x,y){
+  el.style.left=Math.min(x, window.innerWidth-el.offsetWidth-12)+"px";
+  el.style.top=Math.min(y, window.innerHeight-el.offsetHeight-12)+"px";
+}
+function smartCompare(a,b){
+  const na=toNum(a), nb=toNum(b);
+  if(!isNaN(na)&&!isNaN(nb)) return na-nb;
+  return String(a).localeCompare(String(b),"fr",{numeric:true});
+}
+function keyOf(row, fields){ return fields.map(f=>fieldValue(row,f)).join(" ▸ "); }
+
+function renderPivot(){
+  const wrap = document.getElementById("pivotWrap");
+  if(!rawRows.length){ wrap.innerHTML='<div class="empty-hint" style="padding:12px">Aucune donnée dans cette base.</div>'; return; }
+  if(!zones.vals.length){ wrap.innerHTML='<div class="empty-hint" style="padding:12px">Ajoute au moins un champ dans « Σ Valeurs » (ex : Minutes → Somme), ou clique un modèle rapide.</div>'; return; }
+
+  let rows = rawRows;
+  for(const f of zones.filters){
+    const sel = filterSelections[f.field];
+    if(sel) rows = rows.filter(r=> sel.has(fieldValue(r,f.field)));
+  }
+  const rf = zones.rows.map(i=>i.field);
+  const cf = zones.cols.map(i=>i.field);
+  const rowKeys = rf.length ? [...new Set(rows.map(r=>keyOf(r,rf)))].sort(smartCompare) : ["Total"];
+  const colKeys = cf.length ? [...new Set(rows.map(r=>keyOf(r,cf)))].sort(smartCompare) : [];
+  const buckets = {};
+  for(const r of rows){
+    const rk = rf.length?keyOf(r,rf):"Total";
+    const ck = cf.length?keyOf(r,cf):"__ALL__";
+    (buckets[rk] ||= {}); (buckets[rk][ck] ||= []).push(r);
+  }
+  const effCols = cf.length ? colKeys : ["__ALL__"];
+  function agg(list, field, mode){
+    if(!list||!list.length) return null;
+    if(mode==="nombre") return list.filter(r=>fieldValue(r,field)!=="(vide)").length;
+    const nums = list.map(r=>toNum(r[field])).filter(n=>!isNaN(n));
+    if(!nums.length) return null;
+    if(mode==="somme"||mode==="pctcol") return nums.reduce((a,b)=>a+b,0);
+    if(mode==="moyenne") return nums.reduce((a,b)=>a+b,0)/nums.length;
+    if(mode==="min") return Math.min(...nums);
+    if(mode==="max") return Math.max(...nums);
+    return null;
+  }
+  const V = zones.vals;
+  const matrix={}, rowTotals={}, colTotals=effCols.map(()=>V.map(()=>null)), grand=V.map(()=>null);
+  const allByCol = effCols.map(ck => rows.filter(r=> (cf.length?keyOf(r,cf):"__ALL__")===ck ));
+  for(const rk of rowKeys){
+    matrix[rk]=effCols.map((ck)=> V.map(v=> agg(buckets[rk]?.[ck], v.field, v.agg)));
+    const allRow = rows.filter(r=> (rf.length?keyOf(r,rf):"Total")===rk);
+    rowTotals[rk]=V.map(v=> agg(allRow, v.field, v.agg));
+  }
+  effCols.forEach((ck,ci)=> V.forEach((v,vi)=> colTotals[ci][vi]=agg(allByCol[ci], v.field, v.agg)));
+  V.forEach((v,vi)=> grand[vi]=agg(rows, v.field, v.agg));
+  function fmt(val, mode, colTotal){
+    if(val===null||val===undefined) return "";
+    if(mode==="pctcol"){ if(!colTotal) return "–"; return pf.format(val/colTotal*100)+" %"; }
+    if(mode==="moyenne" && (V.find(v=>v.agg==="moyenne")?.field||"").includes("(1/0)")){
+      return pf.format(val*100)+" %"; // taux présence en %
+    }
+    return nf.format(val);
+  }
+  const multiV = V.length>1;
+  let html = "<table><thead><tr><th>"+escapeHtml(rf.join(" ▸ ")||"")+"</th>";
+  if(cf.length){
+    for(const ck of colKeys){ html += multiV ? '<th colspan="'+V.length+'">'+escapeHtml(ck)+"</th>" : "<th>"+escapeHtml(ck)+"</th>"; }
+  }
+  if(cf.length && multiV) html += '<th colspan="'+V.length+'">Total</th>';
+  else if(cf.length) html += "<th>Total</th>";
+  if(!cf.length){ html += V.map(v=>"<th>"+escapeHtml(AGGS[v.agg]+" de "+v.field)+"</th>").join(""); }
+  html += "</tr>";
+  if(multiV && cf.length){
+    html += "<tr><th></th>";
+    for(let i=0;i<colKeys.length+1;i++) html += V.map(v=>"<th>"+escapeHtml(AGGS[v.agg]+" "+v.field)+"</th>").join("");
+    html += "</tr>";
+  }
+  html += "</thead><tbody>";
+  for(const rk of rowKeys){
+    html += "<tr><th>"+escapeHtml(rk)+"</th>";
+    if(cf.length){
+      effCols.forEach((ck,ci)=>{ V.forEach((v,vi)=>{ html += "<td>"+fmt(matrix[rk][ci][vi], v.agg, colTotals[ci][vi])+"</td>"; }); });
+      V.forEach((v,vi)=>{ html += '<td class="totalcol">'+fmt(rowTotals[rk][vi], v.agg, grand[vi])+"</td>"; });
+    } else {
+      V.forEach((v,vi)=>{ html += "<td>"+fmt(rowTotals[rk][vi], v.agg, grand[vi])+"</td>"; });
+    }
+    html += "</tr>";
+  }
+  html += '<tr class="total"><th>Total général</th>';
+  if(cf.length){
+    effCols.forEach((ck,ci)=> V.forEach((v,vi)=>{ html += "<td>"+fmt(colTotals[ci][vi], v.agg, colTotals[ci][vi])+"</td>"; }));
+    V.forEach((v,vi)=>{ html += "<td>"+fmt(grand[vi], v.agg, grand[vi])+"</td>"; });
+  } else {
+    V.forEach((v,vi)=>{ html += "<td>"+fmt(grand[vi], v.agg, grand[vi])+"</td>"; });
+  }
+  html += "</tr></tbody></table>";
+  wrap.innerHTML = html;
+  document.getElementById("pivotTitle").textContent =
+    "Résultat — " + V.map(v=>AGGS[v.agg]+" de "+v.field).join(", ") + " · " + rows.length + " lignes";
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+init();
+</script>
+</body>
+</html>
