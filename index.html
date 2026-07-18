@@ -78,6 +78,7 @@ nav{position:fixed;bottom:0;left:0;right:0;max-width:500px;margin:0 auto;height:
 .s-sub{font-size:11px;color:var(--mut);margin-top:3px}
 .s-live{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--red);animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
 /* PLAYER CARDS */
 .pc{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer}
@@ -347,6 +348,19 @@ textarea.fi{resize:vertical;min-height:60px}
 .todo-col{margin-bottom:10px}
 .todo-col-hd{font-size:12px;font-weight:800;color:var(--dk);text-transform:uppercase;letter-spacing:.3px;margin:6px 0 5px;display:flex;align-items:center}
 .todo-coach-hd{font-size:12px;font-weight:700;color:var(--mg);margin:8px 0 4px 2px;padding-left:6px;border-left:3px solid var(--lg)}
+.res-acc{background:var(--card);border-radius:10px;margin-bottom:8px;box-shadow:var(--sh);overflow:hidden}
+.res-acc-hd{display:flex;align-items:center;gap:9px;padding:13px 14px;cursor:pointer;user-select:none}
+.res-acc-hd:active{background:var(--lg)}
+.res-acc-caret{font-size:10px;color:var(--mg);width:12px;flex-shrink:0}
+.res-acc-ic{font-size:17px;flex-shrink:0}
+.res-acc-title{flex:1;font-size:14px;font-weight:800;color:var(--dk)}
+.res-acc-count{font-size:11px;font-weight:700;color:var(--mg);background:var(--lg);border-radius:20px;padding:2px 9px;flex-shrink:0}
+.res-acc-body{padding:0 12px 10px}
+.res-sub{margin:4px 0 6px}
+.res-sub-hd{display:flex;align-items:center;gap:8px;padding:8px 6px;cursor:pointer;user-select:none;border-left:3px solid var(--lg)}
+.res-sub-hd:active{background:var(--lg)}
+.res-sub-title{flex:1;font-size:12.5px;font-weight:700;color:var(--mg)}
+.res-sub-body{padding:6px 0 2px 10px}
 .todo-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
 .todo-item{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--brd);border-radius:9px;padding:7px 9px;margin-bottom:5px}
 .todo-item-main{flex:1;min-width:0}
@@ -450,6 +464,8 @@ textarea.fi{resize:vertical;min-height:60px}
     </div>
     <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
   </div>
+  <div id="home-matchday"></div>
+  <div id="home-myavail"></div>
   <div id="home-todo"></div>
   <div id="home-cal"></div>
   <div id="h-upcoming"></div>
@@ -628,7 +644,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='2.93';
+const APP_VER='2.97';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -649,7 +665,7 @@ const POLL_FB_CFG = {
 // ═══ PRÉ-CONFIGURATION (rempli par le générateur, sinon null) ═══
 // Si défini, l'app se connecte automatiquement et n'affiche qu'un écran "Entre ton nom + Connecter"
 const PRECONFIG = {"fb":{"apiKey":"AIzaSyAalJZAZRhpmTAlJ5lNzTiA05TxbHuAgfo","authDomain":"rcluxembourg-26-27.firebaseapp.com","projectId":"rcluxembourg-26-27","storageBucket":"rcluxembourg-26-27.firebasestorage.app","messagingSenderId":"131221936812","appId":"1:131221936812:web:76d8d9dfb6eaf2bae59d09","measurementId":"G-RY6RCEGXG6"},"club":"rcl-u10-2026","chatCode":"U10"}; /*PRECONFIG_INJECT*/
-let S = { players:[], sessions:[], attendance:[], evaluations:[], coaches:[], coachAttendance:[], tasks:[], goals:[], resources:[], mvpResults:[] };
+let S = { players:[], sessions:[], attendance:[], evaluations:[], coaches:[], coachAttendance:[], coachAvailability:[], tasks:[], goals:[], resources:[], mvpResults:[] };
 let NID = { players:1, sessions:1, attendance:1, evaluations:1, coaches:1, coachAttendance:1 };
 let _curSType = 'Entra\u00eenement';
 let _mvTimer = null;
@@ -953,7 +969,7 @@ const I18N = {
   'inSquadField':'Terrain',
   'matchNbLbl':'matchs dans ce tournoi',
   'participatesLbl':'participé(s) au squad',
-  'upcomingTitle':'Prochains événements',
+  'upcomingTitle':'Prochains événements','mdToday':'AUJOURD\u2019HUI','mdManage':'Gérer','mdAttendance':'Présences','mdNoReply':'sans réponse','mdLoadingPoll':'Chargement des réponses…','mdInSquad':'dans le groupe','mdNoSquad':'Groupe à composer','mdMatches':'match(s)','mdTeams':'équipe(s)',
   'noUpcoming':'Aucun match ou tournoi à venir',
   'todayLbl':'Aujourd\'hui',
   'tomorrowLbl':'Demain',
@@ -970,7 +986,7 @@ const I18N = {
   'roleLbl':'Rôle','role_coach':'Coach','role_manager':'Manager','role_assistant':'Assistant',
   'noCoachYet':'Aucun coach enregistré','confirmDeleteCoach':'Supprimer ce coach ?',
   'toastCoachAdded':'✅ Coach ajouté','toastCoachUpdated':'✅ Coach modifié',
-  'coachesSectionTitle':'Coachs','staffMatchTitle':'Staff du match','noCoachAssigned':'Aucun coach assigné',
+  'availYes':'Dispo','availMaybe':'Peut-être','availNo':'Absent','coverCoaches':'coach(s)','myAvailTitle':'Ma disponibilité','availYes':'Avail.','availMaybe':'Maybe','availNo':'Not avail.','coverCoaches':'coach(es)','myAvailTitle':'My availability','coachesSectionTitle':'Coachs','staffMatchTitle':'Staff du match','noCoachAssigned':'Aucun coach assigné',
   'assignedCoachesLbl':'Coachs présents',
   'licenseLbl':'N° licence',
   'liveSyncTitle':'Synchro live (Firebase)',
@@ -1012,7 +1028,7 @@ const I18N = {
   'pollLoading':'Chargement…','pollNotFound':'Sondage introuvable ou expiré','pollError':'Une erreur est survenue','pollPickChild':'Choisis ton enfant','pollChooseChild':'— Sélectionne —','pollAlreadyIn':'déjà inscrits','pollPresent':'Présent','pollAbsent':'Absent','pollInjured':'Blessé','pollResults':'Qui vient ?','pollThanks':'Merci, réponse enregistrée !','pollYourAnswer':'Ta réponse :','pollIntentionsTitle':'Réponses des parents','pollApplyBtn':'Pré-remplir les présences','pollApplyHint':'Applique les réponses des parents comme point de départ. Confirme chaque présence le jour J.','pollApplyConfirm':'Pré-remplir les présences avec les réponses des parents ?','pollApplied':'✅ Présences pré-remplies',
   'mvpBtn':'Joueur du match','potmBtn':'Générer l\u2019image','mvpWriteSynthesis':'Rédiger la synthèse','mvpEditSynthesis':'Modifier la synthèse','mvpSynthesisTitle':'Synthèse des commentaires','mvpAllComments':'Commentaires des joueurs','mvpNoComments':'Aucun commentaire reçu.','mvpSynthesisLbl':'Ta synthèse (apparaîtra sur l\u2019image)','mvpSynthesisPh':'Ex : Beau jeu en équipe et bonne défense','mvpSynthesisHint':'Résume les commentaires des joueurs en une phrase pour l\u2019image.','mvpSynthesisSaved':'✅ Synthèse enregistrée','potmGenerating':'Création de l\u2019image…','potmDone':'✅ Image téléchargée','potmError':'Erreur lors de la génération','potmNeedResult':'Clôture d\u2019abord le vote pour désigner les gagnants','mvpShareBtn':'Partager le lien de vote','mvpReopenBtn':'Rouvrir le vote','mvpReopenConfirm':'Rouvrir ce vote ? Les joueurs pourront voter à nouveau.','mvpReopened':'Vote rouvert','mvpPlayersChoice':'Choix des joueurs','mvpCoachesChoice':'Choix des coachs','mvpVotes':'votes','mvpNoVotes':'Aucun vote pour l\u2019instant','mvpTallyHint':'Décompte (caché aux joueurs jusqu\u2019à la clôture)','mvpCloseBtn':'Clôturer le vote','mvpClosed':'✅ Vote clôturé','mvpNone':'Aucun','mvpTieTitle':'Égalité','mvpTieHint':'Il y a une égalité en tête. Choisis le gagnant :','mvpConfirmWinner':'Désigner gagnant','mvpSetCoachChoice':'Définir le choix des coachs','mvpEditCoachChoice':'Modifier le choix des coachs','mvpCoachChoosePlayer':'Joueur choisi','mvpCoachReason':'Explication','mvpNeedPlayer':'Choisis un joueur','mvpCoachSaved':'✅ Choix des coachs enregistré',
   'voteTitle':'Joueur du match','voteShareMsg':'Vote pour le joueur du match {event} :','voteShareIntro':'Partage ce lien avec les joueurs. Chacun vote pour un coéquipier (pas pour lui-même) avec une explication.','voteWhoAreYou':'Qui es-tu ?','voteWhoHint':'Choisis ton prénom (tu ne pourras pas voter pour toi-même).','voteContinue':'Continuer','voteAs':'Tu votes en tant que','voteChange':'changer','voteForWho':'Pour qui votes-tu ?','voteWhy':'Pourquoi ?','voteWhyPh':'Ex : super défense et beau jeu en équipe','voteSubmit':'Voter','voteThanks':'Merci pour ton vote !','voteThanksSub':'Le résultat sera annoncé par le coach.','voteNeedVoter':'Choisis ton prénom','voteNeedChoice':'Choisis un joueur','voteNeedReason':'Explique ton choix','voteClosed':'Le vote est terminé. Merci !',
-  'resTitle':'Ressources','resHomeBtn':'Ressources & documents','resHomeHint':'Règlements, docs du club, tournois','resCountSingular':'document','resCountPlural':'documents','resEmpty':'Aucun document pour l\u2019instant. Ajoute un lien vers un règlement, une doc du club, etc.','resAdd':'Ajouter un document','resNewTitle':'Nouveau document','resTitleLbl':'Titre','resTitlePh':'Ex : Règlement tournoi U10','resCatLbl':'Catégorie','resUrlLbl':'Lien (URL)','resUrlHint':'Colle le lien de partage depuis Google Drive, Dropbox, le site de la fédération, etc.','resNoteLbl':'Note (optionnel)','resNotePh':'Ex : Version 2026','resOpen':'Ouvrir','resNoPreview':'Aperçu non disponible pour ce lien. Ouvre-le directement.','resOpenExt':'Ouvrir le document','resNeedTitle':'Indique un titre','resNeedUrl':'Indique un lien','resAdded':'✅ Document ajouté','resDeleted':'Document supprimé','resConfirmDelete':'Supprimer ce document ?',
+  'resTitle':'Ressources','resHomeBtn':'Ressources & documents','resHomeHint':'Règlements, docs du club, tournois','resCountSingular':'document','resCountPlural':'documents','resEmpty':'Aucun document pour l\u2019instant. Ajoute un lien vers un règlement, une doc du club, etc.','resAdd':'Ajouter un document','resNewTitle':'Nouveau document','resTitleLbl':'Titre','resTitlePh':'Ex : Règlement tournoi U10','resCatLbl':'Catégorie','resSubcatLbl':'Sous-catégorie (optionnel)','resSubcatPh':'Ex : U10, Saison 2026…','resUrlLbl':'Lien (URL)','resUrlHint':'Colle le lien de partage depuis Google Drive, Dropbox, le site de la fédération, etc.','resNoteLbl':'Note (optionnel)','resNotePh':'Ex : Version 2026','resOpen':'Ouvrir','resNoPreview':'Aperçu non disponible pour ce lien. Ouvre-le directement.','resOpenExt':'Ouvrir le document','resNeedTitle':'Indique un titre','resNeedUrl':'Indique un lien','resAdded':'✅ Document ajouté','resDeleted':'Document supprimé','resConfirmDelete':'Supprimer ce document ?',
   'resCat_reglement':'Règlements','resCat_club':'Documents du club','resCat_tournoi':'Tournois','resCat_formation':'Formation','resCat_autre':'Autres',
   'anTabTeam':'Équipe','anTabPlayer':'Par joueur','anTabGoals':'Objectifs','anTabGuide':'Guide','anHomeBtn':'Analyse & progression','anHomeHint':'Suivi de la progression du groupe','anHomeAttendance':'présence','anHomeEvals':'suivis','pivotError':'Erreur lors de la préparation des données',
   'princ_recup':'Récupération & pression','princ_avancer':'Avancer & soutien','princ_lecture':'Lecture du jeu & discipline','princ_rythme':'Rythme & continuité',
@@ -1314,7 +1330,7 @@ const I18N = {
   'inSquadField':'Field',
   'matchNbLbl':'matches in this tournament',
   'participatesLbl':'in squad',
-  'upcomingTitle':'Upcoming events',
+  'upcomingTitle':'Upcoming events','mdToday':'TODAY','mdManage':'Manage','mdAttendance':'Attendance','mdNoReply':'no reply','mdLoadingPoll':'Loading replies…','mdInSquad':'in squad','mdNoSquad':'Squad to set','mdMatches':'match(es)','mdTeams':'team(s)',
   'noUpcoming':'No upcoming match or tournament',
   'todayLbl':'Today',
   'tomorrowLbl':'Tomorrow',
@@ -1373,7 +1389,7 @@ const I18N = {
   'pollLoading':'Loading…','pollNotFound':'Poll not found or expired','pollError':'An error occurred','pollPickChild':'Choose your child','pollChooseChild':'— Select —','pollAlreadyIn':'already in','pollPresent':'Present','pollAbsent':'Absent','pollInjured':'Injured','pollResults':'Who\u2019s coming?','pollThanks':'Thanks, response saved!','pollYourAnswer':'Your answer:','pollIntentionsTitle':'Parent responses','pollApplyBtn':'Pre-fill attendance','pollApplyHint':'Applies parent responses as a starting point. Confirm each attendance on match day.','pollApplyConfirm':'Pre-fill attendance with parent responses?','pollApplied':'✅ Attendance pre-filled',
   'mvpBtn':'Player of the match','potmBtn':'Generate image','mvpWriteSynthesis':'Write summary','mvpEditSynthesis':'Edit summary','mvpSynthesisTitle':'Comments summary','mvpAllComments':'Player comments','mvpNoComments':'No comments received.','mvpSynthesisLbl':'Your summary (shown on the image)','mvpSynthesisPh':'e.g. Great team play and solid defense','mvpSynthesisHint':'Summarize the players\u2019 comments in one sentence for the image.','mvpSynthesisSaved':'✅ Summary saved','potmGenerating':'Creating image…','potmDone':'✅ Image downloaded','potmError':'Error while generating','potmNeedResult':'Close the vote first to set the winners','mvpShareBtn':'Share voting link','mvpReopenBtn':'Reopen voting','mvpReopenConfirm':'Reopen this vote? Players will be able to vote again.','mvpReopened':'Voting reopened','mvpPlayersChoice':'Players\u2019 choice','mvpCoachesChoice':'Coaches\u2019 choice','mvpVotes':'votes','mvpNoVotes':'No votes yet','mvpTallyHint':'Tally (hidden from players until closing)','mvpCloseBtn':'Close voting','mvpClosed':'✅ Voting closed','mvpNone':'None','mvpTieTitle':'Tie','mvpTieHint':'There is a tie at the top. Pick the winner:','mvpConfirmWinner':'Set winner','mvpSetCoachChoice':'Set coaches\u2019 choice','mvpEditCoachChoice':'Edit coaches\u2019 choice','mvpCoachChoosePlayer':'Chosen player','mvpCoachReason':'Reason','mvpNeedPlayer':'Pick a player','mvpCoachSaved':'✅ Coaches\u2019 choice saved',
   'voteTitle':'Player of the match','voteShareMsg':'Vote for the player of the match {event}:','voteShareIntro':'Share this link with players. Each votes for a teammate (not themselves) with a reason.','voteWhoAreYou':'Who are you?','voteWhoHint':'Pick your first name (you won\u2019t be able to vote for yourself).','voteContinue':'Continue','voteAs':'You are voting as','voteChange':'change','voteForWho':'Who do you vote for?','voteWhy':'Why?','voteWhyPh':'e.g. great defense and nice team play','voteSubmit':'Vote','voteThanks':'Thanks for your vote!','voteThanksSub':'The result will be announced by the coach.','voteNeedVoter':'Pick your first name','voteNeedChoice':'Pick a player','voteNeedReason':'Explain your choice','voteClosed':'Voting is closed. Thanks!',
-  'resTitle':'Resources','resHomeBtn':'Resources & documents','resHomeHint':'Rules, club docs, tournaments','resCountSingular':'document','resCountPlural':'documents','resEmpty':'No documents yet. Add a link to a rulebook, club doc, etc.','resAdd':'Add a document','resNewTitle':'New document','resTitleLbl':'Title','resTitlePh':'e.g. U10 tournament rules','resCatLbl':'Category','resUrlLbl':'Link (URL)','resUrlHint':'Paste the share link from Google Drive, Dropbox, the federation website, etc.','resNoteLbl':'Note (optional)','resNotePh':'e.g. 2026 version','resOpen':'Open','resNoPreview':'Preview not available for this link. Open it directly.','resOpenExt':'Open document','resNeedTitle':'Enter a title','resNeedUrl':'Enter a link','resAdded':'✅ Document added','resDeleted':'Document deleted','resConfirmDelete':'Delete this document?',
+  'resTitle':'Resources','resHomeBtn':'Resources & documents','resHomeHint':'Rules, club docs, tournaments','resCountSingular':'document','resCountPlural':'documents','resEmpty':'No documents yet. Add a link to a rulebook, club doc, etc.','resAdd':'Add a document','resNewTitle':'New document','resTitleLbl':'Title','resTitlePh':'e.g. U10 tournament rules','resCatLbl':'Category','resSubcatLbl':'Sub-category (optional)','resSubcatPh':'e.g. U10, Season 2026…','resUrlLbl':'Link (URL)','resUrlHint':'Paste the share link from Google Drive, Dropbox, the federation website, etc.','resNoteLbl':'Note (optional)','resNotePh':'e.g. 2026 version','resOpen':'Open','resNoPreview':'Preview not available for this link. Open it directly.','resOpenExt':'Open document','resNeedTitle':'Enter a title','resNeedUrl':'Enter a link','resAdded':'✅ Document added','resDeleted':'Document deleted','resConfirmDelete':'Delete this document?',
   'resCat_reglement':'Rulebooks','resCat_club':'Club documents','resCat_tournoi':'Tournaments','resCat_formation':'Training','resCat_autre':'Other',
   'anTabTeam':'Team','anTabPlayer':'Per player','anTabGoals':'Goals','anTabGuide':'Guide','anHomeBtn':'Analysis & progress','anHomeHint':'Track the group’s progress','anHomeAttendance':'attendance','anHomeEvals':'tracked','pivotError':'Error while preparing data',
   'princ_recup':'Recovery & pressure','princ_avancer':'Advance & support','princ_lecture':'Game reading & discipline','princ_rythme':'Tempo & continuity',
@@ -1459,6 +1475,7 @@ function load(){
   // Migration coachs (données antérieures)
   if(!S.coaches) S.coaches=[];
   if(!S.coachAttendance) S.coachAttendance=[];
+  if(!S.coachAvailability) S.coachAvailability=[];
   if(!S.tasks) S.tasks=[];
   if(!S.goals) S.goals=[];
   if(!S.resources) S.resources=[];
@@ -1584,6 +1601,111 @@ function calNav(delta){
   if(_cal.m>11){_cal.m=0;_cal.y++;}
   rHomeCal();
 }
+// ═══════════════════════════════════════════
+// TABLEAU DE BORD "JOUR DE MATCH" (accueil, visible uniquement le jour J)
+// ═══════════════════════════════════════════
+function rMatchDay(){
+  const el=document.getElementById('home-matchday'); if(!el) return;
+  const todayStr=today();
+  // Matchs et tournois d'aujourd'hui
+  const events=S.sessions.filter(s=>(s.type==='Match'||s.type==='Tournoi')&&s.date===todayStr);
+  if(!events.length){ el.innerHTML=''; return; }
+
+  let html='';
+  events.forEach(s=>{
+    const isMatch=s.type==='Match';
+    const icon=isMatch?'\u{1F534}':'\u{1F3C6}';
+    const title=isMatch?('vs '+esc(s.opponent||'?')+(s.venue?' \u2014 '+venueLabel(s.venue):'')):esc(s.name||tr('type_Tournoi'));
+
+    // Compter les réponses au sondage (si en cache) + les présences confirmées
+    let pollLine='';
+    const resp=(_pollIntentionsCache||{})[s.id];
+    if(resp){
+      const c={present:0,absent:0,injured:0};
+      Object.keys(resp).forEach(k=>{ const st=resp[k].status; if(c[st]!==undefined)c[st]++; });
+      const noResp=Math.max(0, S.players.length-(c.present+c.absent+c.injured));
+      pollLine='<div style="font-size:12px;margin-top:8px;display:flex;gap:12px;flex-wrap:wrap">'+
+        '<span style="color:#22C55E;font-weight:700">'+c.present+' \u2705</span>'+
+        '<span style="color:#EE2837;font-weight:700">'+c.absent+' \u274C</span>'+
+        '<span style="color:#F59E0B;font-weight:700">'+c.injured+' \u{1F915}</span>'+
+        (noResp>0?'<span style="color:var(--mut)">'+noResp+' '+tr('mdNoReply')+'</span>':'')+'</div>';
+    } else if(_fb.cfg && _fb.code){
+      // Charger les intentions pour ce jour puis rafraîchir
+      loadPollIntentions(s.id);
+      setTimeout(()=>{ if(document.getElementById('home-matchday')) rMatchDay(); }, 800);
+      pollLine='<div style="font-size:11px;color:var(--mut);margin-top:8px;font-style:italic">'+tr('mdLoadingPoll')+'</div>';
+    }
+
+    // Compo : nb joueurs déjà dans le squad
+    let squadInfo='';
+    if(isMatch){
+      const n=(s.squad||[]).length;
+      squadInfo=n>0?(n+' '+tr('mdInSquad')):tr('mdNoSquad');
+    } else {
+      const rcls=getRclTeams(s);
+      squadInfo=(s.matches||[]).length+' '+tr('mdMatches')+(rcls.length?' \u2022 '+rcls.length+' '+tr('mdTeams'):'');
+    }
+
+    // Actions
+    const manageClick=isMatch?('openMV('+s.id+',null)'):('openTV('+s.id+')');
+    html+='<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden;box-shadow:0 3px 14px rgba(238,40,55,.18);border:1.5px solid var(--red)">'+
+      // Bandeau rouge "AUJOURD'HUI"
+      '<div style="background:var(--red);color:#fff;padding:6px 14px;font-size:11px;font-weight:800;letter-spacing:.5px;display:flex;align-items:center;gap:6px">'+
+        '<span style="width:8px;height:8px;background:#fff;border-radius:50%;display:inline-block;animation:blink 1.2s infinite"></span>'+tr('mdToday')+'</div>'+
+      '<div style="padding:14px">'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<span style="font-size:26px">'+icon+'</span>'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:16px;font-weight:800;color:var(--dk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+title+'</div>'+
+            '<div style="font-size:11.5px;color:var(--mut)">'+squadInfo+'</div>'+
+          '</div>'+
+        '</div>'+
+        pollLine+
+        '<div style="display:flex;gap:8px;margin-top:12px">'+
+          '<button class="btn btn-mg" style="flex:1" onclick="'+manageClick+'">\u25B6 '+tr('mdManage')+'</button>'+
+          '<button class="btn btn-out" style="flex:1" onclick="goAtt('+s.id+')">\u{1F4CB} '+tr('mdAttendance')+'</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  });
+  el.innerHTML=html;
+}
+// Carte "Ma disponibilité" (accueil) : le coach connecté renseigne ses prochaines séances
+function rMyAvail(){
+  const el=document.getElementById('home-myavail'); if(!el) return;
+  const cid=currentCoachId();
+  if(!cid){ el.innerHTML=''; return; } // visible seulement si connecté comme coach
+  const todayStr=today();
+  // Prochaines séances (toutes catégories), limitées aux 5 plus proches
+  const upcoming=S.sessions.filter(s=>s.date>=todayStr).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  if(!upcoming.length){ el.innerHTML=''; return; }
+  // N'afficher que s'il reste des séances sans réponse (sinon on n'encombre pas)
+  const pending=upcoming.filter(s=>!getCoachAvail(s.id, cid));
+  let html='<div class="card" style="margin-bottom:14px;padding:14px">'+
+    '<div class="card-title" style="display:flex;align-items:center;gap:6px">\u{1F5D3}\uFE0F '+tr('myAvailTitle')+
+    (pending.length?'<span style="font-size:10px;font-weight:700;color:#fff;background:var(--red);border-radius:20px;padding:1px 7px;margin-left:auto">'+pending.length+'</span>':'')+'</div>';
+  upcoming.forEach(s=>{
+    const cur=getCoachAvail(s.id, cid);
+    const icon=s.type==='Match'?'\u{1F534}':s.type==='Tournoi'?'\u{1F3C6}':'\u{1F3C9}';
+    const label=s.type==='Match'?('vs '+esc(s.opponent||'?')):s.type==='Tournoi'?esc(s.name||tr('type_Tournoi')):esc(s.theme||tr('type_Entra\u00eenement'));
+    html+='<div style="padding:8px 0;border-top:1px solid var(--brd)">'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<span style="font-size:16px">'+icon+'</span>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</div>'+
+          '<div style="font-size:11px;color:var(--mut)">'+fdFull(s.date)+' \u2022 '+coachCoverCount(s.id)+' '+tr('coverCoaches')+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:5px;margin-top:6px">'+COACH_AVAIL.map(a=>
+        '<button onclick="setCoachAvail('+s.id+','+cid+',\''+a.v+'\');rMyAvail();rSessions&&rSessions()" '+
+        'style="flex:1;font-size:11px;font-weight:700;padding:7px 4px;border-radius:8px;border:1.5px solid '+(cur===a.v?a.c:'var(--brd)')+';'+
+        'background:'+(cur===a.v?a.c:'#fff')+';color:'+(cur===a.v?'#fff':'var(--mut)')+';cursor:pointer">'+a.ic+' '+tr(a.lbl)+'</button>'
+      ).join('')+'</div>'+
+    '</div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
 function rHomeCal(){
   calInit();
   const con=document.getElementById('home-cal'); if(!con) return;
@@ -1696,6 +1818,57 @@ function pSel(){
 // ═══════════════════════════════════════════
 // HOME
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// DISPONIBILITÉ DES COACHS (chacun renseigne la sienne dans l'app)
+// coachAvailability = [{sessionId, coachId, avail:'yes'|'no'|'maybe'}]
+// Distinct de coachAttendance (présence réelle P/A/B marquée le jour J)
+// ═══════════════════════════════════════════
+const COACH_AVAIL=[
+  {v:'yes', lbl:'availYes', ic:'\u2705', c:'#22C55E'},
+  {v:'maybe', lbl:'availMaybe', ic:'\u2753', c:'#F59E0B'},
+  {v:'no', lbl:'availNo', ic:'\u274C', c:'#EE2837'}
+];
+// Coach actuellement connecté (via l'écran d'accueil, _chat.name)
+function currentCoachId(){
+  if(!_chat || !_chat.name) return null;
+  const norm=normalizeName(_chat.name.split(' ')[0]);
+  const co=(S.coaches||[]).find(c=>normalizeName(c.firstName)===norm);
+  return co?co.id:null;
+}
+function getCoachAvail(sid, cid){
+  const a=(S.coachAvailability||[]).find(x=>x.sessionId===sid&&x.coachId===cid);
+  return a?a.avail:'';
+}
+function setCoachAvail(sid, cid, avail){
+  if(!S.coachAvailability) S.coachAvailability=[];
+  let a=S.coachAvailability.find(x=>x.sessionId===sid&&x.coachId===cid);
+  if(a){ a.avail = (a.avail===avail?'':avail); } // re-cliquer annule
+  else S.coachAvailability.push({sessionId:sid, coachId:cid, avail});
+  save();
+}
+// Nombre de coachs "disponibles" (yes) pour une séance
+function coachCoverCount(sid){
+  return (S.coachAvailability||[]).filter(a=>a.sessionId===sid&&a.avail==='yes').length;
+}
+// Badge de couverture (vert si ≥1 dispo, sinon gris/rouge)
+function coverBadge(sid){
+  const n=coachCoverCount(sid);
+  const maybe=(S.coachAvailability||[]).filter(a=>a.sessionId===sid&&a.avail==='maybe').length;
+  const color=n>=1?'#22C55E':'#EE2837';
+  const txt=n+(maybe?'+'+maybe+'?':'')+' '+tr('coverCoaches');
+  return '<span style="font-size:10px;font-weight:700;color:#fff;background:'+color+';border-radius:20px;padding:2px 8px;white-space:nowrap">\u{1F9E5} '+txt+'</span>';
+}
+// Boutons de dispo pour le coach connecté (sur une séance)
+function myAvailButtons(sid){
+  const cid=currentCoachId();
+  if(!cid) return ''; // pas connecté comme coach → pas de boutons perso
+  const cur=getCoachAvail(sid, cid);
+  return '<div style="display:flex;gap:5px;margin-top:6px">'+COACH_AVAIL.map(a=>
+    '<button onclick="event.stopPropagation();setCoachAvail('+sid+','+cid+',\''+a.v+'\');rSessions();rMatchDay&&rMatchDay()" '+
+    'style="flex:1;font-size:11px;font-weight:700;padding:6px 4px;border-radius:8px;border:1.5px solid '+(cur===a.v?a.c:'var(--brd)')+';'+
+    'background:'+(cur===a.v?a.c:'#fff')+';color:'+(cur===a.v?'#fff':'var(--mut)')+';cursor:pointer">'+a.ic+' '+tr(a.lbl)+'</button>'
+  ).join('')+'</div>';
+}
 function sessionCoachLine(s, quietIfEmpty){
   // Ligne compacte des coachs pour un \u00e9v\u00e9nement
   if(!S.coaches.length) return '';
@@ -2089,6 +2262,48 @@ function rAnalyse(){
 }
 
 // Mini sparkline SVG (sans librairie externe)
+// Radar des principes de jeu : profil du joueur (bleu) vs moyenne équipe (gris pointillé)
+// axes = [{label, value 0-4, teamValue 0-4|null}], max=4
+function svgRadar(axes, teamAxes){
+  const size=220, cx=size/2, cy=size/2, R=78, max=4;
+  const n=axes.length;
+  if(n<3) return '';
+  const angle=i=>(-Math.PI/2)+(2*Math.PI*i/n); // départ en haut
+  const pt=(i,val)=>{
+    const r=R*(Math.max(0,Math.min(max,val))/max);
+    return [cx+Math.cos(angle(i))*r, cy+Math.sin(angle(i))*r];
+  };
+  let svg='<svg viewBox="0 0 '+size+' '+size+'" width="100%" height="220" style="display:block;max-width:280px;margin:0 auto">';
+  // Grille : anneaux concentriques
+  for(let g=1;g<=max;g++){
+    const rr=R*(g/max);
+    let poly='';
+    for(let i=0;i<n;i++){ const a=angle(i); poly+=(cx+Math.cos(a)*rr)+','+(cy+Math.sin(a)*rr)+' '; }
+    svg+='<polygon points="'+poly.trim()+'" fill="none" stroke="#E0E9F0" stroke-width="1"/>';
+  }
+  // Rayons
+  for(let i=0;i<n;i++){ const [x,y]=pt(i,max); svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x+'" y2="'+y+'" stroke="#E0E9F0" stroke-width="1"/>'; }
+  // Polygone équipe (gris pointillé)
+  if(teamAxes && teamAxes.some(v=>v!==null)){
+    let tp='';
+    for(let i=0;i<n;i++){ const v=teamAxes[i]!==null?teamAxes[i]:0; const [x,y]=pt(i,v); tp+=x+','+y+' '; }
+    svg+='<polygon points="'+tp.trim()+'" fill="none" stroke="#9BB0C2" stroke-width="1.5" stroke-dasharray="4 3"/>';
+  }
+  // Polygone joueur (bleu rempli)
+  let pp='';
+  for(let i=0;i<n;i++){ const [x,y]=pt(i,axes[i].value); pp+=x+','+y+' '; }
+  svg+='<polygon points="'+pp.trim()+'" fill="rgba(0,91,150,.22)" stroke="#005B96" stroke-width="2.5"/>';
+  // Points + labels
+  for(let i=0;i<n;i++){
+    const [x,y]=pt(i,axes[i].value);
+    svg+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="#005B96"/>';
+    const [lx,ly]=pt(i,max*1.28);
+    const anchor=Math.abs(lx-cx)<8?'middle':(lx<cx?'end':'start');
+    svg+='<text x="'+lx+'" y="'+ly+'" font-size="11" font-weight="700" fill="#0F2A40" text-anchor="'+anchor+'" dominant-baseline="middle">'+axes[i].icon+'</text>';
+  }
+  svg+='</svg>';
+  return svg;
+}
 function svgSparkline(values, color, h){
   h=h||44;
   const valid=values.map((v,i)=>({v,i})).filter(p=>p.v!==null&&p.v!==undefined);
@@ -2196,6 +2411,18 @@ function rAnalysePlayerDetail(){
   if(!evals.length){
     html+='<div class="an-empty">'+tr('anNoEvals')+'</div>';
   } else {
+    // Radar : profil global du joueur (dernières valeurs) vs moyenne équipe
+    const radarAxes=PRINCIPLES.map(pr=>{
+      const series=evals.map(e=>principleAvg(e,pr)).filter(v=>v!==null);
+      const current=series.length?series[series.length-1]:0;
+      return {icon:pr.icon, value:current!==null?current:0};
+    });
+    const radarTeam=PRINCIPLES.map(pr=>principleAvgOverEvals(teamEvals, pr));
+    html+=svgRadar(radarAxes, radarTeam);
+    html+='<div style="font-size:10.5px;color:var(--mut);text-align:center;margin:2px 0 10px">'+
+      '<span style="color:#005B96;font-weight:700">\u25A0</span> '+esc(p.firstName)+
+      ' &nbsp; <span style="color:#9BB0C2;font-weight:700">- -</span> '+tr('anVsTeam')+'</div>';
+    // Détail par principe (sparklines dans le temps)
     PRINCIPLES.forEach(pr=>{
       const series=evals.map(e=>principleAvg(e,pr));
       const current=series.filter(v=>v!==null).slice(-1)[0]??null;
@@ -2991,7 +3218,13 @@ async function generatePotmImage(sid, team){
 // ═══════════════════════════════════════════
 // RESSOURCES & DOCUMENTS — liens vers documents externes (drive, fédération...)
 // ═══════════════════════════════════════════
-const RESOURCE_CATS=['reglement','club','tournoi','formation','autre'];
+const RESOURCE_CATS=['club','tournoi','formation','autre'];
+let _resOpenState={}; // état replié/déplié des sections (catégories/sous-catégories)
+// Suggestions de sous-catégories déjà utilisées (pour le datalist du formulaire)
+function resSubcatSuggestions(){
+  const subs=[...new Set((S.resources||[]).map(r=>(r.subcat||'').trim()).filter(Boolean))].sort();
+  return subs.map(s=>'<option value="'+esc(s)+'">').join('');
+}
 function resourceCatLabel(c){ return tr('resCat_'+c); }
 function resourceCatIcon(c){
   return {reglement:'\u{1F4CB}', club:'\u{1F3C9}', tournoi:'\u{1F3C6}', formation:'\u{1F4DA}', autre:'\u{1F517}'}[c]||'\u{1F517}';
@@ -3018,24 +3251,72 @@ function rResources(){
       '<div style="margin-top:14px"><button class="btn btn-mg" onclick="openResourceForm()">+ '+tr('resAdd')+'</button></div></div>';
     return;
   }
-  // Grouper par catégorie
+  // Filet de sécurité : anciennes ressources en 'reglement' → 'autre'
+  res.forEach(r=>{ if(r.cat==='reglement') r.cat='autre'; });
+  // Grouper par catégorie, puis par sous-catégorie (accordéon replié par défaut)
+  _resOpenState=_resOpenState||{};
   let html='';
   RESOURCE_CATS.forEach(cat=>{
-    const items=res.filter(r=>r.cat===cat).sort((a,b)=>(a.title||'').localeCompare(b.title||''));
-    if(!items.length) return;
-    html+='<div style="font-size:12px;font-weight:800;color:var(--dk);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.3px">'+resourceCatIcon(cat)+' '+resourceCatLabel(cat)+'</div>';
-    items.forEach(r=>{
-      html+='<div style="background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px">'+
-        '<div style="flex:1;min-width:0">'+
-          '<div style="font-size:14px;font-weight:600;color:var(--text)">'+esc(r.title)+'</div>'+
-          (r.note?'<div style="font-size:11px;color:var(--mut);margin-top:2px">'+esc(r.note)+'</div>':'')+
-        '</div>'+
-        '<button class="btn btn-mg btn-sm" style="flex-shrink:0" onclick="openResourceViewer('+r.id+')">'+tr('resOpen')+'</button>'+
-        '<button class="todo-mini todo-del" onclick="resourceDelete('+r.id+')" style="flex-shrink:0">\u00D7</button>'+
+    const catItems=res.filter(r=>r.cat===cat);
+    if(!catItems.length) return;
+    const catKey='cat:'+cat;
+    const catOpen=_resOpenState[catKey]===true; // fermé par défaut
+    // Sous-catégories présentes dans cette catégorie
+    const subs={};
+    catItems.forEach(r=>{ const s=(r.subcat||'').trim(); (subs[s]=subs[s]||[]).push(r); });
+    const subNames=Object.keys(subs).sort((a,b)=>{ if(a==='')return -1; if(b==='')return 1; return a.localeCompare(b); });
+
+    // En-tête de catégorie (cliquable pour replier/déplier)
+    html+='<div class="res-acc">'+
+      '<div class="res-acc-hd" onclick="toggleResSection(\''+catKey+'\')">'+
+        '<span class="res-acc-caret">'+(catOpen?'\u25BC':'\u25B6')+'</span>'+
+        '<span class="res-acc-ic">'+resourceCatIcon(cat)+'</span>'+
+        '<span class="res-acc-title">'+resourceCatLabel(cat)+'</span>'+
+        '<span class="res-acc-count">'+catItems.length+'</span>'+
       '</div>';
-    });
+    if(catOpen){
+      html+='<div class="res-acc-body">';
+      subNames.forEach(sn=>{
+        const items=subs[sn].sort((a,b)=>(a.title||'').localeCompare(b.title||''));
+        if(sn===''){
+          // Ressources sans sous-catégorie : affichées directement
+          items.forEach(r=>{ html+=resourceItemHtml(r); });
+        } else {
+          // Sous-catégorie : sous-accordéon
+          const subKey='sub:'+cat+':'+sn;
+          const subOpen=_resOpenState[subKey]===true;
+          html+='<div class="res-sub">'+
+            '<div class="res-sub-hd" onclick="toggleResSection(\''+subKey.replace(/'/g,"\\'")+'\')">'+
+              '<span class="res-acc-caret">'+(subOpen?'\u25BC':'\u25B6')+'</span>'+
+              '<span class="res-sub-title">'+esc(sn)+'</span>'+
+              '<span class="res-acc-count">'+items.length+'</span>'+
+            '</div>';
+          if(subOpen){ html+='<div class="res-sub-body">'; items.forEach(r=>{ html+=resourceItemHtml(r); }); html+='</div>'; }
+          html+='</div>';
+        }
+      });
+      html+='</div>';
+    }
+    html+='</div>';
   });
   body.innerHTML=html;
+}
+// Rendu d'une ressource individuelle
+function resourceItemHtml(r){
+  return '<div style="background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px">'+
+    '<div style="flex:1;min-width:0">'+
+      '<div style="font-size:14px;font-weight:600;color:var(--text)">'+esc(r.title)+'</div>'+
+      (r.note?'<div style="font-size:11px;color:var(--mut);margin-top:2px">'+esc(r.note)+'</div>':'')+
+    '</div>'+
+    '<button class="btn btn-mg btn-sm" style="flex-shrink:0" onclick="openResourceViewer('+r.id+')">'+tr('resOpen')+'</button>'+
+    '<button class="todo-mini todo-del" onclick="resourceDelete('+r.id+')" style="flex-shrink:0">\u00D7</button>'+
+  '</div>';
+}
+// Replier/déplier une section (catégorie ou sous-catégorie)
+function toggleResSection(key){
+  _resOpenState=_resOpenState||{};
+  _resOpenState[key]=!_resOpenState[key];
+  rResources();
 }
 
 function openResourceForm(){
@@ -3048,6 +3329,7 @@ function openResourceForm(){
     '<div class="card-title">'+tr('resNewTitle')+'</div>'+
     '<div class="fg"><label class="fl">'+tr('resTitleLbl')+'</label><input class="fi" id="res-title" placeholder="'+tr('resTitlePh')+'"></div>'+
     '<div class="fg"><label class="fl">'+tr('resCatLbl')+'</label><select class="fs" id="res-cat">'+catOpts+'</select></div>'+
+    '<div class="fg"><label class="fl">'+tr('resSubcatLbl')+'</label><input class="fi" id="res-subcat" placeholder="'+tr('resSubcatPh')+'" list="res-subcat-list"><datalist id="res-subcat-list">'+resSubcatSuggestions()+'</datalist></div>'+
     '<div class="fg"><label class="fl">'+tr('resUrlLbl')+'</label><input class="fi" id="res-url" placeholder="https://drive.google.com/..."></div>'+
     '<div style="font-size:11px;color:var(--mut);margin-bottom:10px">'+tr('resUrlHint')+'</div>'+
     '<div class="fg"><label class="fl">'+tr('resNoteLbl')+'</label><input class="fi" id="res-note" placeholder="'+tr('resNotePh')+'"></div>'+
@@ -3063,12 +3345,17 @@ function saveResource(){
   // Ajouter https:// si absent
   if(!/^https?:\/\//i.test(url)) url='https://'+url;
   const cat=document.getElementById('res-cat')?.value||'autre';
+  const subcat=(document.getElementById('res-subcat')?.value||'').trim();
   const note=(document.getElementById('res-note')?.value||'').trim();
   if(!S.resources) S.resources=[];
   if(!NID.resources||isNaN(NID.resources)) NID.resources=1;
-  S.resources.push({id:gid('resources'), title, cat, url, note, createdAt:Date.now()});
+  S.resources.push({id:gid('resources'), title, cat, subcat, url, note, createdAt:Date.now()});
   save();
   const f=document.getElementById('resource-form'); if(f) f.remove();
+  // Déplier la catégorie où on vient d'ajouter (pour voir le résultat)
+  _resOpenState=_resOpenState||{};
+  _resOpenState['cat:'+cat]=true;
+  if(subcat) _resOpenState['sub:'+cat+':'+subcat]=true;
   rResources();
   toast(tr('resAdded'));
 }
@@ -3496,6 +3783,8 @@ function sessionTitle(s){
 
 function rHome(){
   rTodo();
+  rMatchDay();
+  rMyAvail();
   const gStat=playerAttendanceStats(null);
   const pct=gStat.globalPct!==null?gStat.globalPct+'%':'\u2013';
   document.getElementById('h-stats').innerHTML=
@@ -3802,7 +4091,10 @@ function rSessions(scrollPivot){
         '<div class="s-top"><div><div class="s-date">'+fdFull(s.date)+'</div>'+
         '<div class="s-theme">'+esc(s.theme||tr('type_Entra\u00eenement'))+'</div></div>'+
         '<span class="s-type te">'+typeLabelShort('Entra\u00eenement')+'</span></div>'+
-        '<div class="s-sub">&#128101; '+pc2+'/'+S.players.length+' '+tr('presentsLbl')+' &bull; &#11088; '+ec2+' '+tr('evalLbl')+'</div>'+sessionCoachLine(s, s.date<today())+'</div>'+
+        '<div class="s-sub">&#128101; '+pc2+'/'+S.players.length+' '+tr('presentsLbl')+' &bull; &#11088; '+ec2+' '+tr('evalLbl')+'</div>'+
+        (s.date>=today()?'<div style="margin-top:4px">'+coverBadge(s.id)+'</div>':'')+
+        sessionCoachLine(s, s.date<today())+
+        (s.date>=today()?myAvailButtons(s.id):'')+'</div>'+
         '<div id="sd-'+s.id+'" class="dbox">'+
           '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
             '<button class="btn btn-mg btn-sm" onclick="event.stopPropagation();st(\'attendance\');setTimeout(()=>{document.getElementById(\'att-sel\').value='+s.id+';rAtt();},80)">\u2705 '+tr('btnPresences')+'</button>'+
@@ -5698,6 +5990,7 @@ function fbApplyCore(snap){
   S=d.S; NID=d.NID||NID;
   if(!S.coaches) S.coaches=[];
   if(!S.coachAttendance) S.coachAttendance=[];
+  if(!S.coachAvailability) S.coachAvailability=[];
   if(!S.tasks) S.tasks=[];
   if(!S.goals) S.goals=[];
   if(!NID.tasks) NID.tasks=1;
