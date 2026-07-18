@@ -481,7 +481,15 @@ textarea.fi{resize:vertical;min-height:60px}
     <span id="avail-home-badges" style="display:flex;gap:5px;flex-shrink:0"></span>
     <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
   </div>
-  <div id="home-todo"></div>
+  <div id="todo-home-card" onclick="openTasksPage()" style="display:none;margin-bottom:14px;cursor:pointer;background:var(--card);border-radius:12px;padding:12px 14px;align-items:center;gap:12px;box-shadow:var(--sh)">
+    <div style="font-size:24px">&#9989;</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:700;color:var(--mg);margin-bottom:4px" id="todo-home-btn">Tâches des coachs</div>
+      <div id="todo-home-preview" style="font-size:12px;color:var(--text)"></div>
+    </div>
+    <span id="todo-home-badges" style="display:flex;gap:5px;flex-shrink:0"></span>
+    <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
+  </div>
   <div id="home-cal"></div>
   <div id="h-upcoming"></div>
   <div class="stat-grid" id="h-stats" style="margin-top:16px"></div>
@@ -669,7 +677,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.00';
+const APP_VER='3.01';
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -2057,7 +2065,6 @@ const TASK_STATUS=['todo','doing','done'];
 function taskStatusLabel(st){ return tr('task_'+st); }
 function coachName(id){ const co=S.coaches.find(c=>c.id===id); return co?co.firstName+' '+co.lastName:''; }
 
-const TODO_PREVIEW_MAX=5; // nombre de tâches affichées sur l'accueil
 // HTML d'une tâche (réutilisé accueil + page complète)
 function taskItemHtml(t, hideCoach){
   const st=t.status;
@@ -2076,39 +2083,27 @@ function taskItemHtml(t, hideCoach){
 
 // Aperçu sur l'accueil : priorité "à faire" + "en cours", limité, "fait" caché
 function rTodo(){
-  const box=document.getElementById('home-todo');
-  if(!box) return;
-  const tasks=S.tasks||[];
-  const active=tasks.filter(t=>t.status==='todo'||t.status==='doing');
-  const doneCount=tasks.filter(t=>t.status==='done').length;
-  // Trier : à faire d'abord, puis en cours ; plus récentes en tête
-  active.sort((a,b)=>{
-    if(a.status!==b.status) return a.status==='todo'?-1:1;
-    return (b.createdAt||0)-(a.createdAt||0);
-  });
-  const shown=active.slice(0,TODO_PREVIEW_MAX);
-  const hiddenActive=active.length-shown.length;
-
-  let html='<div class="card" style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-    '<div class="card-title" style="margin:0">\u2705 '+tr('todoTitle')+'</div>'+
-    '<button class="btn btn-mg btn-sm" onclick="openTaskForm()">+ '+tr('todoAdd')+'</button></div>';
-  if(!tasks.length){
-    html+='<div style="font-size:12px;color:var(--mut);text-align:center;padding:14px 0">'+tr('todoEmpty')+'</div>';
-  } else if(!active.length){
-    html+='<div style="font-size:12px;color:var(--mut);text-align:center;padding:10px 0">'+tr('todoAllDone')+'</div>';
-  } else {
-    shown.forEach(t=>{
-      const color=t.status==='todo'?'#EE2837':'#E8A33D';
-      html+='<div style="display:flex;align-items:stretch;gap:0"><span style="width:4px;border-radius:3px;background:'+color+';flex-shrink:0;margin-right:8px"></span><div style="flex:1">'+taskItemHtml(t)+'</div></div>';
-    });
-  }
-  // Bouton "voir toutes" si tâches masquées (actives en trop OU des "fait")
-  if(tasks.length && (hiddenActive>0 || doneCount>0)){
-    const extra=hiddenActive+doneCount;
-    html+='<button class="btn btn-out btn-w btn-sm" style="margin-top:8px" onclick="openTasksPage()">'+tr('todoSeeAll').replace('{n}',tasks.length)+'</button>';
-  }
-  html+='</div>';
-  box.innerHTML=html;
+  const card=document.getElementById('todo-home-card');
+  if(!card) return;
+  const allTasks=S.tasks||[];
+  if(!allTasks.length){ card.style.display='none'; return; }
+  card.style.display='flex';
+  // Tâches du coach connecté si identifié, sinon toutes
+  const cid=currentCoachId();
+  const mine=cid ? allTasks.filter(t=>t.assignee===cid) : allTasks;
+  const tasks=mine.length?mine:allTasks; // si le coach n'a aucune tâche perso, montrer le global
+  const todo=tasks.filter(t=>t.status==='todo').length;
+  const doing=tasks.filter(t=>t.status==='doing').length;
+  const done=tasks.filter(t=>t.status==='done').length;
+  document.getElementById('todo-home-btn').textContent=tr('todoTitle');
+  // Preview : "X à faire · Y en cours · Z fait"
+  document.getElementById('todo-home-preview').textContent=
+    todo+' '+tr('task_todo').toLowerCase()+' \u00b7 '+doing+' '+tr('task_doing').toLowerCase()+' \u00b7 '+done+' '+tr('task_done').toLowerCase();
+  // Badges : à faire (rouge) + en cours (orange) — on n'alerte pas sur "fait"
+  let badges='';
+  if(todo>0) badges+='<span style="font-size:10px;font-weight:700;color:#fff;background:var(--red);border-radius:20px;padding:2px 8px">'+todo+'</span>';
+  if(doing>0) badges+='<span style="font-size:10px;font-weight:700;color:#fff;background:#F59E0B;border-radius:20px;padding:2px 8px">'+doing+'</span>';
+  document.getElementById('todo-home-badges').innerHTML=badges;
 }
 
 // Page complète (plein écran, comme le chat) : toutes les tâches par statut
