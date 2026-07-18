@@ -361,7 +361,6 @@ textarea.fi{resize:vertical;min-height:60px}
 .res-sub-hd:active{background:var(--lg)}
 .res-sub-title{flex:1;font-size:12.5px;font-weight:700;color:var(--mg)}
 .res-sub-body{padding:6px 0 2px 10px}
-<<<<<<< HEAD
 .ssum-grid{display:flex;gap:6px;margin-top:8px}
 .ssum-col{flex:1;background:var(--zone,#F7FAFD);border-radius:8px;padding:6px 4px;text-align:center;min-width:0}
 .ssum-hd{font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -369,8 +368,6 @@ textarea.fi{resize:vertical;min-height:60px}
 .ssum-availbtns{display:flex;gap:3px;justify-content:center}
 .ssum-availbtns button{flex:1;font-size:13px;padding:5px 0;border-radius:6px;cursor:pointer;max-width:34px}
 .ssum-legend{font-size:9.5px;color:var(--mut);text-align:center;margin-top:3px;font-style:italic}
-=======
->>>>>>> 1882cb456aa069ac11f68d0c22a8977819faf24e
 .todo-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
 .todo-item{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--brd);border-radius:9px;padding:7px 9px;margin-bottom:5px}
 .todo-item-main{flex:1;min-width:0}
@@ -475,7 +472,6 @@ textarea.fi{resize:vertical;min-height:60px}
     <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
   </div>
   <div id="home-matchday"></div>
-<<<<<<< HEAD
   <div id="avail-home-card" onclick="openAvail()" style="display:none;margin-bottom:14px;cursor:pointer;background:var(--card);border-radius:12px;padding:12px 14px;box-shadow:var(--sh);align-items:center;gap:12px">
     <div style="font-size:24px">&#128197;</div>
     <div style="flex:1;min-width:0">
@@ -485,9 +481,6 @@ textarea.fi{resize:vertical;min-height:60px}
     <span id="avail-home-badges" style="display:flex;gap:5px;flex-shrink:0"></span>
     <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
   </div>
-=======
-  <div id="home-myavail"></div>
->>>>>>> 1882cb456aa069ac11f68d0c22a8977819faf24e
   <div id="home-todo"></div>
   <div id="home-cal"></div>
   <div id="h-upcoming"></div>
@@ -676,11 +669,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-<<<<<<< HEAD
 const APP_VER='3.00';
-=======
-const APP_VER='2.97';
->>>>>>> 1882cb456aa069ac11f68d0c22a8977819faf24e
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -1022,11 +1011,7 @@ const I18N = {
   'roleLbl':'Rôle','role_coach':'Coach','role_manager':'Manager','role_assistant':'Assistant',
   'noCoachYet':'Aucun coach enregistré','confirmDeleteCoach':'Supprimer ce coach ?',
   'toastCoachAdded':'✅ Coach ajouté','toastCoachUpdated':'✅ Coach modifié',
-<<<<<<< HEAD
   'availYes':'Dispo','availMaybe':'Peut-être','availNo':'Absent','coverCoaches':'coach(s)','colAvail':'Dispo','colForecast':'Prévu','colReal':'Réel','ssumLegend':'🎯 coach·joueur prévus &bull; ✅ réels','myAvailTitle':'Ma disponibilité','myAvailPreview':'{n} prochaine(s) séance(s) à renseigner','availIntro':'Indique ta disponibilité pour tes prochaines séances. Les autres coachs voient la couverture.','availNeedCoach':'Connecte-toi avec ton prénom de coach pour renseigner ta disponibilité.','availNoSession':'Aucune séance à venir.','availNobody':'Personne n\u2019a encore répondu.','coachesSectionTitle':'Coachs','staffMatchTitle':'Staff du match','noCoachAssigned':'Aucun coach assigné',
-=======
-  'availYes':'Dispo','availMaybe':'Peut-être','availNo':'Absent','coverCoaches':'coach(s)','myAvailTitle':'Ma disponibilité','availYes':'Avail.','availMaybe':'Maybe','availNo':'Not avail.','coverCoaches':'coach(es)','myAvailTitle':'My availability','coachesSectionTitle':'Coachs','staffMatchTitle':'Staff du match','noCoachAssigned':'Aucun coach assigné',
->>>>>>> 1882cb456aa069ac11f68d0c22a8977819faf24e
   'assignedCoachesLbl':'Coachs présents',
   'licenseLbl':'N° licence',
   'liveSyncTitle':'Synchro live (Firebase)',
@@ -1712,7 +1697,6 @@ function rMatchDay(){
   });
   el.innerHTML=html;
 }
-<<<<<<< HEAD
 // Carte compacte "Ma disponibilité" sur l'accueil (ouvre une page dédiée)
 function rMyAvail(){
   const card=document.getElementById('avail-home-card'); if(!card) return;
@@ -1752,27 +1736,10 @@ function rAvailPage(){
   const upcoming=S.sessions.filter(s=>s.date>=todayStr).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
   if(!upcoming.length){ el.innerHTML='<div class="empty"><div class="empty-ic">&#128197;</div><p>'+tr('availNoSession')+'</p></div>'; return; }
   let html='<div style="font-size:12px;color:var(--mut);margin-bottom:12px">'+tr('availIntro')+'</div>';
-=======
-// Carte "Ma disponibilité" (accueil) : le coach connecté renseigne ses prochaines séances
-function rMyAvail(){
-  const el=document.getElementById('home-myavail'); if(!el) return;
-  const cid=currentCoachId();
-  if(!cid){ el.innerHTML=''; return; } // visible seulement si connecté comme coach
-  const todayStr=today();
-  // Prochaines séances (toutes catégories), limitées aux 5 plus proches
-  const upcoming=S.sessions.filter(s=>s.date>=todayStr).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
-  if(!upcoming.length){ el.innerHTML=''; return; }
-  // N'afficher que s'il reste des séances sans réponse (sinon on n'encombre pas)
-  const pending=upcoming.filter(s=>!getCoachAvail(s.id, cid));
-  let html='<div class="card" style="margin-bottom:14px;padding:14px">'+
-    '<div class="card-title" style="display:flex;align-items:center;gap:6px">\u{1F5D3}\uFE0F '+tr('myAvailTitle')+
-    (pending.length?'<span style="font-size:10px;font-weight:700;color:#fff;background:var(--red);border-radius:20px;padding:1px 7px;margin-left:auto">'+pending.length+'</span>':'')+'</div>';
->>>>>>> 1882cb456aa069ac11f68d0c22a8977819faf24e
   upcoming.forEach(s=>{
     const cur=getCoachAvail(s.id, cid);
     const icon=s.type==='Match'?'\u{1F534}':s.type==='Tournoi'?'\u{1F3C6}':'\u{1F3C9}';
     const label=s.type==='Match'?('vs '+esc(s.opponent||'?')):s.type==='Tournoi'?esc(s.name||tr('type_Tournoi')):esc(s.theme||tr('type_Entra\u00eenement'));
-<<<<<<< HEAD
     // Liste des coachs dispo/maybe pour cette séance (visibilité de la couverture)
     const yesNames=(S.coachAvailability||[]).filter(a=>a.sessionId===s.id&&a.avail==='yes').map(a=>{const co=S.coaches.find(x=>x.id===a.coachId);return co?co.firstName:null;}).filter(Boolean);
     const maybeNames=(S.coachAvailability||[]).filter(a=>a.sessionId===s.id&&a.avail==='maybe').map(a=>{const co=S.coaches.find(x=>x.id===a.coachId);return co?co.firstName:null;}).filter(Boolean);
@@ -1797,24 +1764,6 @@ function rMyAvail(){
       (!yesNames.length&&!maybeNames.length?'<div style="font-size:11px;color:var(--mut);font-style:italic;margin-top:2px">'+tr('availNobody')+'</div>':'')+
     '</div>';
   });
-=======
-    html+='<div style="padding:8px 0;border-top:1px solid var(--brd)">'+
-      '<div style="display:flex;align-items:center;gap:8px">'+
-        '<span style="font-size:16px">'+icon+'</span>'+
-        '<div style="flex:1;min-width:0">'+
-          '<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</div>'+
-          '<div style="font-size:11px;color:var(--mut)">'+fdFull(s.date)+' \u2022 '+coachCoverCount(s.id)+' '+tr('coverCoaches')+'</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="display:flex;gap:5px;margin-top:6px">'+COACH_AVAIL.map(a=>
-        '<button onclick="setCoachAvail('+s.id+','+cid+',\''+a.v+'\');rMyAvail();rSessions&&rSessions()" '+
-        'style="flex:1;font-size:11px;font-weight:700;padding:7px 4px;border-radius:8px;border:1.5px solid '+(cur===a.v?a.c:'var(--brd)')+';'+
-        'background:'+(cur===a.v?a.c:'#fff')+';color:'+(cur===a.v?'#fff':'var(--mut)')+';cursor:pointer">'+a.ic+' '+tr(a.lbl)+'</button>'
-      ).join('')+'</div>'+
-    '</div>';
-  });
-  html+='</div>';
->>>>>>> 1882cb456aa069ac11f68d0c22a8977819faf24e
   el.innerHTML=html;
 }
 function rHomeCal(){
@@ -1962,7 +1911,6 @@ function coachCoverCount(sid){
   return (S.coachAvailability||[]).filter(a=>a.sessionId===sid&&a.avail==='yes').length;
 }
 // Badge de couverture (vert si ≥1 dispo, sinon gris/rouge)
-<<<<<<< HEAD
 // ── Prévisionnel & Réel pour une séance (harmonisé tous types) ──
 // Prévisionnel : coachs "Dispo" (avail=yes) + joueurs "présent" au sondage
 function sessionForecast(s){
@@ -2015,8 +1963,6 @@ function sessionSummaryGrid(s){
   return '<div class="ssum-grid">'+col1+col2+col3+'</div>'+
     '<div class="ssum-legend">'+tr('ssumLegend')+'</div>';
 }
-=======
->>>>>>> 1882cb456aa069ac11f68d0c22a8977819faf24e
 function coverBadge(sid){
   const n=coachCoverCount(sid);
   const maybe=(S.coachAvailability||[]).filter(a=>a.sessionId===sid&&a.avail==='maybe').length;
@@ -2025,19 +1971,6 @@ function coverBadge(sid){
   return '<span style="font-size:10px;font-weight:700;color:#fff;background:'+color+';border-radius:20px;padding:2px 8px;white-space:nowrap">\u{1F9E5} '+txt+'</span>';
 }
 // Boutons de dispo pour le coach connecté (sur une séance)
-<<<<<<< HEAD
-=======
-function myAvailButtons(sid){
-  const cid=currentCoachId();
-  if(!cid) return ''; // pas connecté comme coach → pas de boutons perso
-  const cur=getCoachAvail(sid, cid);
-  return '<div style="display:flex;gap:5px;margin-top:6px">'+COACH_AVAIL.map(a=>
-    '<button onclick="event.stopPropagation();setCoachAvail('+sid+','+cid+',\''+a.v+'\');rSessions();rMatchDay&&rMatchDay()" '+
-    'style="flex:1;font-size:11px;font-weight:700;padding:6px 4px;border-radius:8px;border:1.5px solid '+(cur===a.v?a.c:'var(--brd)')+';'+
-    'background:'+(cur===a.v?a.c:'#fff')+';color:'+(cur===a.v?'#fff':'var(--mut)')+';cursor:pointer">'+a.ic+' '+tr(a.lbl)+'</button>'
-  ).join('')+'</div>';
-}
->>>>>>> 1882cb456aa069ac11f68d0c22a8977819faf24e
 function sessionCoachLine(s, quietIfEmpty){
   // Ligne compacte des coachs pour un \u00e9v\u00e9nement
   if(!S.coaches.length) return '';
@@ -4261,14 +4194,8 @@ function rSessions(scrollPivot){
         '<div class="s-theme">'+esc(s.theme||tr('type_Entra\u00eenement'))+'</div></div>'+
         '<span class="s-type te">'+typeLabelShort('Entra\u00eenement')+'</span></div>'+
         '<div class="s-sub">&#128101; '+pc2+'/'+S.players.length+' '+tr('presentsLbl')+' &bull; &#11088; '+ec2+' '+tr('evalLbl')+'</div>'+
-<<<<<<< HEAD
         sessionCoachLine(s, s.date<today())+
         sessionSummaryGrid(s)+'</div>'+
-=======
-        (s.date>=today()?'<div style="margin-top:4px">'+coverBadge(s.id)+'</div>':'')+
-        sessionCoachLine(s, s.date<today())+
-        (s.date>=today()?myAvailButtons(s.id):'')+'</div>'+
->>>>>>> 1882cb456aa069ac11f68d0c22a8977819faf24e
         '<div id="sd-'+s.id+'" class="dbox">'+
           '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
             '<button class="btn btn-mg btn-sm" onclick="event.stopPropagation();st(\'attendance\');setTimeout(()=>{document.getElementById(\'att-sel\').value='+s.id+';rAtt();},80)">\u2705 '+tr('btnPresences')+'</button>'+
