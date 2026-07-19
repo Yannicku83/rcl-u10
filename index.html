@@ -481,7 +481,15 @@ textarea.fi{resize:vertical;min-height:60px}
     <span id="avail-home-badges" style="display:flex;gap:5px;flex-shrink:0"></span>
     <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
   </div>
-  <div id="home-todo"></div>
+  <div id="todo-home-card" onclick="openTasksPage()" style="display:none;margin-bottom:14px;cursor:pointer;background:var(--card);border-radius:12px;padding:12px 14px;align-items:center;gap:12px;box-shadow:var(--sh)">
+    <div style="font-size:24px">&#9989;</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:700;color:var(--mg);margin-bottom:4px" id="todo-home-btn">Tâches des coachs</div>
+      <div id="todo-home-preview" style="font-size:12px;color:var(--text)"></div>
+    </div>
+    <span id="todo-home-badges" style="display:flex;gap:5px;flex-shrink:0"></span>
+    <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
+  </div>
   <div id="home-cal"></div>
   <div id="h-upcoming"></div>
   <div class="stat-grid" id="h-stats" style="margin-top:16px"></div>
@@ -669,7 +677,66 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.00';
+const APP_VER='3.03';
+/* ═══════════════════════════════════════════════════════════════════════════
+   RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
+   ───────────────────────────────────────────────────────────────────────────
+   Fichier HTML autonome unique (single-file, offline, mobile/tablette).
+   Sert de MODÈLE au générateur (generateur.html) qui produit les apps finales
+   par catégorie (U06→Senior) en injectant la config Firebase via PRECONFIG.
+
+   ── DONNÉES (objet S, sauvé en localStorage + synchro Firebase) ──
+   S.players[]          {id, firstName, lastName, number, dob, position, parent, phone, photo…}
+   S.sessions[]         {id, type:'Entraînement'|'Match'|'Tournoi', date, theme|opponent|name,
+                         squad[], matches[], coachIds[], coachAssign{}, teams[]…}
+   S.attendance[]       {sessionId, playerId, status:'P'|'A'|'B'}  (présence réelle joueur)
+   S.evaluations[]      {sessionId, playerId, <9 critères 0-4>, comment}
+   S.coaches[]          {id, firstName, lastName, role:'coach'|'assistant'|'manager'}
+   S.coachAttendance[]  {sessionId, coachId, status:'P'|'A'|'B'}  (présence réelle coach)
+   S.coachAvailability[]{sessionId, coachId, avail:'yes'|'maybe'|'no'} (dispo déclarée à l'avance)
+   S.tasks[]            {id, title, assignee(coachId), status:'todo'|'doing'|'done', createdAt}
+   S.resources[]        {id, title, cat, subcat, url, note}  (documents, accordéon replié)
+   S.mvpResults[]       {sessionId, team, playersChoice{}, coachesChoice{}, closed}  (Joueur du match)
+   S.goals[]            objectifs d'équipe
+   NID                  compteurs d'auto-incrément pour les id (gid('type'))
+
+   ── FONCTIONS DE CALCUL CENTRALES (source unique = pas de doublon) ──
+   playerAttendanceStats(pid) → taux présence (séances passées) : {trainPct, matchPct,
+                                tournoiPct, globalPct, …}. Utilisée PARTOUT (accueil,
+                                effectif, analyse) pour garantir la cohérence.
+   sessionForecast(s)         → prévisionnel {coaches (dispo=yes), players (sondage=présent)}
+   sessionReal(s)             → réel {coaches, players} selon le type de séance
+   currentCoachId()           → id du coach connecté (via _chat.name, tolérant casse/accents)
+   chatIsMine(author)         → true si le message m'appartient (compare sur le prénom)
+
+   ── AFFICHAGE (rendu par fonctions r*) ──
+   rHome()      accueil : cartes compactes (Analyse, Ressources, Ma dispo, Tâches) +
+                tableau de bord "jour de match" (rMatchDay) + calendrier + stats
+   rSessions()  liste des séances par type, avec grille 3 colonnes harmonisée
+                (sessionSummaryGrid : Dispo / Prévu / Réel)
+   rRoster()    effectif (liste joueurs + stats)
+   rAtt/goAtt() page présence (pointage jour J)
+   rAnalyse*()  analyse : équipe, par joueur (radar svgRadar + sparklines), objectifs, guide
+   rChat()      chat coachs (temps réel Firebase ; admin peut tout supprimer)
+
+   ── ÉCRANS PLEIN ÉCRAN (overlays .chat-ov, sous le bandeau fixe à top:56px) ──
+   chat-ov, tasks-ov, analyse-ov, resources-ov, avail-ov, resviewer-ov.
+   Fermés par st() (navigation) ; ouverts par openXxx().
+
+   ── FIREBASE (synchro multi-appareils, config par catégorie) ──
+   Projet partagé, appId différent par catégorie. save() → localStorage + fbSchedulePush().
+   Chemins : clubs/{code}/data/core (+photos), chats/{code}/messages,
+             polls/{code}/… (sondage présence parents), votes/{code}/… (vote MVP).
+
+   ── i18n (FR/EN) ──
+   Dict I18N={fr:{…}, en:{…}}. tr('cle') retourne le texte selon LANG.
+   ⚠️ Toute nouvelle clé DOIT être ajoutée dans LES DEUX blocs (fr ET en), séparément.
+   Clés dynamiques via préfixes : task_, status_, type_, princ_, crit_, csv…, avail…
+
+   ── RÈGLE DE DÉV ──
+   Après chaque évolution du modèle : REGÉNÉRER les apps via le générateur, puis
+   déployer sur GitHub Pages + vider le cache (Ctrl+Shift+R). file:// ne marche pas sur iOS.
+   ═══════════════════════════════════════════════════════════════════════════ */
 // ═══ CONFIGURATION CATÉGORIE — modifier ces 2 lignes pour décliner l'app (U6, U8, U10, U12, U14) ═══
 const APP_CAT='U10';              // catégorie : cochée automatiquement sur la feuille FLR + nom de fichier
 const APP_NAME='RCL '+APP_CAT+' Coaching'; // nom affiché dans le bandeau de l'app
@@ -747,7 +814,7 @@ function updateHeaderDate(){
 // ═══════════════════════════════════════════
 const I18N = {
   fr: {
-  'todoTitle':'Tâches des coachs','todoAdd':'Tâche','todoAllDone':'Tout est fait ! 🎉','todoSeeAll':'Voir toutes les tâches ({n})','todoAllTitle':'Toutes les tâches','todoBackHome':'Accueil','todoEmpty':'Aucune tâche. Ajoute-en une !','todoNewTask':'Nouvelle tâche','todoTaskLbl':'Description','todoTaskPh':'Ex : Préparer les plots pour samedi','todoAssignLbl':'Assigner à','todoUnassigned':'Non assignée','todoNeedTitle':'Décris la tâche','todoAdded':'✅ Tâche ajoutée','todoDeleted':'Tâche supprimée','todoConfirmDelete':'Supprimer cette tâche ?','todoBack':'Reculer','todoNext':'Avancer','todoDelete':'Supprimer','task_todo':'À faire','task_doing':'En cours','task_done':'Fait',
+  'todoTitle':'Tâches des coachs','todoAllTitle':'Toutes les tâches','todoBackHome':'Accueil','todoEmpty':'Aucune tâche. Ajoute-en une !','todoNewTask':'Nouvelle tâche','todoTaskLbl':'Description','todoTaskPh':'Ex : Préparer les plots pour samedi','todoAssignLbl':'Assigner à','todoUnassigned':'Non assignée','todoNeedTitle':'Décris la tâche','todoAdded':'✅ Tâche ajoutée','todoDeleted':'Tâche supprimée','todoConfirmDelete':'Supprimer cette tâche ?','todoBack':'Reculer','todoNext':'Avancer','todoDelete':'Supprimer','task_todo':'À faire','task_doing':'En cours','task_done':'Fait',
   'statPlayers':'Joueurs',
   'statTrainings':'Entraîn.',
   'statMatches':'Matchs',
@@ -1105,7 +1172,7 @@ const I18N = {
   'squadStepHint':'Qui joue dans quelle équipe (place les joueurs au banc le jour J)'
 },
   en: {
-  'todoTitle':'Coach tasks','todoAdd':'Task','todoAllDone':'All done! 🎉','todoSeeAll':'See all tasks ({n})','todoAllTitle':'All tasks','todoBackHome':'Home','todoEmpty':'No tasks yet. Add one!','todoNewTask':'New task','todoTaskLbl':'Description','todoTaskPh':'e.g. Bring cones for Saturday','todoAssignLbl':'Assign to','todoUnassigned':'Unassigned','todoNeedTitle':'Describe the task','todoAdded':'✅ Task added','todoDeleted':'Task deleted','todoConfirmDelete':'Delete this task?','todoBack':'Back','todoNext':'Forward','todoDelete':'Delete','task_todo':'To do','task_doing':'In progress','task_done':'Done',
+  'todoTitle':'Coach tasks','todoAllTitle':'All tasks','todoBackHome':'Home','todoEmpty':'No tasks yet. Add one!','todoNewTask':'New task','todoTaskLbl':'Description','todoTaskPh':'e.g. Bring cones for Saturday','todoAssignLbl':'Assign to','todoUnassigned':'Unassigned','todoNeedTitle':'Describe the task','todoAdded':'✅ Task added','todoDeleted':'Task deleted','todoConfirmDelete':'Delete this task?','todoBack':'Back','todoNext':'Forward','todoDelete':'Delete','task_todo':'To do','task_doing':'In progress','task_done':'Done',
   'statPlayers':'Players',
   'statTrainings':'Train.',
   'statMatches':'Matches',
@@ -2057,7 +2124,6 @@ const TASK_STATUS=['todo','doing','done'];
 function taskStatusLabel(st){ return tr('task_'+st); }
 function coachName(id){ const co=S.coaches.find(c=>c.id===id); return co?co.firstName+' '+co.lastName:''; }
 
-const TODO_PREVIEW_MAX=5; // nombre de tâches affichées sur l'accueil
 // HTML d'une tâche (réutilisé accueil + page complète)
 function taskItemHtml(t, hideCoach){
   const st=t.status;
@@ -2076,39 +2142,27 @@ function taskItemHtml(t, hideCoach){
 
 // Aperçu sur l'accueil : priorité "à faire" + "en cours", limité, "fait" caché
 function rTodo(){
-  const box=document.getElementById('home-todo');
-  if(!box) return;
-  const tasks=S.tasks||[];
-  const active=tasks.filter(t=>t.status==='todo'||t.status==='doing');
-  const doneCount=tasks.filter(t=>t.status==='done').length;
-  // Trier : à faire d'abord, puis en cours ; plus récentes en tête
-  active.sort((a,b)=>{
-    if(a.status!==b.status) return a.status==='todo'?-1:1;
-    return (b.createdAt||0)-(a.createdAt||0);
-  });
-  const shown=active.slice(0,TODO_PREVIEW_MAX);
-  const hiddenActive=active.length-shown.length;
-
-  let html='<div class="card" style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-    '<div class="card-title" style="margin:0">\u2705 '+tr('todoTitle')+'</div>'+
-    '<button class="btn btn-mg btn-sm" onclick="openTaskForm()">+ '+tr('todoAdd')+'</button></div>';
-  if(!tasks.length){
-    html+='<div style="font-size:12px;color:var(--mut);text-align:center;padding:14px 0">'+tr('todoEmpty')+'</div>';
-  } else if(!active.length){
-    html+='<div style="font-size:12px;color:var(--mut);text-align:center;padding:10px 0">'+tr('todoAllDone')+'</div>';
-  } else {
-    shown.forEach(t=>{
-      const color=t.status==='todo'?'#EE2837':'#E8A33D';
-      html+='<div style="display:flex;align-items:stretch;gap:0"><span style="width:4px;border-radius:3px;background:'+color+';flex-shrink:0;margin-right:8px"></span><div style="flex:1">'+taskItemHtml(t)+'</div></div>';
-    });
-  }
-  // Bouton "voir toutes" si tâches masquées (actives en trop OU des "fait")
-  if(tasks.length && (hiddenActive>0 || doneCount>0)){
-    const extra=hiddenActive+doneCount;
-    html+='<button class="btn btn-out btn-w btn-sm" style="margin-top:8px" onclick="openTasksPage()">'+tr('todoSeeAll').replace('{n}',tasks.length)+'</button>';
-  }
-  html+='</div>';
-  box.innerHTML=html;
+  const card=document.getElementById('todo-home-card');
+  if(!card) return;
+  const allTasks=S.tasks||[];
+  if(!allTasks.length){ card.style.display='none'; return; }
+  card.style.display='flex';
+  // Tâches du coach connecté si identifié, sinon toutes
+  const cid=currentCoachId();
+  const mine=cid ? allTasks.filter(t=>t.assignee===cid) : allTasks;
+  const tasks=mine.length?mine:allTasks; // si le coach n'a aucune tâche perso, montrer le global
+  const todo=tasks.filter(t=>t.status==='todo').length;
+  const doing=tasks.filter(t=>t.status==='doing').length;
+  const done=tasks.filter(t=>t.status==='done').length;
+  document.getElementById('todo-home-btn').textContent=tr('todoTitle');
+  // Preview : "X à faire · Y en cours · Z fait"
+  document.getElementById('todo-home-preview').textContent=
+    todo+' '+tr('task_todo').toLowerCase()+' \u00b7 '+doing+' '+tr('task_doing').toLowerCase()+' \u00b7 '+done+' '+tr('task_done').toLowerCase();
+  // Badges : à faire (rouge) + en cours (orange) — on n'alerte pas sur "fait"
+  let badges='';
+  if(todo>0) badges+='<span style="font-size:10px;font-weight:700;color:#fff;background:var(--red);border-radius:20px;padding:2px 8px">'+todo+'</span>';
+  if(doing>0) badges+='<span style="font-size:10px;font-weight:700;color:#fff;background:#F59E0B;border-radius:20px;padding:2px 8px">'+doing+'</span>';
+  document.getElementById('todo-home-badges').innerHTML=badges;
 }
 
 // Page complète (plein écran, comme le chat) : toutes les tâches par statut
@@ -3601,6 +3655,7 @@ async function welcomeConnect(){
   // Accès admin : taper "admin" débloque l'accès responsable (pour amorcer la base vide)
   if(norm==='admin'){
     _chat.name='Admin';
+    _chat.isAdmin=true;
     if(PRECONFIG && PRECONFIG.chatCode && !_chat.code) _chat.code=PRECONFIG.chatCode;
     chatSaveCfg();
     document.getElementById('welcome-ov').classList.remove('open');
@@ -3630,6 +3685,7 @@ async function welcomeConnect(){
 
   // Prénom reconnu → connexion (on garde le prénom exact du coach dans la base)
   _chat.name=match.firstName+(match.lastName?' '+match.lastName:'');
+  _chat.isAdmin=false;
   if(PRECONFIG && PRECONFIG.chatCode && !_chat.code) _chat.code=PRECONFIG.chatCode;
   chatSaveCfg();
   document.getElementById('welcome-ov').classList.remove('open');
@@ -5759,11 +5815,11 @@ const CHAT_MAX=300; // messages conservés
 function chatLoadCfg(){
   try{
     const raw=localStorage.getItem(LS_CHATCFG);
-    if(raw){ const o=JSON.parse(raw); _chat.code=o.code||null; _chat.name=o.name||null; }
+    if(raw){ const o=JSON.parse(raw); _chat.code=o.code||null; _chat.name=o.name||null; _chat.isAdmin=!!o.isAdmin; }
   }catch(e){}
 }
 function chatSaveCfg(){
-  try{ localStorage.setItem(LS_CHATCFG, JSON.stringify({code:_chat.code, name:_chat.name})); }catch(e){}
+  try{ localStorage.setItem(LS_CHATCFG, JSON.stringify({code:_chat.code, name:_chat.name, isAdmin:!!_chat.isAdmin})); }catch(e){}
 }
 
 // Aperçu des 4 derniers messages sur l'accueil (lecture ponctuelle, économe)
@@ -5826,6 +5882,17 @@ function closeChat(){
 }
 
 // Rendu de l'écran chat
+// Détermine si un message m'appartient — tolérant aux variations de nom
+// (prénom seul vs nom complet, casse, accents), pour reconnaître mes anciens messages
+function chatIsMine(author){
+  if(!author || !_chat || !_chat.name) return false;
+  const a=normalizeName(author), me=normalizeName(_chat.name);
+  if(a===me) return true;
+  // Comparer sur le prénom (1re partie) : "Yannick" ≈ "Yannick CHAIX"
+  const aFirst=normalizeName(author.split(' ')[0]);
+  const meFirst=normalizeName(_chat.name.split(' ')[0]);
+  return aFirst===meFirst;
+}
 function rChat(){
   const body=document.getElementById('chat-body');
   if(!body) return;
@@ -5856,9 +5923,10 @@ function rChat(){
     html+='<div style="text-align:center;color:var(--mut);font-size:12px;padding:30px 0">'+tr('chatEmpty')+'</div>';
   } else {
     _chat.msgs.forEach(m=>{
-      const mine=m.author===_chat.name;
+      const mine=chatIsMine(m.author);
+      const canDel=_chat.isAdmin || mine;
       const time=m.ts?new Date(m.ts).toLocaleTimeString(LANG==='en'?'en-GB':'fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
-      const delAttr=mine?' onclick="chatAskDelete(\''+esc(m.id)+'\')" style="cursor:pointer" title="'+tr('chatTapDelete')+'"':'';
+      const delAttr=canDel?' onclick="chatAskDelete(\''+esc(m.id)+'\')" style="cursor:pointer" title="'+tr('chatTapDelete')+'"':'';
       html+='<div class="chat-msg'+(mine?' mine':'')+'">'+
         (mine?'':'<div class="chat-author">'+esc(m.author)+'</div>')+
         '<div class="chat-bubble"'+delAttr+'>'+esc(m.text)+'</div>'+
@@ -5962,9 +6030,13 @@ async function chatSend(){
 
 // Supprime les messages au-delà des 100 derniers
 // Supprimer un de ses propres messages (avec confirmation)
+function chatCanDelete(m){
+  if(!m) return false;
+  return _chat.isAdmin || chatIsMine(m.author); // admin supprime tout, sinon ses propres messages
+}
 function chatAskDelete(msgId){
   const m=_chat.msgs.find(x=>x.id===msgId);
-  if(!m || m.author!==_chat.name) return; // sécurité : seulement ses messages
+  if(!m || !chatCanDelete(m)) return; // sécurité : admin ou auteur uniquement
   confirmBox(tr('chatConfirmDelete'), async ()=>{
     try{
       const {fsMod}=_fb.sdk;
