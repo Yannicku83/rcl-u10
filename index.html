@@ -677,7 +677,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.03';
+const APP_VER='3.05';
 /* ═══════════════════════════════════════════════════════════════════════════
    RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
    ───────────────────────────────────────────────────────────────────────────
@@ -1120,7 +1120,7 @@ const I18N = {
   'pollLoading':'Chargement…','pollNotFound':'Sondage introuvable ou expiré','pollError':'Une erreur est survenue','pollPickChild':'Choisis ton enfant','pollChooseChild':'— Sélectionne —','pollAlreadyIn':'déjà inscrits','pollPresent':'Présent','pollAbsent':'Absent','pollInjured':'Blessé','pollResults':'Qui vient ?','pollThanks':'Merci, réponse enregistrée !','pollYourAnswer':'Ta réponse :','pollIntentionsTitle':'Réponses des parents','pollApplyBtn':'Pré-remplir les présences','pollApplyHint':'Applique les réponses des parents comme point de départ. Confirme chaque présence le jour J.','pollApplyConfirm':'Pré-remplir les présences avec les réponses des parents ?','pollApplied':'✅ Présences pré-remplies',
   'mvpBtn':'Joueur du match','potmBtn':'Générer l\u2019image','mvpWriteSynthesis':'Rédiger la synthèse','mvpEditSynthesis':'Modifier la synthèse','mvpSynthesisTitle':'Synthèse des commentaires','mvpAllComments':'Commentaires des joueurs','mvpNoComments':'Aucun commentaire reçu.','mvpSynthesisLbl':'Ta synthèse (apparaîtra sur l\u2019image)','mvpSynthesisPh':'Ex : Beau jeu en équipe et bonne défense','mvpSynthesisHint':'Résume les commentaires des joueurs en une phrase pour l\u2019image.','mvpSynthesisSaved':'✅ Synthèse enregistrée','potmGenerating':'Création de l\u2019image…','potmDone':'✅ Image téléchargée','potmError':'Erreur lors de la génération','potmNeedResult':'Clôture d\u2019abord le vote pour désigner les gagnants','mvpShareBtn':'Partager le lien de vote','mvpReopenBtn':'Rouvrir le vote','mvpReopenConfirm':'Rouvrir ce vote ? Les joueurs pourront voter à nouveau.','mvpReopened':'Vote rouvert','mvpPlayersChoice':'Choix des joueurs','mvpCoachesChoice':'Choix des coachs','mvpVotes':'votes','mvpNoVotes':'Aucun vote pour l\u2019instant','mvpTallyHint':'Décompte (caché aux joueurs jusqu\u2019à la clôture)','mvpCloseBtn':'Clôturer le vote','mvpClosed':'✅ Vote clôturé','mvpNone':'Aucun','mvpTieTitle':'Égalité','mvpTieHint':'Il y a une égalité en tête. Choisis le gagnant :','mvpConfirmWinner':'Désigner gagnant','mvpSetCoachChoice':'Définir le choix des coachs','mvpEditCoachChoice':'Modifier le choix des coachs','mvpCoachChoosePlayer':'Joueur choisi','mvpCoachReason':'Explication','mvpNeedPlayer':'Choisis un joueur','mvpCoachSaved':'✅ Choix des coachs enregistré',
   'voteTitle':'Joueur du match','voteShareMsg':'Vote pour le joueur du match {event} :','voteShareIntro':'Partage ce lien avec les joueurs. Chacun vote pour un coéquipier (pas pour lui-même) avec une explication.','voteWhoAreYou':'Qui es-tu ?','voteWhoHint':'Choisis ton prénom (tu ne pourras pas voter pour toi-même).','voteContinue':'Continuer','voteAs':'Tu votes en tant que','voteChange':'changer','voteForWho':'Pour qui votes-tu ?','voteWhy':'Pourquoi ?','voteWhyPh':'Ex : super défense et beau jeu en équipe','voteSubmit':'Voter','voteThanks':'Merci pour ton vote !','voteThanksSub':'Le résultat sera annoncé par le coach.','voteNeedVoter':'Choisis ton prénom','voteNeedChoice':'Choisis un joueur','voteNeedReason':'Explique ton choix','voteClosed':'Le vote est terminé. Merci !',
-  'resTitle':'Ressources','resHomeBtn':'Ressources & documents','resHomeHint':'Règlements, docs du club, tournois','resCountSingular':'document','resCountPlural':'documents','resEmpty':'Aucun document pour l\u2019instant. Ajoute un lien vers un règlement, une doc du club, etc.','resAdd':'Ajouter un document','resNewTitle':'Nouveau document','resTitleLbl':'Titre','resTitlePh':'Ex : Règlement tournoi U10','resCatLbl':'Catégorie','resSubcatLbl':'Sous-catégorie (optionnel)','resSubcatPh':'Ex : U10, Saison 2026…','resUrlLbl':'Lien (URL)','resUrlHint':'Colle le lien de partage depuis Google Drive, Dropbox, le site de la fédération, etc.','resNoteLbl':'Note (optionnel)','resNotePh':'Ex : Version 2026','resOpen':'Ouvrir','resNoPreview':'Aperçu non disponible pour ce lien. Ouvre-le directement.','resOpenExt':'Ouvrir le document','resNeedTitle':'Indique un titre','resNeedUrl':'Indique un lien','resAdded':'✅ Document ajouté','resDeleted':'Document supprimé','resConfirmDelete':'Supprimer ce document ?',
+  'resTitle':'Ressources','resHomeBtn':'Ressources & documents','resHomeHint':'Règlements, docs du club, tournois','resCountSingular':'document','resCountPlural':'documents','resEmpty':'Aucun document pour l\u2019instant. Ajoute un lien vers un règlement, une doc du club, etc.','resAdd':'Ajouter un document','resNewTitle':'Nouveau document','resTitleLbl':'Titre','resTitlePh':'Ex : Règlement tournoi U10','resCatLbl':'Catégorie','resSubcatLbl':'Sous-catégorie (optionnel)','resSubcatPh':'Ex : U10, Saison 2026…','resUrlLbl':'Lien (URL)','resUrlHint':'Colle le lien de partage depuis Google Drive, Dropbox, le site de la fédération, etc.','resNoteLbl':'Note (optionnel)','resNotePh':'Ex : Version 2026','resOpen':'Ouvrir','resNoPreview':'Aperçu non disponible pour ce lien. Ouvre-le directement.','resOpenExt':'Ouvrir le document','resNeedTitle':'Indique un titre','resNeedUrl':'Indique un lien','resAdded':'✅ Document ajouté','resSaved':'✅ Document modifié','resEditTitle':'Modifier le document','resRenameSub':'Renommer la sous-catégorie','resRenameSubPrompt':'Nouveau nom de la sous-catégorie (vide = aucune) :','resSubRenamed':'✅ Sous-catégorie renommée','resDeleted':'Document supprimé','resConfirmDelete':'Supprimer ce document ?',
   'resCat_reglement':'Règlements','resCat_club':'Documents du club','resCat_tournoi':'Tournois','resCat_formation':'Formation','resCat_autre':'Autres',
   'anTabTeam':'Équipe','anTabPlayer':'Par joueur','anTabGoals':'Objectifs','anTabGuide':'Guide','anHomeBtn':'Analyse & progression','anHomeHint':'Suivi de la progression du groupe','anHomeAttendance':'présence','anHomeEvals':'suivis','pivotError':'Erreur lors de la préparation des données',
   'princ_recup':'Récupération & pression','princ_avancer':'Avancer & soutien','princ_lecture':'Lecture du jeu & discipline','princ_rythme':'Rythme & continuité',
@@ -1481,7 +1481,7 @@ const I18N = {
   'pollLoading':'Loading…','pollNotFound':'Poll not found or expired','pollError':'An error occurred','pollPickChild':'Choose your child','pollChooseChild':'— Select —','pollAlreadyIn':'already in','pollPresent':'Present','pollAbsent':'Absent','pollInjured':'Injured','pollResults':'Who\u2019s coming?','pollThanks':'Thanks, response saved!','pollYourAnswer':'Your answer:','pollIntentionsTitle':'Parent responses','pollApplyBtn':'Pre-fill attendance','pollApplyHint':'Applies parent responses as a starting point. Confirm each attendance on match day.','pollApplyConfirm':'Pre-fill attendance with parent responses?','pollApplied':'✅ Attendance pre-filled',
   'mvpBtn':'Player of the match','potmBtn':'Generate image','mvpWriteSynthesis':'Write summary','mvpEditSynthesis':'Edit summary','mvpSynthesisTitle':'Comments summary','mvpAllComments':'Player comments','mvpNoComments':'No comments received.','mvpSynthesisLbl':'Your summary (shown on the image)','mvpSynthesisPh':'e.g. Great team play and solid defense','mvpSynthesisHint':'Summarize the players\u2019 comments in one sentence for the image.','mvpSynthesisSaved':'✅ Summary saved','potmGenerating':'Creating image…','potmDone':'✅ Image downloaded','potmError':'Error while generating','potmNeedResult':'Close the vote first to set the winners','mvpShareBtn':'Share voting link','mvpReopenBtn':'Reopen voting','mvpReopenConfirm':'Reopen this vote? Players will be able to vote again.','mvpReopened':'Voting reopened','mvpPlayersChoice':'Players\u2019 choice','mvpCoachesChoice':'Coaches\u2019 choice','mvpVotes':'votes','mvpNoVotes':'No votes yet','mvpTallyHint':'Tally (hidden from players until closing)','mvpCloseBtn':'Close voting','mvpClosed':'✅ Voting closed','mvpNone':'None','mvpTieTitle':'Tie','mvpTieHint':'There is a tie at the top. Pick the winner:','mvpConfirmWinner':'Set winner','mvpSetCoachChoice':'Set coaches\u2019 choice','mvpEditCoachChoice':'Edit coaches\u2019 choice','mvpCoachChoosePlayer':'Chosen player','mvpCoachReason':'Reason','mvpNeedPlayer':'Pick a player','mvpCoachSaved':'✅ Coaches\u2019 choice saved',
   'voteTitle':'Player of the match','voteShareMsg':'Vote for the player of the match {event}:','voteShareIntro':'Share this link with players. Each votes for a teammate (not themselves) with a reason.','voteWhoAreYou':'Who are you?','voteWhoHint':'Pick your first name (you won\u2019t be able to vote for yourself).','voteContinue':'Continue','voteAs':'You are voting as','voteChange':'change','voteForWho':'Who do you vote for?','voteWhy':'Why?','voteWhyPh':'e.g. great defense and nice team play','voteSubmit':'Vote','voteThanks':'Thanks for your vote!','voteThanksSub':'The result will be announced by the coach.','voteNeedVoter':'Pick your first name','voteNeedChoice':'Pick a player','voteNeedReason':'Explain your choice','voteClosed':'Voting is closed. Thanks!',
-  'resTitle':'Resources','resHomeBtn':'Resources & documents','resHomeHint':'Rules, club docs, tournaments','resCountSingular':'document','resCountPlural':'documents','resEmpty':'No documents yet. Add a link to a rulebook, club doc, etc.','resAdd':'Add a document','resNewTitle':'New document','resTitleLbl':'Title','resTitlePh':'e.g. U10 tournament rules','resCatLbl':'Category','resSubcatLbl':'Sub-category (optional)','resSubcatPh':'e.g. U10, Season 2026…','resUrlLbl':'Link (URL)','resUrlHint':'Paste the share link from Google Drive, Dropbox, the federation website, etc.','resNoteLbl':'Note (optional)','resNotePh':'e.g. 2026 version','resOpen':'Open','resNoPreview':'Preview not available for this link. Open it directly.','resOpenExt':'Open document','resNeedTitle':'Enter a title','resNeedUrl':'Enter a link','resAdded':'✅ Document added','resDeleted':'Document deleted','resConfirmDelete':'Delete this document?',
+  'resTitle':'Resources','resHomeBtn':'Resources & documents','resHomeHint':'Rules, club docs, tournaments','resCountSingular':'document','resCountPlural':'documents','resEmpty':'No documents yet. Add a link to a rulebook, club doc, etc.','resAdd':'Add a document','resNewTitle':'New document','resTitleLbl':'Title','resTitlePh':'e.g. U10 tournament rules','resCatLbl':'Category','resSubcatLbl':'Sub-category (optional)','resSubcatPh':'e.g. U10, Season 2026…','resUrlLbl':'Link (URL)','resUrlHint':'Paste the share link from Google Drive, Dropbox, the federation website, etc.','resNoteLbl':'Note (optional)','resNotePh':'e.g. 2026 version','resOpen':'Open','resNoPreview':'Preview not available for this link. Open it directly.','resOpenExt':'Open document','resNeedTitle':'Enter a title','resNeedUrl':'Enter a link','resAdded':'✅ Document added','resSaved':'✅ Document updated','resEditTitle':'Edit document','resRenameSub':'Rename sub-category','resRenameSubPrompt':'New sub-category name (empty = none):','resSubRenamed':'✅ Sub-category renamed','resDeleted':'Document deleted','resConfirmDelete':'Delete this document?',
   'resCat_reglement':'Rulebooks','resCat_club':'Club documents','resCat_tournoi':'Tournaments','resCat_formation':'Training','resCat_autre':'Other',
   'anTabTeam':'Team','anTabPlayer':'Per player','anTabGoals':'Goals','anTabGuide':'Guide','anHomeBtn':'Analysis & progress','anHomeHint':'Track the group’s progress','anHomeAttendance':'attendance','anHomeEvals':'tracked','pivotError':'Error while preparing data',
   'princ_recup':'Recovery & pressure','princ_avancer':'Advance & support','princ_lecture':'Game reading & discipline','princ_rythme':'Tempo & continuity',
@@ -2184,31 +2184,51 @@ function rTasksFull(){
   if(!tasks.length){
     html='<div style="font-size:13px;color:var(--mut);text-align:center;padding:40px 0">'+tr('todoEmpty')+'</div>';
   } else {
+    _todoOpenState=_todoOpenState||{};
     TASK_STATUS.forEach(st=>{
       const list=tasks.filter(t=>t.status===st);
       const color=st==='todo'?'#EE2837':st==='doing'?'#E8A33D':'#3DA35D';
-      html+='<div class="todo-col"><div class="todo-col-hd"><span class="todo-dot" style="background:'+color+'"></span>'+taskStatusLabel(st)+' <span style="color:var(--mut)">('+list.length+')</span></div>';
-      if(!list.length){
-        html+='<div style="font-size:11px;color:var(--mut);font-style:italic;padding:4px 0">\u2014</div>';
-      } else {
-        // Grouper par coach : chaque coach (ordre de la liste des coachs), puis les non-assignées
-        const groups=[];
-        (S.coaches||[]).forEach(co=>{
-          const ts=list.filter(t=>t.assignee===co.id).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-          if(ts.length) groups.push({name:co.firstName+' '+co.lastName, tasks:ts});
-        });
-        const unassigned=list.filter(t=>!t.assignee).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-        if(unassigned.length) groups.push({name:tr('todoUnassigned'), tasks:unassigned});
-        // Rendu : nom du coach en sous-titre, puis ses tâches
-        groups.forEach(g=>{
-          html+='<div class="todo-coach-hd">\u{1F464} '+esc(g.name)+' <span style="color:var(--mut);font-weight:400">('+g.tasks.length+')</span></div>';
-          g.tasks.forEach(t=>{ html+=taskItemHtml(t, true); });
-        });
+      const stKey='st:'+st;
+      const stOpen=_todoOpenState[stKey]===true; // fermé par défaut
+      // En-tête de statut (cliquable pour replier/déplier)
+      html+='<div class="todo-col">'+
+        '<div class="todo-col-hd" onclick="toggleTodoSection(\''+stKey+'\')" style="cursor:pointer">'+
+          '<span class="res-acc-caret">'+(stOpen?'\u25BC':'\u25B6')+'</span>'+
+          '<span class="todo-dot" style="background:'+color+'"></span>'+taskStatusLabel(st)+
+          ' <span style="color:var(--mut)">('+list.length+')</span></div>';
+      if(stOpen){
+        if(!list.length){
+          html+='<div style="font-size:11px;color:var(--mut);font-style:italic;padding:4px 0">\u2014</div>';
+        } else {
+          // Grouper par coach (ordre de la liste des coachs), puis non-assignées
+          const groups=[];
+          (S.coaches||[]).forEach(co=>{
+            const ts=list.filter(t=>t.assignee===co.id).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+            if(ts.length) groups.push({key:co.id, name:co.firstName+' '+co.lastName, tasks:ts});
+          });
+          const unassigned=list.filter(t=>!t.assignee).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+          if(unassigned.length) groups.push({key:'none', name:tr('todoUnassigned'), tasks:unassigned});
+          // Chaque coach = un sous-accordéon
+          groups.forEach(g=>{
+            const coachKey='stc:'+st+':'+g.key;
+            const cOpen=_todoOpenState[coachKey]===true; // fermé par défaut
+            html+='<div class="todo-coach-hd" onclick="toggleTodoSection(\''+coachKey+'\')" style="cursor:pointer;display:flex;align-items:center;gap:6px">'+
+              '<span class="res-acc-caret">'+(cOpen?'\u25BC':'\u25B6')+'</span>'+
+              '\u{1F464} '+esc(g.name)+' <span style="color:var(--mut);font-weight:400">('+g.tasks.length+')</span></div>';
+            if(cOpen){ g.tasks.forEach(t=>{ html+=taskItemHtml(t, true); }); }
+          });
+        }
       }
       html+='</div>';
     });
   }
   body.innerHTML=html;
+}
+// Replier/déplier une section de la page tâches (statut ou coach)
+function toggleTodoSection(key){
+  _todoOpenState=_todoOpenState||{};
+  _todoOpenState[key]=!_todoOpenState[key];
+  rTasksFull();
 }
 
 function openTaskForm(){
@@ -3376,6 +3396,7 @@ async function generatePotmImage(sid, team){
 // ═══════════════════════════════════════════
 const RESOURCE_CATS=['club','tournoi','formation','autre'];
 let _resOpenState={}; // état replié/déplié des sections (catégories/sous-catégories)
+let _todoOpenState={}; // état replié/déplié de la page tâches (statuts/coachs)
 // Suggestions de sous-catégories déjà utilisées (pour le datalist du formulaire)
 function resSubcatSuggestions(){
   const subs=[...new Set((S.resources||[]).map(r=>(r.subcat||'').trim()).filter(Boolean))].sort();
@@ -3445,6 +3466,7 @@ function rResources(){
             '<div class="res-sub-hd" onclick="toggleResSection(\''+subKey.replace(/'/g,"\\'")+'\')">'+
               '<span class="res-acc-caret">'+(subOpen?'\u25BC':'\u25B6')+'</span>'+
               '<span class="res-sub-title">'+esc(sn)+'</span>'+
+              '<button class="todo-mini" style="flex-shrink:0" title="'+tr('resRenameSub')+'" onclick="event.stopPropagation();renameSubcat(\''+cat+'\',\''+esc(sn).replace(/'/g,"\\'")+'\')">\u270F\uFE0F</button>'+
               '<span class="res-acc-count">'+items.length+'</span>'+
             '</div>';
           if(subOpen){ html+='<div class="res-sub-body">'; items.forEach(r=>{ html+=resourceItemHtml(r); }); html+='</div>'; }
@@ -3459,12 +3481,13 @@ function rResources(){
 }
 // Rendu d'une ressource individuelle
 function resourceItemHtml(r){
-  return '<div style="background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px">'+
+  return '<div style="background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:8px">'+
     '<div style="flex:1;min-width:0">'+
       '<div style="font-size:14px;font-weight:600;color:var(--text)">'+esc(r.title)+'</div>'+
       (r.note?'<div style="font-size:11px;color:var(--mut);margin-top:2px">'+esc(r.note)+'</div>':'')+
     '</div>'+
     '<button class="btn btn-mg btn-sm" style="flex-shrink:0" onclick="openResourceViewer('+r.id+')">'+tr('resOpen')+'</button>'+
+    '<button class="todo-mini" style="flex-shrink:0" title="'+tr('btnEdit')+'" onclick="openResourceForm('+r.id+')">\u270F\uFE0F</button>'+
     '<button class="todo-mini todo-del" onclick="resourceDelete('+r.id+')" style="flex-shrink:0">\u00D7</button>'+
   '</div>';
 }
@@ -3474,22 +3497,43 @@ function toggleResSection(key){
   _resOpenState[key]=!_resOpenState[key];
   rResources();
 }
+// Renomme une sous-catégorie entière (met à jour tous ses documents)
+function renameSubcat(cat, oldName){
+  const current=oldName||'';
+  const nv=prompt(tr('resRenameSubPrompt'), current);
+  if(nv===null) return; // annulé
+  const newName=nv.trim();
+  (S.resources||[]).forEach(r=>{ if(r.cat===cat && (r.subcat||'')===current) r.subcat=newName; });
+  save();
+  // Garder l'état déplié sur la nouvelle sous-catégorie
+  _resOpenState=_resOpenState||{};
+  _resOpenState['cat:'+cat]=true;
+  if(newName) _resOpenState['sub:'+cat+':'+newName]=true;
+  rResources();
+  toast(tr('resSubRenamed'));
+}
 
-function openResourceForm(){
+function openResourceForm(editId){
   const ov=document.getElementById('resources-ov');
   if(ov && !ov.classList.contains('open')) ov.classList.add('open');
   const body=document.getElementById('resources-body');
-  const catOpts=RESOURCE_CATS.map(c=>'<option value="'+c+'">'+resourceCatIcon(c)+' '+resourceCatLabel(c)+'</option>').join('');
+  // Retirer un éventuel formulaire déjà ouvert
+  const old=document.getElementById('resource-form'); if(old) old.remove();
+  // Mode édition : pré-remplir depuis la ressource existante
+  const r=editId?(S.resources||[]).find(x=>x.id===editId):null;
+  const catOpts=RESOURCE_CATS.map(c=>'<option value="'+c+'"'+(r&&r.cat===c?' selected':'')+'>'+resourceCatIcon(c)+' '+resourceCatLabel(c)+'</option>').join('');
+  const val=(f)=>r&&r[f]?esc(r[f]):'';
   body.insertAdjacentHTML('afterbegin',
     '<div class="card" id="resource-form" style="margin-bottom:14px;border:2px solid var(--mg)">'+
-    '<div class="card-title">'+tr('resNewTitle')+'</div>'+
-    '<div class="fg"><label class="fl">'+tr('resTitleLbl')+'</label><input class="fi" id="res-title" placeholder="'+tr('resTitlePh')+'"></div>'+
+    '<div class="card-title">'+(r?tr('resEditTitle'):tr('resNewTitle'))+'</div>'+
+    '<input type="hidden" id="res-edit-id" value="'+(editId||'')+'">'+
+    '<div class="fg"><label class="fl">'+tr('resTitleLbl')+'</label><input class="fi" id="res-title" placeholder="'+tr('resTitlePh')+'" value="'+val('title')+'"></div>'+
     '<div class="fg"><label class="fl">'+tr('resCatLbl')+'</label><select class="fs" id="res-cat">'+catOpts+'</select></div>'+
-    '<div class="fg"><label class="fl">'+tr('resSubcatLbl')+'</label><input class="fi" id="res-subcat" placeholder="'+tr('resSubcatPh')+'" list="res-subcat-list"><datalist id="res-subcat-list">'+resSubcatSuggestions()+'</datalist></div>'+
-    '<div class="fg"><label class="fl">'+tr('resUrlLbl')+'</label><input class="fi" id="res-url" placeholder="https://drive.google.com/..."></div>'+
+    '<div class="fg"><label class="fl">'+tr('resSubcatLbl')+'</label><input class="fi" id="res-subcat" placeholder="'+tr('resSubcatPh')+'" list="res-subcat-list" value="'+val('subcat')+'"><datalist id="res-subcat-list">'+resSubcatSuggestions()+'</datalist></div>'+
+    '<div class="fg"><label class="fl">'+tr('resUrlLbl')+'</label><input class="fi" id="res-url" placeholder="https://drive.google.com/..." value="'+val('url')+'"></div>'+
     '<div style="font-size:11px;color:var(--mut);margin-bottom:10px">'+tr('resUrlHint')+'</div>'+
-    '<div class="fg"><label class="fl">'+tr('resNoteLbl')+'</label><input class="fi" id="res-note" placeholder="'+tr('resNotePh')+'"></div>'+
-    '<div style="display:flex;gap:8px"><button class="btn btn-mg btn-w" onclick="saveResource()">'+tr('btnAdd')+'</button>'+
+    '<div class="fg"><label class="fl">'+tr('resNoteLbl')+'</label><input class="fi" id="res-note" placeholder="'+tr('resNotePh')+'" value="'+val('note')+'"></div>'+
+    '<div style="display:flex;gap:8px"><button class="btn btn-mg btn-w" onclick="saveResource()">'+(r?tr('btnSave'):tr('btnAdd'))+'</button>'+
     '<button class="btn btn-out" onclick="document.getElementById(\'resource-form\').remove()">'+tr('btnCancel')+'</button></div></div>');
   document.getElementById('res-title').focus();
 }
@@ -3505,15 +3549,31 @@ function saveResource(){
   const note=(document.getElementById('res-note')?.value||'').trim();
   if(!S.resources) S.resources=[];
   if(!NID.resources||isNaN(NID.resources)) NID.resources=1;
-  S.resources.push({id:gid('resources'), title, cat, subcat, url, note, createdAt:Date.now()});
-  save();
-  const f=document.getElementById('resource-form'); if(f) f.remove();
-  // Déplier la catégorie où on vient d'ajouter (pour voir le résultat)
+  const editId=parseInt(document.getElementById('res-edit-id')?.value||'')||null;
   _resOpenState=_resOpenState||{};
-  _resOpenState['cat:'+cat]=true;
-  if(subcat) _resOpenState['sub:'+cat+':'+subcat]=true;
-  rResources();
-  toast(tr('resAdded'));
+  if(editId){
+    // MODIFICATION : mettre à jour la ressource existante (permet aussi de la déplacer)
+    const r=S.resources.find(x=>x.id===editId);
+    if(r){ r.title=title; r.cat=cat; r.subcat=subcat; r.url=url; r.note=note; }
+    save();
+    const f=document.getElementById('resource-form'); if(f) f.remove();
+    _resOpenState['cat:'+cat]=true;
+    if(subcat) _resOpenState['sub:'+cat+':'+subcat]=true;
+    rResources();
+    toast(tr('resSaved'));
+  } else {
+    // CRÉATION : ajouter, garder la catégorie dépliée, et RELANCER un formulaire vide
+    S.resources.push({id:gid('resources'), title, cat, subcat, url, note, createdAt:Date.now()});
+    save();
+    _resOpenState['cat:'+cat]=true;
+    if(subcat) _resOpenState['sub:'+cat+':'+subcat]=true;
+    rResources();
+    toast(tr('resAdded'));
+    // Laisser la main : rouvrir un formulaire vide, en gardant la catégorie/sous-cat choisie
+    openResourceForm();
+    const cs=document.getElementById('res-cat'); if(cs) cs.value=cat;
+    const ss=document.getElementById('res-subcat'); if(ss) ss.value=subcat;
+  }
 }
 function resourceDelete(id){
   confirmBox(tr('resConfirmDelete'), ()=>{
