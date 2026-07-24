@@ -677,7 +677,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.06';
+const APP_VER='3.09';
 /* ═══════════════════════════════════════════════════════════════════════════
    RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
    ───────────────────────────────────────────────────────────────────────────
@@ -814,7 +814,7 @@ function updateHeaderDate(){
 // ═══════════════════════════════════════════
 const I18N = {
   fr: {
-  'todoTitle':'Tâches des coachs','todoAllTitle':'Toutes les tâches','todoBackHome':'Accueil','todoEmpty':'Aucune tâche. Ajoute-en une !','todoNewTask':'Nouvelle tâche','todoTaskLbl':'Description','todoTaskPh':'Ex : Préparer les plots pour samedi','todoAssignLbl':'Assigner à','todoUnassigned':'Non assignée','todoNeedTitle':'Décris la tâche','todoAdded':'✅ Tâche ajoutée','todoDeleted':'Tâche supprimée','todoConfirmDelete':'Supprimer cette tâche ?','todoBack':'Reculer','todoNext':'Avancer','todoDelete':'Supprimer','task_todo':'À faire','task_doing':'En cours','task_done':'Fait',
+  'todoTitle':'Tâches des coachs','todoAllTitle':'Toutes les tâches','todoBackHome':'Accueil','todoEmpty':'Aucune tâche. Ajoute-en une !','todoNewTask':'Nouvelle tâche','todoTaskLbl':'Description','todoTaskPh':'Ex : Préparer les plots pour samedi','todoAssignLbl':'Assigner à','todoUnassigned':'Non assignée','todoScopeMine':'Mes tâches','todoScopeTeam':'Équipe','todoNeedTitle':'Décris la tâche','todoAdded':'✅ Tâche ajoutée','todoDeleted':'Tâche supprimée','todoConfirmDelete':'Supprimer cette tâche ?','todoBack':'Reculer','todoNext':'Avancer','todoDelete':'Supprimer','task_todo':'À faire','task_doing':'En cours','task_done':'Fait',
   'statPlayers':'Joueurs',
   'statTrainings':'Entraîn.',
   'statMatches':'Matchs',
@@ -1029,8 +1029,8 @@ const I18N = {
   'csvCoaches':'Coachs',
   'csvExportHint':'Télécharge un fichier CSV (ouvrable dans Excel).',
   'csvImportTitle':'Importer une liste','csvImportHint':'Importe un CSV pré-rempli (mêmes colonnes que l&#39;export). Les fiches sont ajoutées.',
-  'impPreviewTitle':'Aperçu de l&#39;import','impToAdd':'à ajouter','impErrors':'erreurs','impLine':'Ligne',
-  'impPreviewRows':'Aperçu :','impMore':'autres','impConfirm':'✓ Ajouter {n}','impDone':'✅ {n} fiche(s) ajoutée(s)',
+  'impPreviewTitle':'Aperçu de l&#39;import','impNew':'nouveaux','impExisting':'déjà présents','impExistsTag':'existe','impDupFound':'{n} enregistrement(s) existent déjà. Que faire ?','impModeUpdate':'Mettre à jour','impModeUpdateDesc':'Complète les fiches existantes (une case vide n\u2019efface jamais une donnée)','impModeSkip':'Ignorer les doublons','impModeSkipDesc':'N\u2019ajoute que les nouveaux','impModeAdd':'Tout ajouter','impModeAddDesc':'Crée des doublons (déconseillé)','impResAdded':'ajouté(s)','impResUpdated':'mis à jour','impResSkipped':'ignoré(s)','impResNothing':'Aucune modification','impErrors':'erreurs','impLine':'Ligne',
+  'impPreviewRows':'Aperçu :','impMore':'autres','impConfirm':'✓ Ajouter {n}',
   'impError':'⚠️ Fichier illisible','impEmpty':'⚠️ Fichier vide ou sans données','impNeedName':'Prénom et Nom requis',
   'impDupPlayer':'Doublon nom+prénom (ambigu) :','impNoPlayer':'Joueur introuvable :','impNeedDate':'Date requise','impBadDate':'Date invalide :','impBadStatus':'Statut inconnu :',
   'csvTraining':'Entraînements',
@@ -1078,7 +1078,7 @@ const I18N = {
   'roleLbl':'Rôle','role_coach':'Coach','role_manager':'Manager','role_assistant':'Assistant',
   'noCoachYet':'Aucun coach enregistré','confirmDeleteCoach':'Supprimer ce coach ?',
   'toastCoachAdded':'✅ Coach ajouté','toastCoachUpdated':'✅ Coach modifié',
-  'availYes':'Dispo','availMaybe':'Peut-être','availNo':'Absent','coverCoaches':'coach(s)','colAvail':'Dispo','colForecast':'Prévu','colReal':'Réel','ssumLegend':'🎯 coach·joueur prévus &bull; ✅ réels','myAvailTitle':'Ma disponibilité','myAvailPreview':'{n} prochaine(s) séance(s) à renseigner','availIntro':'Indique ta disponibilité pour tes prochaines séances. Les autres coachs voient la couverture.','availNeedCoach':'Connecte-toi avec ton prénom de coach pour renseigner ta disponibilité.','availNoSession':'Aucune séance à venir.','availNobody':'Personne n\u2019a encore répondu.','coachesSectionTitle':'Coachs','staffMatchTitle':'Staff du match','noCoachAssigned':'Aucun coach assigné',
+  'availYes':'Dispo','availMaybe':'Peut-être','availNo':'Absent','coverCoaches':'coach(s)','colAvail':'Dispo','colAvailLogin':'Qui es-tu ?','availNeedCoachShort':'Identifie-toi pour renseigner ta dispo','colForecast':'Prévu','colReal':'Réel','ssumLegend':'🎯 coach·joueur prévus &bull; ✅ réels','myAvailTitle':'Ma disponibilité','myAvailPreview':'{n} prochaine(s) séance(s) à renseigner','availIntro':'Indique ta disponibilité pour tes prochaines séances. Les autres coachs voient la couverture.','availNeedCoach':'Connecte-toi avec ton prénom de coach pour renseigner ta disponibilité.','availNoSession':'Aucune séance à venir.','availNobody':'Personne n\u2019a encore répondu.','coachesSectionTitle':'Coachs','staffMatchTitle':'Staff du match','noCoachAssigned':'Aucun coach assigné',
   'assignedCoachesLbl':'Coachs présents',
   'licenseLbl':'N° licence',
   'liveSyncTitle':'Synchro live (Firebase)',
@@ -1172,7 +1172,7 @@ const I18N = {
   'squadStepHint':'Qui joue dans quelle équipe (place les joueurs au banc le jour J)'
 },
   en: {
-  'todoTitle':'Coach tasks','todoAllTitle':'All tasks','todoBackHome':'Home','todoEmpty':'No tasks yet. Add one!','todoNewTask':'New task','todoTaskLbl':'Description','todoTaskPh':'e.g. Bring cones for Saturday','todoAssignLbl':'Assign to','todoUnassigned':'Unassigned','todoNeedTitle':'Describe the task','todoAdded':'✅ Task added','todoDeleted':'Task deleted','todoConfirmDelete':'Delete this task?','todoBack':'Back','todoNext':'Forward','todoDelete':'Delete','task_todo':'To do','task_doing':'In progress','task_done':'Done',
+  'todoTitle':'Coach tasks','todoAllTitle':'All tasks','todoBackHome':'Home','todoEmpty':'No tasks yet. Add one!','todoNewTask':'New task','todoTaskLbl':'Description','todoTaskPh':'e.g. Bring cones for Saturday','todoAssignLbl':'Assign to','todoUnassigned':'Unassigned','todoScopeMine':'My tasks','todoScopeTeam':'Team','todoNeedTitle':'Describe the task','todoAdded':'✅ Task added','todoDeleted':'Task deleted','todoConfirmDelete':'Delete this task?','todoBack':'Back','todoNext':'Forward','todoDelete':'Delete','task_todo':'To do','task_doing':'In progress','task_done':'Done',
   'statPlayers':'Players',
   'statTrainings':'Train.',
   'statMatches':'Matches',
@@ -1390,8 +1390,8 @@ const I18N = {
   'csvCoaches':'Staff',
   'csvExportHint':'Downloads a CSV file (opens in Excel).',
   'csvImportTitle':'Import a list','csvImportHint':'Import a filled CSV (same columns as export). Records are added.',
-  'impPreviewTitle':'Import preview','impToAdd':'to add','impErrors':'errors','impLine':'Line',
-  'impPreviewRows':'Preview:','impMore':'more','impConfirm':'✓ Add {n}','impDone':'✅ {n} record(s) added',
+  'impPreviewTitle':'Import preview','impNew':'new','impExisting':'already there','impExistsTag':'exists','impDupFound':'{n} record(s) already exist. What should we do?','impModeUpdate':'Update','impModeUpdateDesc':'Fills in existing records (blank cells never erase data)','impModeSkip':'Skip duplicates','impModeSkipDesc':'Only adds new records','impModeAdd':'Add everything','impModeAddDesc':'Creates duplicates (not advised)','impResAdded':'added','impResUpdated':'updated','impResSkipped':'skipped','impResNothing':'No change','impErrors':'errors','impLine':'Line',
+  'impPreviewRows':'Preview:','impMore':'more','impConfirm':'✓ Add {n}',
   'impError':'⚠️ Unreadable file','impEmpty':'⚠️ Empty file or no data','impNeedName':'First and last name required',
   'impDupPlayer':'Duplicate name (ambiguous):','impNoPlayer':'Player not found:','impNeedDate':'Date required','impBadDate':'Invalid date:','impBadStatus':'Unknown status:',
   'csvTraining':'Training sessions',
@@ -1439,7 +1439,7 @@ const I18N = {
   'roleLbl':'Role','role_coach':'Coach','role_manager':'Manager','role_assistant':'Assistant',
   'noCoachYet':'No coach registered','confirmDeleteCoach':'Delete this coach?',
   'toastCoachAdded':'✅ Coach added','toastCoachUpdated':'✅ Coach updated',
-  'availYes':'Avail.','availMaybe':'Maybe','availNo':'Not avail.','coverCoaches':'coach(es)','colAvail':'Avail.','colForecast':'Expected','colReal':'Actual','ssumLegend':'🎯 expected coach·player &bull; ✅ actual','myAvailTitle':'My availability','myAvailPreview':'{n} upcoming session(s) to answer','availIntro':'Set your availability for upcoming sessions. Other coaches can see the cover.','availNeedCoach':'Connect with your coach first name to set your availability.','availNoSession':'No upcoming session.','availNobody':'Nobody has replied yet.','coachesSectionTitle':'Coaches','staffMatchTitle':'Match staff','noCoachAssigned':'No coach assigned',
+  'availYes':'Avail.','availMaybe':'Maybe','availNo':'Not avail.','coverCoaches':'coach(es)','colAvail':'Avail.','colAvailLogin':'Who are you?','availNeedCoachShort':'Sign in to set your availability','colForecast':'Expected','colReal':'Actual','ssumLegend':'🎯 expected coach·player &bull; ✅ actual','myAvailTitle':'My availability','myAvailPreview':'{n} upcoming session(s) to answer','availIntro':'Set your availability for upcoming sessions. Other coaches can see the cover.','availNeedCoach':'Connect with your coach first name to set your availability.','availNoSession':'No upcoming session.','availNobody':'Nobody has replied yet.','coachesSectionTitle':'Coaches','staffMatchTitle':'Match staff','noCoachAssigned':'No coach assigned',
   'assignedCoachesLbl':'Coaches present',
   'licenseLbl':'License No.',
   'liveSyncTitle':'Live sync (Firebase)',
@@ -1780,10 +1780,20 @@ function rMatchDay(){
 function rMyAvail(){
   const card=document.getElementById('avail-home-card'); if(!card) return;
   const cid=currentCoachId();
-  if(!cid){ card.style.display='none'; return; } // visible seulement si connecté comme coach
   const todayStr=today();
   const upcoming=S.sessions.filter(s=>s.date>=todayStr).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
   if(!upcoming.length){ card.style.display='none'; return; }
+  if(!cid){
+    // Pas encore identifié sur CET appareil (l'identité est stockée par appareil) :
+    // on invite à se connecter au lieu de masquer la carte sans explication
+    card.style.display='flex';
+    card.setAttribute('onclick','showCoachWelcome()');
+    document.getElementById('avail-home-btn').textContent=tr('myAvailTitle');
+    document.getElementById('avail-home-preview').textContent=tr('availNeedCoachShort');
+    document.getElementById('avail-home-badges').innerHTML='';
+    return;
+  }
+  card.setAttribute('onclick','openAvail()');
   card.style.display='flex';
   // Compter : sans réponse (rouge) et maybe (orange)
   const pending=upcoming.filter(s=>!getCoachAvail(s.id, cid)).length;
@@ -2023,15 +2033,25 @@ function sessionSummaryGrid(s){
   const rl=sessionReal(s);
   const cid=currentCoachId();
   const cur=cid?getCoachAvail(s.id, cid):'';
-  // Colonne 1 : boutons dispo (uniquement si séance à venir ET coach connecté)
+  // Colonne 1 : dispo du coach connecté (séances à venir uniquement).
+  // ⚠️ L'identité du coach est stockée PAR APPAREIL : sur un nouvel appareil (PC),
+  // tant qu'on ne s'est pas identifié, on affiche un bouton de connexion plutôt que
+  // de masquer la colonne sans explication (sinon l'affichage semble cassé).
   let col1='';
-  if(!isPast && cid){
-    col1='<div class="ssum-col"><div class="ssum-hd">'+tr('colAvail')+'</div>'+
-      '<div class="ssum-availbtns">'+COACH_AVAIL.map(a=>
-        '<button onclick="event.stopPropagation();setCoachAvail('+s.id+','+cid+',\''+a.v+'\');rSessions();rMyAvail&&rMyAvail()" '+
-        'title="'+tr(a.lbl)+'" style="border:1.5px solid '+(cur===a.v?a.c:'var(--brd)')+';'+
-        'background:'+(cur===a.v?a.c:'#fff')+';color:'+(cur===a.v?'#fff':'var(--mut)')+'">'+a.ic+'</button>'
-      ).join('')+'</div></div>';
+  if(!isPast){
+    if(cid){
+      col1='<div class="ssum-col"><div class="ssum-hd">'+tr('colAvail')+'</div>'+
+        '<div class="ssum-availbtns">'+COACH_AVAIL.map(a=>
+          '<button onclick="event.stopPropagation();setCoachAvail('+s.id+','+cid+',\''+a.v+'\');rSessions();rMyAvail&&rMyAvail()" '+
+          'title="'+tr(a.lbl)+'" style="border:1.5px solid '+(cur===a.v?a.c:'var(--brd)')+';'+
+          'background:'+(cur===a.v?a.c:'#fff')+';color:'+(cur===a.v?'#fff':'var(--mut)')+'">'+a.ic+'</button>'
+        ).join('')+'</div></div>';
+    } else {
+      col1='<div class="ssum-col"><div class="ssum-hd">'+tr('colAvail')+'</div>'+
+        '<button onclick="event.stopPropagation();showCoachWelcome()" '+
+        'style="width:100%;font-size:10.5px;font-weight:700;padding:6px 2px;border-radius:8px;'+
+        'border:1.5px dashed var(--mg);background:#fff;color:var(--mg);cursor:pointer">'+tr('colAvailLogin')+'</button></div>';
+    }
   }
   // Colonne 2 : prévisionnel (coach · joueur)
   const col2='<div class="ssum-col"><div class="ssum-hd">'+tr('colForecast')+'</div>'+
@@ -2159,16 +2179,21 @@ function rTodo(){
   const allTasks=S.tasks||[];
   if(!allTasks.length){ card.style.display='none'; return; }
   card.style.display='flex';
-  // Tâches du coach connecté si identifié, sinon toutes
   const cid=currentCoachId();
-  const mine=cid ? allTasks.filter(t=>t.assignee===cid) : allTasks;
-  const tasks=mine.length?mine:allTasks; // si le coach n'a aucune tâche perso, montrer le global
+  // Comparaison souple : l'assignee peut être un nombre ou du texte (import CSV / anciennes données)
+  const mine=cid ? allTasks.filter(t=>t.assignee!=null && String(t.assignee)===String(cid)) : [];
+  const pending=l=>l.filter(t=>t.status==='todo'||t.status==='doing').length;
+  // On affiche MES tâches seulement si j'ai du travail en attente ; sinon on montre celles de
+  // l'équipe, pour que la carte reste utile (sinon : 0/0 alors que l'équipe a du retard).
+  const scopeMine=pending(mine)>0;
+  const tasks=scopeMine?mine:allTasks;
   const todo=tasks.filter(t=>t.status==='todo').length;
   const doing=tasks.filter(t=>t.status==='doing').length;
   const done=tasks.filter(t=>t.status==='done').length;
   document.getElementById('todo-home-btn').textContent=tr('todoTitle');
-  // Preview : "X à faire · Y en cours · Z fait"
+  // Preview : portée + "X à faire · Y en cours · Z fait"
   document.getElementById('todo-home-preview').textContent=
+    (scopeMine?tr('todoScopeMine'):tr('todoScopeTeam'))+' \u00b7 '+
     todo+' '+tr('task_todo').toLowerCase()+' \u00b7 '+doing+' '+tr('task_doing').toLowerCase()+' \u00b7 '+done+' '+tr('task_done').toLowerCase();
   // Badges : à faire (rouge) + en cours (orange) — on n'alerte pas sur "fait"
   let badges='';
@@ -6564,6 +6589,85 @@ function importDispatch(type){
   };
   inp.click();
 }
+// ═══════════════════════════════════════════
+// DÉTECTION DES DOUBLONS À L'IMPORT
+// Modes : 'update' (met à jour l'existant), 'skip' (ignore les doublons),
+//         'add' (ajoute quand même — crée volontairement un doublon)
+// ═══════════════════════════════════════════
+let _importMode='update'; // défaut : mise à jour, le plus sûr pour une réimportation
+// Deux fiches désignent-elles la même personne ?
+// On accepte DEUX indices : la licence (fiable) OU le prénom+nom.
+// Il suffit qu'un des deux corresponde — sinon une fiche déjà saisie avec licence
+// ne serait pas reconnue face à un CSV sans licence (et inversement).
+function personMatches(a, b){
+  const la=(a.licenseNo||'').trim().toLowerCase(), lb=(b.licenseNo||'').trim().toLowerCase();
+  if(la && lb && la===lb) return true;
+  const na=normalizeName(a.firstName||'')+'|'+normalizeName(a.lastName||'');
+  const nb=normalizeName(b.firstName||'')+'|'+normalizeName(b.lastName||'');
+  return na!=='|' && na===nb;
+}
+// Clé de regroupement (pour repérer les doublons À L'INTÉRIEUR du fichier importé)
+function personKey(p){
+  const lic=(p.licenseNo||'').trim();
+  if(lic) return 'lic:'+lic.toLowerCase();
+  return 'name:'+normalizeName(p.firstName||'')+'|'+normalizeName(p.lastName||'');
+}
+// Clé de comparaison d'une séance : date + type (+ adversaire ou nom du tournoi)
+function sessionKey(s){
+  const base=(s.date||'')+'|'+(s.type||'');
+  if(s.type==='Match') return base+'|'+normalizeName(s.opponent||'');
+  if(s.type==='Tournoi') return base+'|'+normalizeName(s.name||'');
+  return base;
+}
+// Retrouve l'enregistrement existant correspondant (ou null)
+function importFindExisting(type, item){
+  if(type==='players') return (S.players||[]).find(p=>personMatches(p, item))||null;
+  if(type==='coaches') return (S.coaches||[]).find(c=>personMatches(c, item))||null;
+  if(item&&item._kind==='session') return (S.sessions||[]).find(s=>sessionKey(s)===sessionKey(item))||null;
+  return null;
+}
+// Fusion « douce » : une cellule vide du CSV n'écrase JAMAIS une valeur déjà saisie
+function mergeNonEmpty(target, src){
+  Object.keys(src).forEach(k=>{
+    if(k==='id'||k.charAt(0)==='_') return; // on ne touche ni à l'id ni aux champs techniques
+    const v=src[k];
+    if(v===''||v===null||v===undefined) return; // vide → on garde l'existant
+    target[k]=v;
+  });
+  return target;
+}
+// Annote les lignes analysées : _dupId = id de l'enregistrement existant correspondant
+function importMarkDuplicates(type, parsed){
+  const seen=new Map(); // doublons À L'INTÉRIEUR du fichier importé
+  parsed.forEach(item=>{
+    const ex=importFindExisting(type, item);
+    item._dupId=ex?ex.id:null;
+    const k=(type==='players'||type==='coaches')?personKey(item):(item._kind==='session'?sessionKey(item):null);
+    if(k){ item._dupInFile=seen.has(k); seen.set(k,true); }
+  });
+  return parsed;
+}
+function importCounts(parsed){
+  const existing=parsed.filter(p=>p._dupId).length;
+  return {total:parsed.length, existing, fresh:parsed.length-existing};
+}
+function setImportMode(m){ _importMode=m; if(_importPreview&&_importPreview.linked) showImportPreviewLinked(); else showImportPreview(); }
+// Bandeau de choix du mode, affiché seulement s'il y a des doublons
+function importModeSelector(counts){
+  if(!counts.existing) return '';
+  const opt=(m,lbl,desc)=>'<button onclick="setImportMode(\''+m+'\')" style="flex:1;text-align:left;padding:8px 10px;border-radius:8px;cursor:pointer;'+
+    'border:1.5px solid '+(_importMode===m?'var(--mg)':'var(--brd)')+';background:'+(_importMode===m?'var(--lg)':'#fff')+'">'+
+    '<div style="font-size:12px;font-weight:700;color:'+(_importMode===m?'var(--dk)':'var(--text)')+'">'+lbl+'</div>'+
+    '<div style="font-size:10px;color:var(--mut);line-height:1.3">'+desc+'</div></button>';
+  return '<div style="background:#FEF3E0;border-radius:8px;padding:10px;margin-bottom:12px">'+
+    '<div style="font-size:12px;font-weight:700;color:#B45309;margin-bottom:8px">\u26A0\uFE0F '+
+      tr('impDupFound').replace('{n}',counts.existing)+'</div>'+
+    '<div style="display:flex;flex-direction:column;gap:6px">'+
+      opt('update',tr('impModeUpdate'),tr('impModeUpdateDesc'))+
+      opt('skip',tr('impModeSkip'),tr('impModeSkipDesc'))+
+      opt('add',tr('impModeAdd'),tr('impModeAddDesc'))+
+    '</div></div>';
+}
 function importParse(type, text){
   const rows=parseCSV(text);
   if(rows.length<2){ toast(tr('impEmpty')); return; }
@@ -6604,7 +6708,8 @@ function importParse(type, text){
     });
   }
 
-  _importPreview={type, parsed, errors};
+  _importPreview={type, parsed:importMarkDuplicates(type, parsed), errors};
+  _importMode='update';
   showImportPreview();
 }
 
@@ -6615,11 +6720,14 @@ function showImportPreview(){
   const typeLbl=type==='players'?tr('csvPlayers'):type==='coaches'?tr('csvCoaches'):type;
   let html='<div style="font-size:15px;font-weight:800;margin-bottom:4px">'+tr('impPreviewTitle')+'</div>'+
     '<div style="font-size:12px;color:var(--mut);margin-bottom:12px">'+typeLbl+'</div>';
-  // Résumé
+  // Résumé : nouveaux / déjà présents / erreurs
+  const cnt=importCounts(parsed);
   html+='<div style="display:flex;gap:8px;margin-bottom:12px">'+
-    '<div style="flex:1;background:#E8F5E9;border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:#1B5E20">'+parsed.length+'</div><div style="font-size:11px;color:#1B5E20">'+tr('impToAdd')+'</div></div>'+
+    '<div style="flex:1;background:#E8F5E9;border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:#1B5E20">'+cnt.fresh+'</div><div style="font-size:11px;color:#1B5E20">'+tr('impNew')+'</div></div>'+
+    (cnt.existing?'<div style="flex:1;background:#FEF3E0;border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:#B45309">'+cnt.existing+'</div><div style="font-size:11px;color:#B45309">'+tr('impExisting')+'</div></div>':'')+
     (errors.length?'<div style="flex:1;background:#FEECEC;border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:#B71C1C">'+errors.length+'</div><div style="font-size:11px;color:#B71C1C">'+tr('impErrors')+'</div></div>':'')+
     '</div>';
+  html+=importModeSelector(cnt);
   // Erreurs
   if(errors.length){
     html+='<div style="font-size:11px;color:#B71C1C;background:#FEECEC;border-radius:8px;padding:8px 10px;margin-bottom:10px;max-height:80px;overflow-y:auto">'+
@@ -6633,14 +6741,15 @@ function showImportPreview(){
     parsed.slice(0,8).forEach(p=>{
       const sub=type==='players'?[p.number?'#'+p.number:'',p.position?posLabel(p.position):'',p.licenseNo].filter(Boolean).join(' · ')
         :[p.role?tr('role_'+p.role):'',p.licenseNo].filter(Boolean).join(' · ');
-      html+='<div style="padding:6px 10px;border-bottom:1px solid var(--brd);font-size:12px"><b>'+esc(p.firstName)+' '+esc(p.lastName)+'</b>'+(sub?' <span style="color:var(--mut)">— '+esc(sub)+'</span>':'')+'</div>';
+      const tag=p._dupId?'<span style="font-size:9.5px;font-weight:700;color:#B45309;background:#FEF3E0;border-radius:10px;padding:1px 6px;margin-left:6px">'+tr('impExistsTag')+'</span>':'';
+      html+='<div style="padding:6px 10px;border-bottom:1px solid var(--brd);font-size:12px"><b>'+esc(p.firstName)+' '+esc(p.lastName)+'</b>'+(sub?' <span style="color:var(--mut)">— '+esc(sub)+'</span>':'')+tag+'</div>';
     });
     if(parsed.length>8) html+='<div style="padding:6px 10px;font-size:11px;color:var(--mut)">+ '+(parsed.length-8)+' '+tr('impMore')+'</div>';
     html+='</div>';
   }
   // Boutons
   html+='<div style="display:flex;gap:8px;margin-top:14px">'+
-    (parsed.length?'<button class="btn btn-mg btn-w" onclick="applyImport()">'+tr('impConfirm').replace('{n}',parsed.length)+'</button>':'')+
+    (parsed.length?'<button class="btn btn-mg btn-w" onclick="applyImport()">'+tr('impConfirm').replace('{n}',(_importMode==='skip'?cnt.fresh:cnt.total))+'</button>':'')+
     '<button class="btn btn-out'+(parsed.length?'':' btn-w')+'" onclick="closeImport()">'+tr('btnCancel')+'</button>'+
     '</div>';
   body.innerHTML=html;
@@ -6652,18 +6761,34 @@ function closeImport(){ document.getElementById('imp-ov').classList.remove('open
 function applyImport(){
   if(!_importPreview||!_importPreview.parsed.length){ closeImport(); return; }
   const {type, parsed}=_importPreview;
-  let n=0;
-  if(type==='players'){
-    parsed.forEach(p=>{ S.players.push({id:gid('players'), photo:null, ...p}); n++; });
-  } else if(type==='coaches'){
-    parsed.forEach(co=>{ S.coaches.push({id:gid('coaches'), ...co}); n++; });
-  }
+  let added=0, updated=0, skipped=0;
+  const list=type==='players'?S.players:S.coaches;
+  parsed.forEach(item=>{
+    const {_dupId,_dupInFile,...clean}=item;
+    const existing=_dupId?list.find(x=>x.id===_dupId):null;
+    if(existing && _importMode!=='add'){
+      if(_importMode==='skip'){ skipped++; return; }
+      mergeNonEmpty(existing, clean); updated++; // 'update'
+      return;
+    }
+    if(type==='players') S.players.push({id:gid('players'), photo:null, ...clean});
+    else S.coaches.push({id:gid('coaches'), ...clean});
+    added++;
+  });
   save();
   closeImport();
-  toast(tr('impDone').replace('{n}',n));
+  toast(importResultMsg(added, updated, skipped));
   // Rafraîchir la vue concernée
   if(type==='players'){ if(typeof rPlayers==='function'){ st('players'); setRosterTab('players'); rPlayers(); } }
   else if(type==='coaches'){ st('players'); setRosterTab('coaches'); rCoaches(); }
+}
+// Message de résultat lisible : "3 ajoutés · 2 mis à jour · 1 ignoré"
+function importResultMsg(added, updated, skipped){
+  const parts=[];
+  if(added) parts.push(added+' '+tr('impResAdded'));
+  if(updated) parts.push(updated+' '+tr('impResUpdated'));
+  if(skipped) parts.push(skipped+' '+tr('impResSkipped'));
+  return parts.length?('\u2705 '+parts.join(' \u00b7 ')):tr('impResNothing');
 }
 
 // ═══ Correspondance joueur : licence > nom+prénom ═══
@@ -6762,7 +6887,8 @@ function importParseLinked(type, text){
     });
   }
 
-  _importPreview={type, parsed, errors, linked:true};
+  _importPreview={type, parsed:importMarkDuplicates(type, parsed), errors, linked:true};
+  _importMode='update';
   showImportPreviewLinked();
 }
 
@@ -6773,10 +6899,13 @@ function showImportPreviewLinked(){
   const typeLbl=tr(lblMap[type]||type);
   let html='<div style="font-size:15px;font-weight:800;margin-bottom:4px">'+tr('impPreviewTitle')+'</div>'+
     '<div style="font-size:12px;color:var(--mut);margin-bottom:12px">'+typeLbl+'</div>';
+  const cntL=importCounts(parsed);
   html+='<div style="display:flex;gap:8px;margin-bottom:12px">'+
-    '<div style="flex:1;background:#E8F5E9;border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:#1B5E20">'+parsed.length+'</div><div style="font-size:11px;color:#1B5E20">'+tr('impToAdd')+'</div></div>'+
+    '<div style="flex:1;background:#E8F5E9;border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:#1B5E20">'+cntL.fresh+'</div><div style="font-size:11px;color:#1B5E20">'+tr('impNew')+'</div></div>'+
+    (cntL.existing?'<div style="flex:1;background:#FEF3E0;border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:#B45309">'+cntL.existing+'</div><div style="font-size:11px;color:#B45309">'+tr('impExisting')+'</div></div>':'')+
     (errors.length?'<div style="flex:1;background:#FEECEC;border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:#B71C1C">'+errors.length+'</div><div style="font-size:11px;color:#B71C1C">'+tr('impErrors')+'</div></div>':'')+
     '</div>';
+  html+=importModeSelector(cntL);
   if(errors.length){
     html+='<div style="font-size:11px;color:#B71C1C;background:#FEECEC;border-radius:8px;padding:8px 10px;margin-bottom:10px;max-height:100px;overflow-y:auto">'+
       errors.slice(0,10).map(e=>tr('impLine')+' '+e.line+' : '+e.msg).join('<br>')+(errors.length>10?'<br>…':'')+'</div>';
@@ -6797,7 +6926,7 @@ function showImportPreviewLinked(){
     html+='</div>';
   }
   html+='<div style="display:flex;gap:8px;margin-top:14px">'+
-    (parsed.length?'<button class="btn btn-mg btn-w" onclick="applyImportLinked()">'+tr('impConfirm').replace('{n}',parsed.length)+'</button>':'')+
+    (parsed.length?'<button class="btn btn-mg btn-w" onclick="applyImportLinked()">'+tr('impConfirm').replace('{n}',(_importMode==='skip'?cntL.fresh:cntL.total))+'</button>':'')+
     '<button class="btn btn-out'+(parsed.length?'':' btn-w')+'" onclick="closeImport()">'+tr('btnCancel')+'</button></div>';
   body.innerHTML=html; ov.classList.add('open');
 }
@@ -6805,34 +6934,40 @@ function showImportPreviewLinked(){
 function applyImportLinked(){
   if(!_importPreview||!_importPreview.parsed.length){ closeImport(); return; }
   const {type, parsed}=_importPreview;
-  let n=0;
+  let added=0, updated=0, skipped=0;
   parsed.forEach(item=>{
     if(item._kind==='session'){
-      const {_kind,_squadRefs,...clean}=item;
+      const {_kind,_squadRefs,_dupId,_dupInFile,...clean}=item;
       // Rattacher les joueurs du squad (match) aux joueurs existants
       if(item.type==='Match'&&_squadRefs){
         clean.squad=_squadRefs.map(ref=>{ const pl=findPlayerRef(ref.fn,ref.ln); return (pl&&!pl.ambiguous)?{pid:pl.id,role:ref.role,tTotal:ref.tTotal,tIn:null}:null; }).filter(Boolean);
       }
-      S.sessions.push({id:gid('sessions'), ...clean}); n++;
+      const existing=_dupId?S.sessions.find(s=>s.id===_dupId):null;
+      if(existing && _importMode!=='add'){
+        if(_importMode==='skip'){ skipped++; return; }
+        mergeNonEmpty(existing, clean); updated++; // 'update'
+        return;
+      }
+      S.sessions.push({id:gid('sessions'), ...clean}); added++;
     } else if(item._kind==='attendance'){
       // Trouver/créer la séance de cette date+type
       let sess=findSessionByDateType(item.date,item.sType);
       if(!sess){ sess={id:gid('sessions'),date:item.date,type:item.sType}; S.sessions.push(sess); }
-      // Éviter doublon présence
+      // Présence déjà enregistrée → mise à jour du statut (jamais de doublon)
       const exists=S.attendance.find(a=>a.sessionId===sess.id&&a.playerId===item.playerId);
-      if(exists) exists.status=item.status;
-      else { S.attendance.push({id:gid('attendance'),sessionId:sess.id,playerId:item.playerId,status:item.status}); n++; }
+      if(exists){ exists.status=item.status; updated++; }
+      else { S.attendance.push({id:gid('attendance'),sessionId:sess.id,playerId:item.playerId,status:item.status}); added++; }
     } else if(item._kind==='evaluation'){
       let sess=findSessionByDateType(item.date,'Entraînement');
       if(!sess){ sess={id:gid('sessions'),date:item.date,type:'Entraînement'}; S.sessions.push(sess); }
-      const {_kind,_pname,date,...evData}=item;
+      const {_kind,_pname,date,_dupId,_dupInFile,...evData}=item;
       const exists=S.evaluations.find(e=>e.sessionId===sess.id&&e.playerId===item.playerId);
-      if(exists){ Object.assign(exists,evData); }
-      else { S.evaluations.push({id:gid('evaluations'),sessionId:sess.id,...evData}); n++; }
+      if(exists){ Object.assign(exists,evData); updated++; }
+      else { S.evaluations.push({id:gid('evaluations'),sessionId:sess.id,...evData}); added++; }
     }
   });
   save(); closeImport();
-  toast(tr('impDone').replace('{n}',n));
+  toast(importResultMsg(added, updated, skipped));
   if(type==='training'||type==='matches'||type==='tournaments'){ st('sessions'); if(typeof rSessions==='function') rSessions(); }
   else if(type==='attendance'){ st('attendance'); if(typeof rAtt==='function') rAtt(); }
   else if(type==='evaluations'){ st('eval'); if(typeof rEval==='function') rEval(); }
