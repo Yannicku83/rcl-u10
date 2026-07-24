@@ -677,7 +677,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.10';
+const APP_VER='3.12';
 /* ═══════════════════════════════════════════════════════════════════════════
    RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
    ───────────────────────────────────────────────────────────────────────────
@@ -1080,7 +1080,7 @@ const I18N = {
   'toastCoachAdded':'✅ Coach ajouté','toastCoachUpdated':'✅ Coach modifié',
   'availYes':'Dispo','availMaybe':'Peut-être','availNo':'Absent','coverCoaches':'coach(s)','colAvail':'Dispo','colAvailLogin':'Qui es-tu ?','availNeedCoachShort':'Identifie-toi pour renseigner ta dispo','colForecast':'Prévu','colReal':'Réel','ssumLegend':'🎯 coach·joueur prévus &bull; ✅ réels','myAvailTitle':'Ma disponibilité','myAvailPreview':'{n} prochaine(s) séance(s) à renseigner','availIntro':'Indique ta disponibilité pour tes prochaines séances. Les autres coachs voient la couverture.','availNeedCoach':'Connecte-toi avec ton prénom de coach pour renseigner ta disponibilité.','availNoSession':'Aucune séance à venir.','availNobody':'Personne n\u2019a encore répondu.','coachesSectionTitle':'Coachs','staffMatchTitle':'Staff du match','noCoachAssigned':'Aucun coach assigné',
   'assignedCoachesLbl':'Coachs présents',
-  'licenseLbl':'N° licence',
+  'licenseLbl':'N° licence','trMandatoryTitle':'Formations obligatoires effectuées','trTheme_injury':'Prévention des blessures & gestion des risques','trTheme_welfare':'Bien-être du joueur / Médical','trTheme_coaching':'Coaching','trTheme_safeguarding':'Protection (Safeguarding)','trThemeOther':'Autres','trEquivTag':'équivalence','trCycleHint':'Touche la case : 1 fois = fait \u2713, 2 fois = par équivalence \u2248, 3 fois = à faire','trCatalogThemePrompt':'Thème (numéro) :','trCatalogResetBtn':'Rétablir la liste par défaut','trCatalogResetConfirm':'Rétablir la liste par défaut ? Les coches actuelles des coachs seront effacées.','trCatalogReset':'✅ Liste rétablie','trCreateTasks':'Créer les tâches manquantes','trTaskPrefix':'Formation :','trTasksCreated':'✅ {n} tâche(s) créée(s)','trTasksAlready':'Les tâches existent déjà','trNoTaskNeeded':'Aucune formation manquante','trExtraTitle':'Formations complémentaires effectuées','trExtraAdd':'Ajouter une formation','trExtraEmpty':'Aucune formation complémentaire','trExtraPrompt':'Nom de la formation complémentaire :','trCatalogAdd':'Ajouter à la liste obligatoire','trCatalogPrompt':'Nom de la formation obligatoire :','trCatalogRemove':'Retirer de la liste obligatoire','trCatalogRemoveConfirm':'Retirer « {n} » de la liste obligatoire ? Cela concerne tous les coachs.','trCatalogHint':'Liste modifiable : adapte-la aux exigences de ta fédération.','trRemaining':'{n} formation(s) restante(s)','trAllDone':'Toutes les formations obligatoires sont faites',
   'liveSyncTitle':'Synchro live (Firebase)',
   'liveOff':'Non configurée',
   'liveConnecting':'Connexion…',
@@ -1441,7 +1441,7 @@ const I18N = {
   'toastCoachAdded':'✅ Coach added','toastCoachUpdated':'✅ Coach updated',
   'availYes':'Avail.','availMaybe':'Maybe','availNo':'Not avail.','coverCoaches':'coach(es)','colAvail':'Avail.','colAvailLogin':'Who are you?','availNeedCoachShort':'Sign in to set your availability','colForecast':'Expected','colReal':'Actual','ssumLegend':'🎯 expected coach·player &bull; ✅ actual','myAvailTitle':'My availability','myAvailPreview':'{n} upcoming session(s) to answer','availIntro':'Set your availability for upcoming sessions. Other coaches can see the cover.','availNeedCoach':'Connect with your coach first name to set your availability.','availNoSession':'No upcoming session.','availNobody':'Nobody has replied yet.','coachesSectionTitle':'Coaches','staffMatchTitle':'Match staff','noCoachAssigned':'No coach assigned',
   'assignedCoachesLbl':'Coaches present',
-  'licenseLbl':'License No.',
+  'licenseLbl':'License No.','trMandatoryTitle':'Mandatory training completed','trTheme_injury':'Injury prevention & risk management','trTheme_welfare':'Player Welfare / Medical','trTheme_coaching':'Coaching','trTheme_safeguarding':'Safeguarding','trThemeOther':'Other','trEquivTag':'equivalence','trCycleHint':'Tap the box: once = done \u2713, twice = by equivalence \u2248, three times = to do','trCatalogThemePrompt':'Theme (number):','trCatalogResetBtn':'Restore default list','trCatalogResetConfirm':'Restore the default list? Coaches\u2019 current ticks will be cleared.','trCatalogReset':'✅ List restored','trCreateTasks':'Create missing tasks','trTaskPrefix':'Training:','trTasksCreated':'✅ {n} task(s) created','trTasksAlready':'Tasks already exist','trNoTaskNeeded':'No missing training','trExtraTitle':'Additional training completed','trExtraAdd':'Add training','trExtraEmpty':'No additional training','trExtraPrompt':'Name of the additional training:','trCatalogAdd':'Add to mandatory list','trCatalogPrompt':'Name of the mandatory training:','trCatalogRemove':'Remove from mandatory list','trCatalogRemoveConfirm':'Remove \u201C{n}\u201D from the mandatory list? This affects every coach.','trCatalogHint':'Editable list \u2014 adjust it to your union\u2019s requirements.','trRemaining':'{n} training(s) remaining','trAllDone':'All mandatory training completed',
   'liveSyncTitle':'Live sync (Firebase)',
   'liveOff':'Not configured',
   'liveConnecting':'Connecting…',
@@ -4133,6 +4133,172 @@ function setRosterTab(t){
 }
 function rosterAdd(){ if(_rosterTab==='players') openPF(); else openCF(); }
 function rRoster(){ if(_rosterTab==='players') rPlayers(); else rCoaches(); }
+// ═══════════════════════════════════════════
+// FORMATIONS DES COACHS
+// S.trainingCatalog = [{id,name,theme}] : formations OBLIGATOIRES, groupées par thème
+//   (liste modifiable : chaque fédération a ses propres exigences)
+// co.trainings      = {catalogId:'done'|'equiv'} : 'equiv' = acquise par équivalence
+// co.extraTrainings = [{id,name}] : formations complémentaires saisies librement
+// ═══════════════════════════════════════════
+const TRAINING_THEMES=['injury','welfare','coaching','safeguarding'];
+const DEFAULT_TRAINING_CATALOG=[
+  {theme:'injury',       name:'Rugby Ready'},
+  {theme:'welfare',      name:'Concussion Management for the General Public'},
+  {theme:'coaching',     name:'Introduction to Coaching'},
+  {theme:'coaching',     name:'Coaching Children'},
+  {theme:'coaching',     name:'Key Factor Analysis'},
+  {theme:'safeguarding', name:'Safeguarding Essentials'}
+];
+function themeLabel(k){ return k?tr('trTheme_'+k):tr('trThemeOther'); }
+function ensureTrainingCatalog(){
+  if(!Array.isArray(S.trainingCatalog)||!S.trainingCatalog.length){
+    if(!NID.trainingCatalog||isNaN(NID.trainingCatalog)) NID.trainingCatalog=1;
+    S.trainingCatalog=DEFAULT_TRAINING_CATALOG.map(t=>({id:gid('trainingCatalog'), name:t.name, theme:t.theme}));
+  }
+  return S.trainingCatalog;
+}
+// Remet la liste par défaut (utile si elle a été modifiée par erreur)
+function resetTrainingCatalog(){
+  confirmBox(tr('trCatalogResetConfirm'), ()=>{
+    S.trainingCatalog=[]; ensureTrainingCatalog();
+    (S.coaches||[]).forEach(c=>{ c.trainings={}; }); // les anciennes coches ne correspondent plus
+    _cfTrainings={};
+    save(); rCFTrainings(); toast(tr('trCatalogReset'));
+  });
+}
+// Lecture tolérante : ancien format (tableau d'ids) ou nouveau (objet id→statut)
+function coachTrainingMap(co){
+  const t=co&&co.trainings;
+  if(Array.isArray(t)){ const m={}; t.forEach(id=>m[id]='done'); return m; }
+  return t&&typeof t==='object'?t:{};
+}
+// Progression : 'done' ET 'equiv' comptent comme acquises
+function coachTrainingProgress(co){
+  const cat=ensureTrainingCatalog(), m=coachTrainingMap(co);
+  const done=cat.filter(t=>m[t.id]).length;
+  return {done, total:cat.length};
+}
+// Groupe le catalogue par thème (dans l'ordre défini, puis les thèmes libres)
+function catalogByTheme(){
+  const cat=ensureTrainingCatalog(), groups=[];
+  const themes=[...TRAINING_THEMES, ...new Set(cat.map(t=>t.theme||'').filter(th=>!TRAINING_THEMES.includes(th)))];
+  themes.forEach(th=>{
+    const items=cat.filter(t=>(t.theme||'')===th);
+    if(items.length) groups.push({theme:th, items});
+  });
+  return groups;
+}
+// État temporaire pendant l'édition (validé au moment de saveC)
+let _cfTrainings={};   // {catalogId:'done'|'equiv'}
+let _cfExtras=[];      // formations complémentaires
+// Cycle : rien → fait → équivalence → rien
+function cfCycleTraining(id){
+  const cur=_cfTrainings[id];
+  if(!cur) _cfTrainings[id]='done';
+  else if(cur==='done') _cfTrainings[id]='equiv';
+  else delete _cfTrainings[id];
+  rCFTrainings();
+}
+function cfAddExtra(){
+  const name=prompt(tr('trExtraPrompt'),'');
+  if(name===null) return;
+  const n=name.trim(); if(!n) return;
+  if(!NID.extraTrainings||isNaN(NID.extraTrainings)) NID.extraTrainings=1;
+  _cfExtras.push({id:gid('extraTrainings'), name:n});
+  rCFTrainings();
+}
+function cfRemoveExtra(id){ _cfExtras=_cfExtras.filter(x=>x.id!==id); rCFTrainings(); }
+// Ajouter / retirer une formation du catalogue OBLIGATOIRE (concerne tous les coachs)
+function cfAddCatalog(){
+  const name=prompt(tr('trCatalogPrompt'),'');
+  if(name===null) return;
+  const n=name.trim(); if(!n) return;
+  const th=prompt(tr('trCatalogThemePrompt')+'\n1='+tr('trTheme_injury')+'  2='+tr('trTheme_welfare')+'  3='+tr('trTheme_coaching')+'  4='+tr('trTheme_safeguarding'),'3');
+  const theme=({'1':'injury','2':'welfare','3':'coaching','4':'safeguarding'})[(th||'').trim()]||'';
+  ensureTrainingCatalog();
+  if(!NID.trainingCatalog||isNaN(NID.trainingCatalog)) NID.trainingCatalog=1;
+  S.trainingCatalog.push({id:gid('trainingCatalog'), name:n, theme});
+  save(); rCFTrainings();
+}
+function cfRemoveCatalog(id){
+  const t=(S.trainingCatalog||[]).find(x=>x.id===id); if(!t) return;
+  confirmBox(tr('trCatalogRemoveConfirm').replace('{n}',t.name), ()=>{
+    S.trainingCatalog=S.trainingCatalog.filter(x=>x.id!==id);
+    // Retirer la référence chez tous les coachs (sinon coche orpheline)
+    (S.coaches||[]).forEach(c=>{ const m=coachTrainingMap(c); delete m[id]; c.trainings=m; });
+    delete _cfTrainings[id];
+    save(); rCFTrainings();
+  });
+}
+// Rendu des deux sections dans le formulaire coach
+function rCFTrainings(){
+  const box=document.getElementById('cf-trainings'); if(!box) return;
+  const cat=ensureTrainingCatalog();
+  const done=Object.keys(_cfTrainings).filter(id=>cat.some(t=>String(t.id)===String(id))).length;
+  let html='<div class="fg"><label class="fl" style="display:flex;align-items:center;gap:6px">'+
+    tr('trMandatoryTitle')+
+    '<span style="font-size:10px;font-weight:700;color:#fff;background:'+(done===cat.length?'#22C55E':'var(--mg)')+';border-radius:20px;padding:1px 8px">'+done+'/'+cat.length+'</span>'+
+    '</label>';
+  html+='<div style="font-size:10.5px;color:var(--mut);margin-bottom:6px">'+tr('trCycleHint')+'</div>';
+  catalogByTheme().forEach(g=>{
+    html+='<div style="font-size:11px;font-weight:800;color:var(--mg);margin:8px 0 4px;text-transform:uppercase;letter-spacing:.03em">'+esc(themeLabel(g.theme))+'</div>'+
+      '<div style="border:1px solid var(--brd);border-radius:10px;overflow:hidden">';
+    g.items.forEach(t=>{
+      const st=_cfTrainings[t.id];
+      const bg=st==='done'?'#E8F5E9':st==='equiv'?'#EAF2FB':'#fff';
+      const bc=st==='done'?'#22C55E':st==='equiv'?'#005B96':'var(--brd)';
+      const ic=st==='done'?'\u2713':st==='equiv'?'\u2248':'';
+      html+='<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--brd);background:'+bg+'">'+
+        '<button type="button" onclick="cfCycleTraining('+t.id+')" title="'+tr('trCycleHint')+'" style="width:24px;height:24px;flex-shrink:0;border-radius:6px;cursor:pointer;'+
+          'border:1.5px solid '+bc+';background:'+(st?bc:'#fff')+';color:#fff;font-size:13px;line-height:1;padding:0">'+ic+'</button>'+
+        '<span style="flex:1;font-size:12.5px">'+esc(t.name)+
+          (st==='equiv'?' <span style="font-size:9.5px;font-weight:700;color:#005B96;background:#D9EAF5;border-radius:10px;padding:1px 6px">'+tr('trEquivTag')+'</span>':'')+'</span>'+
+        '<button type="button" onclick="cfRemoveCatalog('+t.id+')" title="'+tr('trCatalogRemove')+'" style="border:none;background:none;color:var(--mut);cursor:pointer;font-size:15px;padding:0 2px">\u00D7</button>'+
+      '</div>';
+    });
+    html+='</div>';
+  });
+  html+='<div style="display:flex;gap:6px;margin-top:6px">'+
+      '<button type="button" class="btn btn-out btn-sm" style="flex:1" onclick="cfAddCatalog()">+ '+tr('trCatalogAdd')+'</button>'+
+      '<button type="button" class="btn btn-out btn-sm" onclick="resetTrainingCatalog()" title="'+tr('trCatalogResetBtn')+'">\u21BA</button></div>'+
+    '<div style="font-size:10.5px;color:var(--mut);margin-top:4px;line-height:1.4">'+tr('trCatalogHint')+'</div></div>';
+  // Formations complémentaires
+  html+='<div class="fg"><label class="fl">'+tr('trExtraTitle')+'</label>';
+  if(_cfExtras.length){
+    html+='<div style="border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:6px">';
+    _cfExtras.forEach(x=>{
+      html+='<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid var(--brd)">'+
+        '<span style="flex:1;font-size:12.5px">\u{1F393} '+esc(x.name)+'</span>'+
+        '<button type="button" onclick="cfRemoveExtra('+x.id+')" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:15px;padding:0 2px">\u00D7</button></div>';
+    });
+    html+='</div>';
+  } else {
+    html+='<div style="font-size:11.5px;color:var(--mut);font-style:italic;margin-bottom:6px">'+tr('trExtraEmpty')+'</div>';
+  }
+  html+='<button type="button" class="btn btn-out btn-sm btn-w" onclick="cfAddExtra()">+ '+tr('trExtraAdd')+'</button></div>';
+  box.innerHTML=html;
+}
+// ── Lien FORMATIONS → TÂCHES ──
+// Crée une tâche « À faire » par formation manquante, assignée au coach.
+// Ne recrée pas une tâche déjà présente (même intitulé, même coach, non terminée).
+function createTrainingTasks(coachId){
+  const co=(S.coaches||[]).find(c=>c.id===coachId); if(!co) return;
+  const cat=ensureTrainingCatalog(), m=coachTrainingMap(co);
+  const missing=cat.filter(t=>!m[t.id]);
+  if(!missing.length){ toast(tr('trNoTaskNeeded')); return; }
+  if(!S.tasks) S.tasks=[];
+  if(!NID.tasks||isNaN(NID.tasks)) NID.tasks=1;
+  let n=0;
+  missing.forEach(t=>{
+    const title=tr('trTaskPrefix')+' '+t.name;
+    const already=S.tasks.some(x=>x.title===title && String(x.assignee)===String(coachId) && x.status!=='done');
+    if(already) return;
+    S.tasks.push({id:gid('tasks'), title, assignee:coachId, status:'todo', createdAt:Date.now()});
+    n++;
+  });
+  save(); rCoaches(); if(typeof rTodo==='function') rTodo();
+  toast(n?tr('trTasksCreated').replace('{n}',n):tr('trTasksAlready'));
+}
 function rCoaches(){
   const q=(document.getElementById('psearch')?.value||'').toLowerCase();
   let cl=[...S.coaches].sort((a,b)=>a.lastName.localeCompare(b.lastName));
@@ -4141,13 +4307,21 @@ function rCoaches(){
   if(!cl.length){ document.getElementById('p-list').innerHTML='<div class="empty"><div class="empty-ic">&#128227;</div><p>'+(q?tr('noPlayerFound'):tr('noCoachYet'))+'</p></div>'; return; }
   document.getElementById('p-list').innerHTML=cl.map(co=>{
     const roleTxt=co.role?tr('role_'+co.role):'';
+    const prog=coachTrainingProgress(co);
+    const progColor=prog.done===prog.total?'#22C55E':(prog.done?'#F59E0B':'var(--red)');
+    const progBadge='<span style="font-size:10px;font-weight:700;color:#fff;background:'+progColor+';border-radius:20px;padding:1px 7px;margin-left:6px">\u{1F393} '+prog.done+'/'+prog.total+'</span>';
     const cavatar=co.photo?
       '<div class="pnum" style="background-image:url(\''+co.photo+'\');background-size:cover;background-position:center"></div>':
       '<div class="pnum" style="background:var(--mg)">'+esc((co.firstName[0]||'')+(co.lastName[0]||''))+'</div>';
+    // Détail : formations restantes (par thème) + complémentaires
+    const m=coachTrainingMap(co);
+    const missingGroups=catalogByTheme().map(g=>({theme:g.theme, items:g.items.filter(t=>!m[t.id])})).filter(g=>g.items.length);
+    const nbMissing=missingGroups.reduce((a,g)=>a+g.items.length,0);
+    const extras=co.extraTrainings||[];
     return '<div class="pc" onclick="togCD('+co.id+')">'+
       cavatar+
       '<div class="pinfo"><div class="pname">'+esc(co.firstName)+' '+esc(co.lastName)+'</div>'+
-      '<div class="pmeta">'+roleTxt+'</div></div>'+
+      '<div class="pmeta">'+roleTxt+progBadge+'</div></div>'+
       '<span style="color:var(--mut);font-size:14px">&rsaquo;</span></div>'+
       '<div id="cd-'+co.id+'" class="dbox">'+
         '<div style="display:flex;gap:8px;margin-bottom:8px">'+
@@ -4156,7 +4330,20 @@ function rCoaches(){
         '<div style="font-size:12px;color:var(--mut);line-height:1.8">'+
           (co.phone?'<div>&#128222; '+esc(co.phone)+'</div>':'')+
           (co.email?'<div>&#9993; '+esc(co.email)+'</div>':'')+
-          (co.licenseNo?'<div>&#127380; '+tr('licenseLbl')+' '+esc(co.licenseNo)+'</div>':'')+'</div></div>';
+          (co.licenseNo?'<div>&#127380; '+tr('licenseLbl')+' '+esc(co.licenseNo)+'</div>':'')+'</div>'+
+        // Formations restant à faire, groupées par thème + création de tâches
+        (nbMissing
+          ? '<div style="margin-top:8px;font-size:11.5px"><div style="font-weight:700;color:#B45309;margin-bottom:3px">\u26A0\uFE0F '+tr('trRemaining').replace('{n}',nbMissing)+'</div>'+
+            missingGroups.map(g=>'<div style="color:var(--mg);font-weight:700;margin-top:4px">'+esc(themeLabel(g.theme))+'</div>'+
+              '<div style="color:var(--mut);line-height:1.6">'+g.items.map(t=>'\u2022 '+esc(t.name)).join('<br>')+'</div>').join('')+
+            '<button class="btn btn-out btn-sm btn-w" style="margin-top:8px" onclick="event.stopPropagation();createTrainingTasks('+co.id+')">\u2705 '+tr('trCreateTasks')+'</button></div>'
+          : '<div style="margin-top:8px;font-size:11.5px;font-weight:700;color:#1B5E20">\u2705 '+tr('trAllDone')+'</div>')+
+        // Formations complémentaires
+        (extras.length
+          ? '<div style="margin-top:8px;font-size:11.5px"><div style="font-weight:700;color:var(--mg);margin-bottom:3px">\u{1F393} '+tr('trExtraTitle')+'</div>'+
+            '<div style="color:var(--mut);line-height:1.6">'+extras.map(x=>'\u2022 '+esc(x.name)).join('<br>')+'</div></div>'
+          : '')+
+      '</div>';
   }).join('');
 }
 function togCD(id){ const el=document.getElementById('cd-'+id); if(el) el.style.display=el.style.display!=='block'?'block':'none'; }
@@ -4180,9 +4367,14 @@ function openCF(eid){
     '<div class="frow"><div class="fg"><label class="fl">'+tr('phoneLbl')+'</label><input class="fi" id="cf-tel" value="'+esc(co?.phone||'')+'"></div>'+
     '<div class="fg"><label class="fl">'+tr('emailLbl')+'</label><input class="fi" id="cf-em" value="'+esc(co?.email||'')+'"></div></div>'+
     '<div class="fg"><label class="fl">'+tr('licenseLbl')+'</label><input class="fi" id="cf-lic" value="'+esc(co?.licenseNo||'')+'"></div>'+
+    '<div id="cf-trainings"></div>'+
     '<div style="display:flex;gap:8px"><button class="btn btn-mg btn-w" onclick="saveC('+(eid||'null')+')">'+(co?tr('btnSave'):tr('btnAdd'))+'</button>'+
     '<button class="btn btn-out" onclick="document.getElementById(\'pf-con\').innerHTML=\'\'">'+tr('btnCancel')+'</button></div></div>';
   document.getElementById('pf-con').scrollIntoView({behavior:'smooth'});
+  // Copie de travail des formations (validée seulement à l'enregistrement)
+  _cfTrainings={...coachTrainingMap(co||{})};
+  _cfExtras=(co?.extraTrainings||[]).map(x=>({...x}));
+  rCFTrainings();
 }
 function saveC(eid){
   const fn=document.getElementById('cf-fn').value.trim(),ln=document.getElementById('cf-ln').value.trim();
@@ -4190,6 +4382,8 @@ function saveC(eid){
   const d={firstName:fn,lastName:ln,role:document.getElementById('cf-role').value,
     phone:document.getElementById('cf-tel').value.trim(),email:document.getElementById('cf-em').value.trim(),
     licenseNo:document.getElementById('cf-lic').value.trim(),
+    trainings:{..._cfTrainings},
+    extraTrainings:_cfExtras.map(x=>({...x})),
     photo:(_pfPhotoData!==undefined?_pfPhotoData:_pfPhotoOrig)};
   if(eid){const i=S.coaches.findIndex(x=>x.id===eid);if(i>=0)S.coaches[i]={...S.coaches[i],...d};toast(tr('toastCoachUpdated'));}
   else{S.coaches.push({id:gid('coaches'),...d});toast(tr('toastCoachAdded'));}
