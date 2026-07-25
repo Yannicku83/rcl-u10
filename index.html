@@ -471,6 +471,7 @@ textarea.fi{resize:vertical;min-height:60px}
     </div>
     <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
   </div>
+  <div id="home-alerts"></div>
   <div id="home-matchday"></div>
   <div id="avail-home-card" onclick="openAvail()" style="display:none;margin-bottom:14px;cursor:pointer;background:var(--card);border-radius:12px;padding:12px 14px;box-shadow:var(--sh);align-items:center;gap:12px">
     <div style="font-size:24px">&#128197;</div>
@@ -514,8 +515,8 @@ textarea.fi{resize:vertical;min-height:60px}
 <section id="tab-sessions" class="tab">
   <div class="sticky-top">
     <div class="sub-tabs" id="session-subtabs" style="margin-bottom:8px">
-      <button class="stb active" data-stype="Entraînement" onclick="setSessionSubTab('Entraînement')">&#127946; <span id="stb-train">Entraîn.</span></button>
-      <button class="stb" data-stype="Match" onclick="setSessionSubTab('Match')">&#128308; Match</button>
+      <button class="stb active" data-stype="Entraînement" onclick="setSessionSubTab('Entraînement')">&#127939; <span id="stb-train">Entraîn.</span></button>
+      <button class="stb" data-stype="Match" onclick="setSessionSubTab('Match')"><span id="stb-match-ic"></span> Match</button>
       <button class="stb" data-stype="Tournoi" onclick="setSessionSubTab('Tournoi')">&#127942; <span id="stb-tourn">Tournoi</span></button>
     </div>
     <div id="session-create-area"></div>
@@ -677,7 +678,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.13';
+const APP_VER='3.23';
 /* ═══════════════════════════════════════════════════════════════════════════
    RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
    ───────────────────────────────────────────────────────────────────────────
@@ -696,6 +697,12 @@ const APP_VER='3.13';
    S.coachAvailability[]{sessionId, coachId, avail:'yes'|'maybe'|'no'} (dispo déclarée à l'avance)
    S.tasks[]            {id, title, assignee(coachId), status:'todo'|'doing'|'done', createdAt}
    S.resources[]        {id, title, cat, subcat, url, note}  (documents, accordéon replié)
+   S.trainingCatalog[]  {id, name, theme} : formations OBLIGATOIRES (par thème, modifiable)
+   coach.trainings      {catalogId:'done'|'equiv'} : 'equiv' = acquise par équivalence
+   coach.extraTrainings [{id,name}] : formations complémentaires libres
+   session.matchKind    'championship'|'friendly'|'final'|'cup'|'other' (+ competition, round,
+                        timeMeet, timeKick, field) : contexte d'un match, onglet Config.
+   task.autoTrainingId  tâche générée automatiquement pour une formation manquante
    S.mvpResults[]       {sessionId, team, playersChoice{}, coachesChoice{}, closed}  (Joueur du match)
    S.goals[]            objectifs d'équipe
    NID                  compteurs d'auto-incrément pour les id (gid('type'))
@@ -708,6 +715,14 @@ const APP_VER='3.13';
    sessionReal(s)             → réel {coaches, players} selon le type de séance
    currentCoachId()           → id du coach connecté (via _chat.name, tolérant casse/accents)
    chatIsMine(author)         → true si le message m'appartient (compare sur le prénom)
+   coachTrainingMap(co)       → {catalogId:statut} (lit l'ancien format tableau ET le nouveau)
+   pollStatusOf(sid,pid)      → réponse au sondage d'un joueur ('present'|'absent'|'injured')
+   syncTrainingTasks()        → aligne les tâches auto sur les formations manquantes.
+                                IDEMPOTENT : la relancer ne crée jamais de doublon.
+                                Bidirectionnel : tâche « Fait » → formation cochée.
+   parseDateFlexible(v)       → lit JJ/MM/AAAA, AAAA-MM-JJ, n° Excel… → 'AAAA-MM-JJ'
+   importFindExisting(...)    → détection de doublon à l'import (licence OU nom ; date+type)
+                                _importMode = 'update' | 'skip' | 'add'
 
    ── AFFICHAGE (rendu par fonctions r*) ──
    rHome()      accueil : cartes compactes (Analyse, Ressources, Ma dispo, Tâches) +
@@ -814,6 +829,10 @@ function updateHeaderDate(){
 // ═══════════════════════════════════════════
 const I18N = {
   fr: {
+  'alPollPendingMulti':'{n} séances sans réponse au sondage','alNoCoverMulti':'{n} séances sans coach annoncé','alSeeAll':'voir les {n} autres','alSeeLess':'réduire',
+  'anPtAvg':'Moyenne :','anPtSpread':'écart max :','anPtUnder':'{n} joueur(s) sous 70 % de la moyenne \u2014 à faire jouer davantage','anPtBalanced':'Temps de jeu équilibré dans le groupe',
+  'saveFailTitle':'Sauvegarde impossible','saveFailQuota':'La mémoire du navigateur est pleine. Supprime des photos de joueurs ou d\u2019anciennes séances.','saveFailGeneric':'Le navigateur refuse d\u2019enregistrer (navigation privée ?).','saveFailSynced':'\u2705 Tes données sont bien synchronisées en ligne, rien n\u2019est perdu.','saveFailNotSynced':'\u26A0\uFE0F Aucune synchro en ligne : exporte tout de suite par sécurité.','saveFailExport':'Exporter une sauvegarde','saveFailRetry':'Réessayer',
+  'selFilterAll':'Tous','selFilterPresent':'Présents','selFilterNoReply':'Sans réponse','selFilterHidden':'{n} joueur(s) masqué(s) — reviens sur « Tous » pour les convoquer','alTitle':'Rappels','alPollPending':'{n} sans réponse au sondage pour le {d}','alNoCover':'Aucun coach annoncé pour le {d}','alStaleEval':'{n} joueur(s) sans évaluation récente','alOldTasks':'{n} tâche(s) à faire depuis plus d\u2019un mois','seasonSheetTitle':'Fiche de saison','seasonKeyFigures':'Chiffres clés','seasonAttendance':'Présence','seasonEvals':'évaluations','seasonAwards':'Distinctions',
   'todoTitle':'Tâches des coachs','todoAllTitle':'Toutes les tâches','todoBackHome':'Accueil','todoEmpty':'Aucune tâche. Ajoute-en une !','todoNewTask':'Nouvelle tâche','todoTaskLbl':'Description','todoTaskPh':'Ex : Préparer les plots pour samedi','todoAssignLbl':'Assigner à','todoUnassigned':'Non assignée','todoScopeMine':'Mes tâches','todoScopeTeam':'Équipe','todoNeedTitle':'Décris la tâche','todoAdded':'✅ Tâche ajoutée','todoDeleted':'Tâche supprimée','todoConfirmDelete':'Supprimer cette tâche ?','todoBack':'Reculer','todoNext':'Avancer','todoDelete':'Supprimer','task_todo':'À faire','task_doing':'En cours','task_done':'Fait',
   'statPlayers':'Joueurs',
   'statTrainings':'Entraîn.',
@@ -929,7 +948,7 @@ const I18N = {
   'toastSubDone':'✅ Remplacement effectué à',
   'matchsTab':'Matchs',
   'standingsTab':'Classement',
-  'configTab':'Config.',
+  'configTab':'Config.','mvTabLive':'Match','mk_championship':'Championnat','mk_friendly':'Amical','mk_final':'Phase finale','mk_cup':'Coupe','mk_other':'Autre','mvStepInfoTitle':'Infos du match','mvStepSquadTitle':'Coachs & convocation','mvStepSheetTitle':'Feuille de match','mvKindLbl':'Type de match','mvCompetitionLbl':'Compétition','mvCompetitionPh':'Ex : Luxleague U10','mvRoundLbl':'Journée / tour','mvRoundPh':'Ex : J3','mvRoundPhFinal':'Ex : demi-finale','mvMeetLbl':'Heure RDV','mvKickLbl':'Coup d\u2019envoi','mvFieldLbl':'Terrain / adresse','mvFieldPh':'Ex : Terrain 2, Cessange','mvConvokeHint':'Qui est convoqué (place les joueurs sur le terrain le jour J)','mvConvoke':'Convoquer','mvConvoked':'Convoqué','mvCantUnconvoke':'Joueur déjà entré en jeu : impossible de le retirer',
   'noMatchYet':'Aucun match saisi. Ajoutez les matchs du tournoi.',
   'btnAddMatch':'+ Ajouter un match',
   'playedLbl':'Joué',
@@ -1141,7 +1160,6 @@ const I18N = {
   'nextTrainingTitle':'Prochain entraînement',
   'noNextTraining':'Aucun entraînement planifié',
   'noCoachAnnounced':'Aucun coach annoncé',
-  'sheetCardTitle':'Feuille de match',
   'btnPrintSheet':'🖨 Imprimer / PDF',
   'btnCopySheet':'📋 Copier le texte',
   'sheetMatchTitle':'Feuille de match',
@@ -1153,7 +1171,7 @@ const I18N = {
   'sheetGenerated':'Généré le',
   'sheetCopied':'✅ Texte copié — colle-le dans WhatsApp',
   'vsLbl':'contre',
-  'unassignedLbl':'Non affectés',
+  'unassignedLbl':'Non affectés','tvNoPoll':'Aucune réponse au sondage pour l\u2019instant',
   'sumTodo':'À compléter','sumOptional':'Optionnel','sumOpponents':'adversaire(s)',
   'sumMatches':'match(s)','sumCoaches':'coach(s)','sumPlayers':'joueur(s) pré-sél.',
   'sumSheetHint':'Imprimer ou partager',
@@ -1172,6 +1190,10 @@ const I18N = {
   'squadStepHint':'Qui joue dans quelle équipe (place les joueurs au banc le jour J)'
 },
   en: {
+  'alPollPendingMulti':'{n} sessions without poll replies','alNoCoverMulti':'{n} sessions with no coach available','alSeeAll':'show {n} more','alSeeLess':'show less',
+  'anPtAvg':'Average:','anPtSpread':'max gap:','anPtUnder':'{n} player(s) below 70% of the average \u2014 give them more game time','anPtBalanced':'Playing time is balanced across the squad',
+  'saveFailTitle':'Cannot save','saveFailQuota':'Browser storage is full. Remove player photos or old sessions.','saveFailGeneric':'The browser refuses to save (private browsing?).','saveFailSynced':'\u2705 Your data is synced online, nothing is lost.','saveFailNotSynced':'\u26A0\uFE0F No online sync: export a backup right now.','saveFailExport':'Export a backup','saveFailRetry':'Retry',
+  'selFilterAll':'All','selFilterPresent':'Available','selFilterNoReply':'No reply','selFilterHidden':'{n} player(s) hidden \u2014 switch back to \u201CAll\u201D to call them up','alTitle':'Reminders','alPollPending':'{n} without a poll reply for {d}','alNoCover':'No coach available for {d}','alStaleEval':'{n} player(s) without a recent assessment','alOldTasks':'{n} task(s) pending for over a month','seasonSheetTitle':'Season report','seasonKeyFigures':'Key figures','seasonAttendance':'Attendance','seasonEvals':'assessments','seasonAwards':'Awards',
   'todoTitle':'Coach tasks','todoAllTitle':'All tasks','todoBackHome':'Home','todoEmpty':'No tasks yet. Add one!','todoNewTask':'New task','todoTaskLbl':'Description','todoTaskPh':'e.g. Bring cones for Saturday','todoAssignLbl':'Assign to','todoUnassigned':'Unassigned','todoScopeMine':'My tasks','todoScopeTeam':'Team','todoNeedTitle':'Describe the task','todoAdded':'✅ Task added','todoDeleted':'Task deleted','todoConfirmDelete':'Delete this task?','todoBack':'Back','todoNext':'Forward','todoDelete':'Delete','task_todo':'To do','task_doing':'In progress','task_done':'Done',
   'statPlayers':'Players',
   'statTrainings':'Train.',
@@ -1287,7 +1309,7 @@ const I18N = {
   'toastSubDone':'✅ Substitution made at',
   'matchsTab':'Matches',
   'standingsTab':'Standings',
-  'configTab':'Config.',
+  'configTab':'Setup','mvTabLive':'Match','mk_championship':'League','mk_friendly':'Friendly','mk_final':'Final stage','mk_cup':'Cup','mk_other':'Other','mvStepInfoTitle':'Match details','mvStepSquadTitle':'Coaches & call-ups','mvStepSheetTitle':'Match sheet','mvKindLbl':'Match type','mvCompetitionLbl':'Competition','mvCompetitionPh':'e.g. Luxleague U10','mvRoundLbl':'Round','mvRoundPh':'e.g. R3','mvRoundPhFinal':'e.g. semi-final','mvMeetLbl':'Meet time','mvKickLbl':'Kick-off','mvFieldLbl':'Pitch / address','mvFieldPh':'e.g. Pitch 2, Cessange','mvConvokeHint':'Who is called up (put players on the pitch on match day)','mvConvoke':'Call up','mvConvoked':'Called up','mvCantUnconvoke':'Player already on the pitch: cannot remove',
   'noMatchYet':'No matches entered. Add the tournament matches.',
   'btnAddMatch':'+ Add a match',
   'playedLbl':'Played',
@@ -1502,7 +1524,6 @@ const I18N = {
   'nextTrainingTitle':'Next training',
   'noNextTraining':'No training planned',
   'noCoachAnnounced':'No coach announced yet',
-  'sheetCardTitle':'Match sheet',
   'btnPrintSheet':'🖨 Print / PDF',
   'btnCopySheet':'📋 Copy text',
   'sheetMatchTitle':'Match sheet',
@@ -1514,7 +1535,7 @@ const I18N = {
   'sheetGenerated':'Generated on',
   'sheetCopied':'✅ Text copied — paste it into WhatsApp',
   'vsLbl':'vs',
-  'unassignedLbl':'Unassigned',
+  'unassignedLbl':'Unassigned','tvNoPoll':'No poll responses yet',
   'stepInfoTitle':'Step 1 · Info & teams',
   'tournoiCreateHint':'RCL teams, pools and opponents are set up right after.',
   'stepPoolsTitle':'Step 2 · Pools & matches',
@@ -1552,13 +1573,59 @@ function applyStaticI18n(){
   document.getElementById('psearch').placeholder=tr('searchPlaceholder');
   document.getElementById('stb-train').textContent=tr('typeShort_Entra\u00eenement');
   document.getElementById('stb-tourn').textContent=tr('type_Tournoi');
+  const _mi=document.getElementById('stb-match-ic'); if(_mi) _mi.innerHTML=typeIcon('Match');
 }
 
 
 // ═══════════════════════════════════════════
 // STORAGE
 // ═══════════════════════════════════════════
-function save(){ try{ localStorage.setItem(LS_DATA, JSON.stringify({S,NID})); }catch(e){} fbSchedulePush(); }
+// ═══════════════════════════════════════════
+// SAUVEGARDE LOCALE — avec détection des échecs
+// Historiquement l'écriture était en try/catch VIDE : si le stockage échouait
+// (mémoire pleine, navigation privée iOS, quota), l'utilisateur ne le savait
+// jamais et pouvait perdre sa saisie en croyant l'avoir enregistrée.
+// persistLocal() signale désormais l'échec par un bandeau PERSISTANT (pas un
+// toast fugace) et propose un export de secours.
+// ═══════════════════════════════════════════
+let _saveFail=null; // null = OK, sinon {quota:bool, msg:string}
+function persistLocal(){
+  try{
+    localStorage.setItem(LS_DATA, JSON.stringify({S,NID}));
+    if(_saveFail){ _saveFail=null; rSaveWarning(); } // rétabli
+    return true;
+  }catch(e){
+    // QuotaExceededError (nom variable selon navigateur) vs stockage indisponible
+    const quota=/quota|exceeded/i.test(e&&(e.name+' '+e.message));
+    _saveFail={quota, msg:(e&&e.message)||''};
+    console.error('Sauvegarde locale impossible', e);
+    rSaveWarning();
+    return false;
+  }
+}
+// Bandeau d'alerte persistant, affiché tant que la sauvegarde échoue
+function rSaveWarning(){
+  let el=document.getElementById('save-warning');
+  if(!_saveFail){ if(el) el.remove(); return; }
+  if(!el){
+    el=document.createElement('div');
+    el.id='save-warning';
+    el.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:70px;width:calc(100% - 20px);'+
+      'max-width:480px;z-index:2000;background:#B71C1C;color:#fff;border-radius:10px;padding:10px 12px;'+
+      'box-shadow:0 4px 18px rgba(0,0,0,.3);font-size:12px;line-height:1.4';
+    document.body.appendChild(el);
+  }
+  // Firebase peut servir de filet : on le précise pour ne pas alarmer inutilement
+  const synced=(_fb&&_fb.status==='online');
+  el.innerHTML='<b>\u26A0\uFE0F '+tr('saveFailTitle')+'</b><br>'+
+    (_saveFail.quota?tr('saveFailQuota'):tr('saveFailGeneric'))+
+    (synced?'<br>'+tr('saveFailSynced'):'<br>'+tr('saveFailNotSynced'))+
+    '<div style="display:flex;gap:6px;margin-top:8px">'+
+      '<button onclick="exportData()" style="flex:1;font-size:11px;font-weight:700;padding:7px;border:none;border-radius:7px;background:#fff;color:#B71C1C;cursor:pointer">'+tr('saveFailExport')+'</button>'+
+      '<button onclick="persistLocal()" style="flex:1;font-size:11px;font-weight:700;padding:7px;border:1px solid #fff;border-radius:7px;background:transparent;color:#fff;cursor:pointer">'+tr('saveFailRetry')+'</button>'+
+    '</div>';
+}
+function save(){ persistLocal(); fbSchedulePush(); }
 function load(){
   try {
     const d = JSON.parse(localStorage.getItem(LS_DATA)||'null');
@@ -1710,6 +1777,167 @@ function calNav(delta){
 // ═══════════════════════════════════════════
 // TABLEAU DE BORD "JOUR DE MATCH" (accueil, visible uniquement le jour J)
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// RAPPELS & ALERTES (accueil)
+// Détecte ce qui mérite ton attention, sans jamais bloquer : c'est informatif.
+// Chaque alerte : {icon, txt, color, action} — action = code à exécuter au clic.
+// ═══════════════════════════════════════════
+const ALERT_EVAL_DAYS=60;   // évaluation jugée ancienne au-delà de 2 mois
+const ALERT_POLL_DAYS=3;    // on alerte sur les sondages à J-3
+const ALERT_MAX=4;          // rappels visibles avant le lien « voir tout »
+let _alertsAll=false;
+function buildAlerts(){
+  const out=[], todayStr=today();
+  const dayDiff=(a,b)=>Math.round((new Date(a+'T00:00:00')-new Date(b+'T00:00:00'))/86400000);
+  // Séances proches : on REGROUPE par type d'alerte au lieu d'une ligne par séance.
+  // Sinon un weekend chargé (3 séances) produisait 6 lignes qui noyaient l'accueil.
+  const soon=S.sessions.filter(s=>s.date>=todayStr && dayDiff(s.date,todayStr)<=ALERT_POLL_DAYS);
+  // 1. Sondages sans réponse
+  const noPoll=soon.filter(s=>S.players.length && pollCounts(s.id).none>0);
+  if(noPoll.length===1){
+    const s=noPoll[0];
+    out.push({icon:'\u{1F4E3}', color:'#F59E0B',
+      txt:tr('alPollPending').replace('{n}',pollCounts(s.id).none).replace('{d}',fdShort(s.date)),
+      action:'goAtt('+s.id+')'});
+  } else if(noPoll.length>1){
+    out.push({icon:'\u{1F4E3}', color:'#F59E0B',
+      txt:tr('alPollPendingMulti').replace('{n}',noPoll.length),
+      action:'goAtt('+noPoll[0].id+')'});
+  }
+  // 2. Séances sans coach disponible
+  const noCover=soon.filter(s=>S.coaches.length && coachCoverCount(s.id)===0);
+  if(noCover.length===1){
+    out.push({icon:'\u{1F9E5}', color:'#EE2837',
+      txt:tr('alNoCover').replace('{d}',fdShort(noCover[0].date)), action:'openAvail()'});
+  } else if(noCover.length>1){
+    out.push({icon:'\u{1F9E5}', color:'#EE2837',
+      txt:tr('alNoCoverMulti').replace('{n}',noCover.length), action:'openAvail()'});
+  }
+  // 3. Joueurs sans évaluation récente
+  const stale=(S.players||[]).filter(p=>{
+    const evs=(S.evaluations||[]).filter(e=>e.playerId===p.id)
+      .map(e=>(S.sessions.find(x=>x.id===e.sessionId)||{}).date).filter(Boolean).sort();
+    if(!evs.length) return true;
+    return dayDiff(todayStr, evs[evs.length-1])>ALERT_EVAL_DAYS;
+  });
+  if(stale.length && S.players.length){
+    out.push({icon:'\u2B50', color:'#005B96',
+      txt:tr('alStaleEval').replace('{n}',stale.length), action:'st(\'eval\')'});
+  }
+  // 4. Tâches en retard (à faire depuis plus de 30 jours)
+  const oldTasks=(S.tasks||[]).filter(t=>t.status==='todo' && t.createdAt && dayDiff(todayStr, new Date(t.createdAt).toISOString().slice(0,10))>30);
+  if(oldTasks.length){
+    out.push({icon:'\u23F3', color:'#B45309',
+      txt:tr('alOldTasks').replace('{n}',oldTasks.length), action:'openTasksPage()'});
+  }
+  return out;
+}
+function rAlerts(){
+  const el=document.getElementById('home-alerts'); if(!el) return;
+  const list=buildAlerts();
+  if(!list.length){ el.innerHTML=''; return; }
+  // Plafonné à ALERT_MAX : au-delà, un lien « voir tout » déplie le reste
+  const MAXV=_alertsAll?list.length:ALERT_MAX;
+  const shown=list.slice(0,MAXV), hidden=list.length-shown.length;
+  el.innerHTML='<div class="card" style="margin-bottom:14px;padding:10px 12px">'+
+    '<div style="font-size:11px;font-weight:800;color:var(--dk);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px">\u{1F514} '+tr('alTitle')+' ('+list.length+')</div>'+
+    shown.map(a=>'<div onclick="'+a.action+'" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--brd);cursor:pointer">'+
+        '<span style="font-size:15px;flex-shrink:0">'+a.icon+'</span>'+
+        '<span style="flex:1;font-size:12px;color:'+a.color+';font-weight:600">'+a.txt+'</span>'+
+        '<span style="color:var(--mut);font-size:13px">\u203A</span></div>').join('')+
+    (hidden>0
+      ? '<div onclick="_alertsAll=true;rAlerts()" style="text-align:center;padding:6px 0 2px;font-size:11px;font-weight:700;color:var(--mg);cursor:pointer;border-top:1px solid var(--brd)">+ '+tr('alSeeAll').replace('{n}',hidden)+'</div>'
+      : (_alertsAll&&list.length>ALERT_MAX
+        ? '<div onclick="_alertsAll=false;rAlerts()" style="text-align:center;padding:6px 0 2px;font-size:11px;font-weight:700;color:var(--mut);cursor:pointer;border-top:1px solid var(--brd)">'+tr('alSeeLess')+'</div>'
+        : ''))+
+  '</div>';
+}
+// ═══════════════════════════════════════════
+// FICHE DE SAISON (communication parents)
+// Récapitulatif par joueur : assiduité, temps de jeu, progression, distinctions.
+// Réutilise le système d'impression existant (#print-sheet + window.print()).
+// ═══════════════════════════════════════════
+function seasonSheetData(pid){
+  const p=(S.players||[]).find(x=>x.id===pid); if(!p) return null;
+  const st=playerAttendanceStats(pid);
+  // Temps de jeu cumulé (matchs + tournois)
+  const times=playingTimeByPlayer();
+  const secs=times[pid]||0;
+  // Progression : niveau moyen par principe (dernière évaluation vs première)
+  const evs=(S.evaluations||[]).filter(e=>e.playerId===pid)
+    .map(e=>({ev:e, date:(S.sessions.find(x=>x.id===e.sessionId)||{}).date||''}))
+    .filter(x=>x.date).sort((a,b)=>a.date.localeCompare(b.date));
+  const principles=PRINCIPLES.map(pr=>{
+    const series=evs.map(x=>principleAvg(x.ev,pr)).filter(v=>v!==null);
+    return {k:pr.k, icon:pr.icon, label:principleLabel(pr.k),
+      first:series.length?series[0]:null,
+      last:series.length?series[series.length-1]:null};
+  });
+  // Distinctions (joueur du match / du tournoi)
+  const awards=[];
+  (S.mvpResults||[]).forEach(r=>{
+    const s=S.sessions.find(x=>x.id===r.sessionId);
+    const lbl=s?(s.type==='Tournoi'?(s.name||tr('type_Tournoi')):(tr('vsLbl')+' '+(s.opponent||''))):'';
+    if(r.playersChoice&&r.playersChoice.playerId===pid) awards.push({type:tr('mvpPlayersChoice'), lbl, date:s?s.date:''});
+    if(r.coachesChoice&&r.coachesChoice.playerId===pid) awards.push({type:tr('mvpCoachesChoice'), lbl, date:s?s.date:''});
+  });
+  return {p, st, secs, principles, awards, nbEvals:evs.length};
+}
+function printSeasonSheet(pid){
+  const d=seasonSheetData(pid); if(!d) return;
+  const {p, st, secs, principles, awards, nbEvals}=d;
+  const pct=v=>v===null||v===undefined?'\u2014':v+'%';
+  const box=(val,lbl)=>'<div style="flex:1;text-align:center;padding:8px;border:1px solid #ddd;border-radius:6px">'+
+    '<div style="font-size:20px;font-weight:800;color:#004A7C">'+val+'</div>'+
+    '<div style="font-size:10px;color:#666">'+lbl+'</div></div>';
+  document.getElementById('print-sheet').innerHTML=
+    '<div class="ps-hdr">'+(sheetLogo()?'<img src="'+sheetLogo()+'">':'')+
+      '<div><div class="ps-title">RCL '+APP_CAT+' \u2014 '+tr('seasonSheetTitle')+'</div>'+
+      '<div class="ps-sub">'+esc(p.firstName)+' '+esc(p.lastName)+(p.number?' \u2014 #'+p.number:'')+'</div></div></div>'+
+    // Chiffres clés
+    '<div class="ps-block"><div class="ps-lbl">'+tr('seasonKeyFigures')+'</div>'+
+      '<div style="display:flex;gap:6px">'+
+        box(pct(st.globalPct), tr('seasonAttendance'))+
+        box(st.trainCount||0, tr('statTrainings'))+
+        box(st.matchCount||0, tr('statMatches'))+
+        box(fmtMinutes(secs), tr('anPlayingTimeTitle'))+
+      '</div></div>'+
+    // Progression par principe
+    '<div class="ps-block"><div class="ps-lbl">'+tr('anPrinciplesTitle')+' ('+nbEvals+' '+tr('seasonEvals')+')</div>'+
+      (nbEvals
+        ? '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+          principles.map(pr=>'<tr>'+
+            '<td style="padding:4px 6px;border-bottom:1px solid #eee">'+pr.icon+' '+esc(pr.label)+'</td>'+
+            '<td style="padding:4px 6px;border-bottom:1px solid #eee;text-align:right;color:#666">'+
+              (pr.first!==null?lvlLabel(Math.round(pr.first)):'\u2014')+'</td>'+
+            '<td style="padding:4px 6px;border-bottom:1px solid #eee;text-align:center;color:#999">\u2192</td>'+
+            '<td style="padding:4px 6px;border-bottom:1px solid #eee;text-align:left;font-weight:700;color:#004A7C">'+
+              (pr.last!==null?lvlLabel(Math.round(pr.last)):'\u2014')+'</td></tr>').join('')+
+          '</table>'
+        : '<div style="font-size:12px;color:#666">'+tr('anNoEvals')+'</div>')+
+    '</div>'+
+    // Distinctions
+    (awards.length
+      ? '<div class="ps-block"><div class="ps-lbl">\u{1F3C6} '+tr('seasonAwards')+'</div>'+
+        '<div style="font-size:12px;line-height:1.7">'+awards.map(a=>'\u2022 '+esc(a.type)+' \u2014 '+esc(a.lbl)+(a.date?' ('+fdShort(a.date)+')':'')).join('<br>')+'</div></div>'
+      : '')+
+    '<div class="ps-foot">'+tr('sheetGenerated')+' '+new Date().toLocaleDateString(LANG==='en'?'en-GB':'fr-FR')+' \u2014 '+APP_NAME+'</div>';
+  window.print();
+}
+function seasonSheetText(pid){
+  const d=seasonSheetData(pid); if(!d) return '';
+  const {p, st, secs, principles, awards}=d;
+  let t=tr('seasonSheetTitle')+' \u2014 '+p.firstName+' '+p.lastName+(p.number?' #'+p.number:'')+'\n';
+  t+='\u{1F4C5} '+tr('seasonAttendance')+' : '+(st.globalPct!==null?st.globalPct+'%':'\u2014')+'\n';
+  t+='\u23F1 '+tr('anPlayingTimeTitle')+' : '+fmtMinutes(secs)+'\n';
+  principles.forEach(pr=>{ if(pr.last!==null) t+=pr.icon+' '+pr.label+' : '+lvlLabel(Math.round(pr.last))+'\n'; });
+  if(awards.length) t+='\u{1F3C6} '+awards.map(a=>a.type+' ('+a.lbl+')').join(', ')+'\n';
+  return t;
+}
+function copySeasonSheet(pid){
+  const t=seasonSheetText(pid); if(!t) return;
+  navigator.clipboard?.writeText(t).then(()=>toast(tr('sheetCopied')),()=>toast(tr('impError')));
+}
 function rMatchDay(){
   const el=document.getElementById('home-matchday'); if(!el) return;
   const todayStr=today();
@@ -1720,7 +1948,7 @@ function rMatchDay(){
   let html='';
   events.forEach(s=>{
     const isMatch=s.type==='Match';
-    const icon=isMatch?'\u{1F534}':'\u{1F3C6}';
+    const icon=typeIcon(s.type);
     const title=isMatch?('vs '+esc(s.opponent||'?')+(s.venue?' \u2014 '+venueLabel(s.venue):'')):esc(s.name||tr('type_Tournoi'));
 
     // Compter les réponses au sondage (si en cache) + les présences confirmées
@@ -1827,7 +2055,7 @@ function rAvailPage(){
   let html='<div style="font-size:12px;color:var(--mut);margin-bottom:12px">'+tr('availIntro')+'</div>';
   upcoming.forEach(s=>{
     const cur=getCoachAvail(s.id, cid);
-    const icon=s.type==='Match'?'\u{1F534}':s.type==='Tournoi'?'\u{1F3C6}':'\u{1F3C9}';
+    const icon=typeIcon(s.type);
     const label=s.type==='Match'?('vs '+esc(s.opponent||'?')):s.type==='Tournoi'?esc(s.name||tr('type_Tournoi')):esc(s.theme||tr('type_Entra\u00eenement'));
     // Liste des coachs dispo/maybe pour cette séance (visibilité de la couverture)
     const yesNames=(S.coachAvailability||[]).filter(a=>a.sessionId===s.id&&a.avail==='yes').map(a=>{const co=S.coaches.find(x=>x.id===a.coachId);return co?co.firstName:null;}).filter(Boolean);
@@ -1912,7 +2140,7 @@ function homeCalDay(dateStr){
   const multi=document.getElementById('home-cal-multi'); if(!multi) return;
   // Pour chaque événement du jour : actions selon le type
   multi.innerHTML='<div class="cal-multi">'+evs.map(s=>{
-    const icon=s.type==='Match'?'&#128308;':s.type==='Tournoi'?'&#127942;':'&#127946;';
+    const icon=typeIcon(s.type);
     const label=s.type==='Match'?('vs '+esc(s.opponent||'?')):s.type==='Tournoi'?esc(s.name||tr('type_Tournoi')):esc(s.theme||typeLabel(s.type));
     let actions='';
     const attBtn='<button class="btn btn-out btn-xs" onclick="event.stopPropagation();goAtt('+s.id+')">\u2705</button>';
@@ -2110,7 +2338,7 @@ function rUpcoming(){
   // \u2500\u2500 Carte PROCHAIN ENTRA\u00ceNEMENT \u2500\u2500
   const nextTr=S.sessions.filter(s=>s.type==='Entra\u00eenement'&&s.date>=todayStr)
     .sort((a,b)=>a.date.localeCompare(b.date))[0];
-  html+='<div class="card card-sm" style="margin-bottom:12px"><div class="card-title">&#127946; '+tr('nextTrainingTitle')+'</div>';
+  html+='<div class="card card-sm" style="margin-bottom:12px"><div class="card-title">'+typeIcon('Entra\u00eenement')+' '+tr('nextTrainingTitle')+'</div>';
   if(nextTr){
     html+='<div onclick="goAtt('+nextTr.id+')" style="display:flex;align-items:center;gap:10px;cursor:pointer">'+
       '<div style="flex:1;min-width:0">'+
@@ -2134,7 +2362,7 @@ function rUpcoming(){
   } else {
     html+='<div style="margin-top:2px">'+upcoming.map(s=>{
       const isMatch=s.type==='Match';
-      const icon=isMatch?'&#128308;':'&#127942;';
+      const icon=typeIcon(s.type);
       const label=isMatch?('vs '+esc(s.opponent||'?')+(s.venue?' \u2014 '+venueLabel(s.venue):'')):esc(s.name||tr('type_Tournoi'));
       const click=isMatch?('openMV('+s.id+',null)'):('openTV('+s.id+')');
       return '<div onclick="'+click+'" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--brd);cursor:pointer">'+
@@ -2595,11 +2823,34 @@ function rAnalyseTeam(){
   if(!ranked.some(r=>r.sec>0)){
     html+='<div class="an-empty">'+tr('anNoMatchData')+'</div>';
   } else {
+    // ── ÉQUITÉ DU TEMPS DE JEU ──
+    // Question clé en catégorie jeunes : qui joue nettement moins que les autres ?
+    // On ne compte que les joueurs ayant participé (un absent toute la saison
+    // fausserait la moyenne et ferait passer l'équipe pour inéquitable à tort).
+    const played=ranked.filter(r=>r.sec>0);
+    const avg=played.reduce((a,r)=>a+r.sec,0)/played.length;
+    const minSec=Math.min(...played.map(r=>r.sec));
+    const spread=avg?Math.round((maxSec-minSec)/avg*100):0;
+    const LOW=0.7; // seuil d'alerte : moins de 70 % de la moyenne
+    const under=played.filter(r=>r.sec<avg*LOW);
+    html+='<div style="font-size:11.5px;background:var(--lg);border-radius:8px;padding:7px 10px;margin-bottom:8px;line-height:1.6">'+
+      tr('anPtAvg')+' <b>'+fmtMinutes(Math.round(avg))+'</b> \u2022 '+tr('anPtSpread')+' <b>'+spread+'%</b>'+
+      (under.length
+        ? '<div style="color:#B45309;font-weight:700;margin-top:3px">\u26A0\uFE0F '+tr('anPtUnder').replace('{n}',under.length)+'</div>'
+        : '<div style="color:#1B5E20;font-weight:700;margin-top:3px">\u2705 '+tr('anPtBalanced')+'</div>')+
+      '</div>';
     ranked.forEach(r=>{
       const pct=Math.round(r.sec/maxSec*100);
-      html+='<div class="an-pt-row"><div class="an-pt-name">'+esc(r.p.firstName)+' '+esc(r.p.lastName[0])+'.</div>'+
-        '<div class="an-pt-track"><div class="an-pt-fill" style="width:'+pct+'%"></div></div>'+
-        '<div class="an-pt-val">'+fmtMinutes(r.sec)+'</div></div>';
+      // Écart à la moyenne, pour situer chaque joueur d'un coup d'œil
+      const diff=avg?Math.round((r.sec-avg)/avg*100):0;
+      const low=r.sec>0&&r.sec<avg*LOW;
+      const diffTxt=r.sec===0?'\u2014':(diff>0?'+':'')+diff+'%';
+      html+='<div class="an-pt-row"'+(low?' style="background:#FEF3E0;border-radius:6px"':'')+'>'+
+        '<div class="an-pt-name">'+(low?'\u26A0\uFE0F ':'')+esc(r.p.firstName)+' '+esc(r.p.lastName[0])+'.</div>'+
+        '<div class="an-pt-track"><div class="an-pt-fill" style="width:'+pct+'%'+(low?';background:#F59E0B':'')+'"></div></div>'+
+        '<div class="an-pt-val">'+fmtMinutes(r.sec)+'</div>'+
+        '<div style="font-size:9.5px;font-weight:700;width:38px;text-align:right;flex-shrink:0;color:'+(low?'#B45309':diff<0?'var(--mut)':'#1B5E20')+'">'+diffTxt+'</div>'+
+      '</div>';
     });
   }
   html+='</div>';
@@ -4089,6 +4340,7 @@ function sessionTitle(s){
 
 function rHome(){
   rTodo();
+  rAlerts();
   rMatchDay();
   rMyAvail();
   const gStat=playerAttendanceStats(null);
@@ -4523,6 +4775,8 @@ function rPlayers(){
         '<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">'+
           (p.photo?'<img class="dphoto" src="'+p.photo+'">':'')+
           '<button class="btn btn-mg btn-sm" onclick="event.stopPropagation();openPF('+p.id+')">&#9999; '+tr('btnEdit')+'</button>'+
+          '<button class="btn btn-out btn-sm" title="'+tr('seasonSheetTitle')+'" onclick="event.stopPropagation();printSeasonSheet('+p.id+')">&#128203;</button>'+
+          '<button class="btn btn-out btn-sm" title="'+tr('btnCopySheet')+'" onclick="event.stopPropagation();copySeasonSheet('+p.id+')">&#128203;&#65039;</button>'+
           '<button class="btn btn-del btn-sm" style="margin-left:auto" onclick="event.stopPropagation();delP('+p.id+')">&#128465;</button></div>'+
         '<div style="font-size:12px;color:var(--mut);line-height:1.8">'+
           (p.dob?'<div>&#128197; '+new Date(p.dob+'T00:00:00').toLocaleDateString(LANG==='en'?'en-GB':'fr-FR')+'</div>':'')+
@@ -4605,7 +4859,7 @@ function rSessions(scrollPivot){
   }
   const list=sortChrono(S.sessions.filter(s=>s.type===type));
   const sl=document.getElementById('s-list');
-  if(!list.length){ sl.innerHTML='<div class="empty"><div class="empty-ic">'+(type==='Match'?'&#128308;':type==='Tournoi'?'&#127942;':'&#127946;')+'</div><p>'+tr('noSessionType').replace('{type}',typeLabel(type).toLowerCase())+'</p></div>'; return; }
+  if(!list.length){ sl.innerHTML='<div class="empty"><div class="empty-ic">'+typeIcon(type)+'</div><p>'+tr('noSessionType').replace('{type}',typeLabel(type).toLowerCase())+'</p></div>'; return; }
 
   if(type==='Entra\u00eenement'){
     sl.innerHTML=list.map(s=>{
@@ -4642,7 +4896,7 @@ function rSessions(scrollPivot){
           (isLive?'<span class="s-live">&#9679; LIVE '+fmtT(el)+'</span> &bull; ':'')+
           field+' '+tr('fieldPlayersLbl')+' &bull; '+(s.squad||[]).length+' '+tr('calledLbl')+'</div>'+sessionCoachLine(s, s.date<today())+sessionSummaryGrid(s)+'</div>'+
         '<div id="sd-'+s.id+'" class="dbox">'+
-          '<button class="btn btn-mg btn-w" style="margin-bottom:8px" onclick="event.stopPropagation();openMV('+s.id+',null)">&#128308; '+tr('btnManageMatch')+'</button>'+
+          '<button class="btn btn-mg btn-w" style="margin-bottom:8px" onclick="event.stopPropagation();openMV('+s.id+',null)">'+typeIcon('Match')+' '+tr('btnManageMatch')+'</button>'+
           '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
             '<button class="btn btn-out btn-sm" onclick="event.stopPropagation();openCreateSession(\'Match\','+s.id+')">&#9999; '+tr('btnEdit')+'</button>'+
             '<button class="btn btn-del btn-sm" style="margin-left:auto" onclick="event.stopPropagation();delMatch('+s.id+')">&#128465; '+tr('btnDelete')+'</button>'+
@@ -4817,6 +5071,164 @@ function updateMVTitle(){
   if(isTM) document.getElementById('mv-title').textContent=esc(t.home||'?')+' vs '+esc(t.away||'?');
   else document.getElementById('mv-title').textContent=tr('matchVsLbl')+' '+(t?.opponent||'?')+(t?.venue?' \u2014 '+venueLabel(t.venue):'');
 }
+// ═══════════════════════════════════════════
+// PRÉPARATION D'UN MATCH (onglet Config., sur le modèle du tournoi)
+// Uniquement pour un match seul : un match de tournoi est préparé via le tournoi.
+// s.matchKind  : contexte (championnat / amical / phase finale / coupe / autre)
+// s.competition, s.round : compétition et journée (surtout pour le championnat)
+// s.timeMeet, s.timeKick : heure de RDV et de coup d'envoi
+// s.field      : terrain / adresse
+// La convocation réutilise s.squad (rôle 'bench' = convoqué, placé le jour J).
+// ═══════════════════════════════════════════
+// ═══ Icônes des types de séance : SOURCE UNIQUE (évite toute divergence entre écrans) ═══
+// Entraînement = coureur, Match = ballon de rugby, Tournoi = trophée
+// Ballon de rugby en SVG : l'emoji \u{1F3C9} est rendu comme un ballon de football am\u00e9ricain
+// sur beaucoup d'Android. Inspir\u00e9 des ballons "emoji" : inclin\u00e9, corps blanc, lisere rouge
+// RCL, extrémités ARRONDIES (vraie ellipse, pas de pointes) et coutures en courbe. Couleurs FIXES (pas currentColor) car l'ic\u00f4ne s'affiche sur fond
+// clair ET sur bouton bleu : corps blanc + lisere rouge reste lisible dans les deux cas.
+const RUGBY_BALL_SVG='<svg viewBox="0 0 24 24" style="width:1.05em;height:1.05em;vertical-align:-0.18em;display:inline-block" aria-hidden="true">'+
+  '<g transform="rotate(-30 12 12)">'+
+    '<ellipse cx="12" cy="12" rx="10.8" ry="6.5" fill="#EE2837"/>'+
+    '<ellipse cx="12" cy="12" rx="8.9" ry="4.5" fill="#FFFFFF"/>'+
+    '<path d="M7.9 10Q12 12 16.1 10" fill="none" stroke="#EE2837" stroke-width="1.1" stroke-linecap="round"/>'+
+    '<path d="M7.9 14Q12 12 16.1 14" fill="none" stroke="#EE2837" stroke-width="1.1" stroke-linecap="round"/>'+
+  '</g></svg>';
+const TYPE_ICON={'Entra\u00eenement':'\u{1F3C3}','Match':RUGBY_BALL_SVG,'Tournoi':'\u{1F3C6}'};
+function typeIcon(t){ return TYPE_ICON[t]||RUGBY_BALL_SVG; }
+const MATCH_KINDS=['championship','friendly','final','cup','other'];
+function matchKindLabel(k){ return k?tr('mk_'+k):tr('mk_other'); }
+let _mvTab='live';
+function setMVTab(tab){ _mvTab=tab; rMatchBody(); }
+function mvTabsHtml(sid, standalone){
+  if(!standalone) return '';
+  return '<div class="tv-tabs">'+
+    '<button class="tvt'+(_mvTab==='live'?' active':'')+'" onclick="setMVTab(\'live\')">\u23F1 '+tr('mvTabLive')+'</button>'+
+    '<button class="tvt'+(_mvTab==='setup'?' active':'')+'" onclick="setMVTab(\'setup\')">\u2699\uFE0F '+tr('configTab')+'</button>'+
+  '</div>';
+}
+// Convoquer / retirer un joueur (bascule dans le squad, au banc par défaut)
+function togMvConvoke(sid, pid){
+  const s=S.sessions.find(x=>x.id===sid); if(!s) return;
+  if(!s.squad) s.squad=[];
+  const i=s.squad.findIndex(sp=>sp.pid===pid);
+  if(i>=0){
+    // Ne pas retirer un joueur déjà entré en jeu (temps de jeu enregistré)
+    if((s.squad[i].tTotal||0)>0||s.squad[i].role==='field'){ toast(tr('mvCantUnconvoke')); return; }
+    s.squad.splice(i,1);
+  } else {
+    s.squad.push({pid, role:'bench', tIn:null, tTotal:0});
+  }
+  save(); rMatchBody();
+}
+function setMatchField(sid, field, val){
+  const s=S.sessions.find(x=>x.id===sid); if(!s) return;
+  s[field]=val; save();
+  if(field==='matchKind') rMatchBody(); // le libellé/les champs affichés dépendent du type
+  if(typeof rSessions==='function') rSessions();
+}
+// ── Écran de configuration du match ──
+function rMVSetup(sid){
+  const s=S.sessions.find(x=>x.id===sid); if(!s) return;
+  const kind=s.matchKind||'';
+  // Même charte que le tournoi : pastille bleue + titre bleu + chevron (classes partagées)
+  const stepHeadM=(n,titleKey,done,sum)=>'<div class="step-hd" onclick="mvStep('+n+')">'+
+    '<div class="step-badge'+(done?' done':'')+'">'+(done?'\u2713':n)+'</div>'+
+    '<div class="step-hd-txt"><div class="step-tt">'+tr(titleKey).replace(/^\u00c9tape \d+ \u00b7 |^Step \d+ \u00b7 /,'')+'</div>'+
+    (sum?'<div class="step-sum">'+sum+'</div>':'')+'</div>'+
+    '<span class="step-chev">\u203a</span></div>';
+
+  const squad=s.squad||[];
+  const done1=!!(s.opponent&&s.matchKind);
+  const done2=squad.length>0;
+
+  let sh='';
+  // ÉTAPE 1 : Infos du match
+  sh+='<div class="step'+(_mvStep===1?' open':'')+'">'+
+    stepHeadM(1,'mvStepInfoTitle',done1, done1?(matchKindLabel(kind)+' \u2022 '+esc(s.opponent||'')):tr('sumTodo'))+
+    '<div class="step-bd">'+
+      '<div class="fg"><label class="fl">'+tr('mvKindLbl')+'</label>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:5px">'+MATCH_KINDS.map(k=>
+          '<button class="btn btn-'+(kind===k?'mg':'out')+' btn-xs" onclick="setMatchField('+sid+',\'matchKind\',\''+k+'\')">'+matchKindLabel(k)+'</button>').join('')+'</div></div>'+
+      '<div class="fg"><label class="fl">'+tr('lblOpponent')+'</label>'+
+        '<input class="fi" value="'+esc(s.opponent||'')+'" onchange="setMatchField('+sid+',\'opponent\',this.value.trim())"></div>'+
+      '<div class="fg"><label class="fl">'+tr('lblVenue')+'</label>'+
+        '<div style="display:flex;gap:5px">'+['Domicile','Extérieur','Neutre'].map(v=>
+          '<button class="btn btn-'+(s.venue===v?'mg':'out')+' btn-xs" style="flex:1" onclick="setMatchField('+sid+',\'venue\',\''+v+'\')">'+venueLabel(v)+'</button>').join('')+'</div></div>'+
+      // Compétition & journée : utiles surtout en championnat / coupe / phase finale
+      (kind&&kind!=='friendly'
+        ? '<div class="fg"><label class="fl">'+tr('mvCompetitionLbl')+'</label>'+
+            '<input class="fi" value="'+esc(s.competition||'')+'" placeholder="'+tr('mvCompetitionPh')+'" onchange="setMatchField('+sid+',\'competition\',this.value.trim())"></div>'+
+          '<div class="fg"><label class="fl">'+tr('mvRoundLbl')+'</label>'+
+            '<input class="fi" value="'+esc(s.round||'')+'" placeholder="'+(kind==='final'?tr('mvRoundPhFinal'):tr('mvRoundPh'))+'" onchange="setMatchField('+sid+',\'round\',this.value.trim())"></div>'
+        : '')+
+      '<div style="display:flex;gap:8px">'+
+        '<div class="fg" style="flex:1"><label class="fl">'+tr('mvMeetLbl')+'</label>'+
+          '<input class="fi" type="time" value="'+esc(s.timeMeet||'')+'" onchange="setMatchField('+sid+',\'timeMeet\',this.value)"></div>'+
+        '<div class="fg" style="flex:1"><label class="fl">'+tr('mvKickLbl')+'</label>'+
+          '<input class="fi" type="time" value="'+esc(s.timeKick||'')+'" onchange="setMatchField('+sid+',\'timeKick\',this.value)"></div></div>'+
+      '<div class="fg"><label class="fl">'+tr('mvFieldLbl')+'</label>'+
+        '<input class="fi" value="'+esc(s.field||'')+'" placeholder="'+tr('mvFieldPh')+'" onchange="setMatchField('+sid+',\'field\',this.value.trim())"></div>'+
+    '</div></div>';
+
+  // ÉTAPE 2 : Coachs & convocation
+  const assigned=s.coachIds||[];
+  sh+='<div class="step'+(_mvStep===2?' open':'')+'">'+
+    stepHeadM(2,'mvStepSquadTitle',done2, done2?(assigned.length+' '+tr('sumCoaches')+' \u2022 '+squad.length+' '+tr('sumPlayers')):tr('sumOptional'))+
+    '<div class="step-bd">';
+  if(S.coaches.length){
+    sh+='<div class="step-sec">&#128227; '+tr('coachesSectionTitle')+'</div>'+
+      '<div class="step-hint">'+tr('coachStepHint')+'</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">'+
+      [...S.coaches].sort((a,b)=>a.lastName.localeCompare(b.lastName)).map(co=>{
+        const on=assigned.includes(co.id);
+        const av=getCoachAvail(sid, co.id);
+        const avIc=av?({yes:'\u2705',maybe:'\u2753',no:'\u274C'})[av]+' ':'';
+        return '<button class="btn btn-'+(on?'mg':'out')+' btn-xs" title="'+(av?tr('avail'+av.charAt(0).toUpperCase()+av.slice(1)):tr('mdNoReply'))+'" onclick="togMatchCoach('+sid+','+co.id+')">'+(on?'\u2713 ':'')+avIc+esc(co.firstName)+' '+esc(co.lastName[0]||'')+'.</button>';
+      }).join('')+'</div>';
+  }
+  if(S.players.length){
+    const pc=pollCounts(sid);
+    const hasPoll=(_pollIntentionsCache||{})[sid];
+    ensurePollLoaded(sid, ()=>{ if(document.getElementById('mv-body')) rMatchBody(); });
+    const inSquad=new Set(squad.map(sp=>sp.pid));
+    sh+='<div class="step-sec">&#128101; '+tr('playersTab')+'</div>'+
+      '<div class="step-hint">'+tr('mvConvokeHint')+'</div>'+
+      '<div style="font-size:11px;color:var(--dk);background:var(--lg);border-radius:8px;padding:6px 10px;margin-bottom:8px;text-align:center">'+
+        tr('mvConvoked')+': <b>'+squad.length+'</b> &bull; '+tr('unassignedLbl')+': <b>'+(S.players.length-squad.length)+'</b></div>'+
+      (hasPoll
+        ? '<div style="font-size:11px;background:#F1F8F4;border-radius:8px;padding:6px 10px;margin-bottom:8px;text-align:center">'+
+            '<span style="color:#1B5E20;font-weight:700">'+pc.present+' \u2705</span> &bull; '+
+            '<span style="color:#B71C1C;font-weight:700">'+pc.absent+' \u274C</span> &bull; '+
+            '<span style="color:#B45309;font-weight:700">'+pc.injured+' \u{1F915}</span> &bull; '+
+            '<span style="color:var(--mut)">'+pc.none+' '+tr('mdNoReply')+'</span></div>'
+        : '<div style="text-align:center;margin-bottom:8px"><div style="font-size:11px;color:var(--mut);font-style:italic;margin-bottom:4px">'+tr('tvNoPoll')+'</div>'+
+            '<button class="btn btn-out btn-sm" onclick="openPollShare('+sid+')">\u{1F4E3} '+tr('pollShareBtn')+'</button></div>')+
+      selFilterBar('()=>rMatchBody()', S.players.filter(p=>!selFilterKeep(pollStatusOf(sid,p.id))).length)+
+      [...S.players].sort((a,b)=>(a.number||999)-(b.number||999)).filter(p=>selFilterKeep(pollStatusOf(sid,p.id))).map(p=>{
+        const st=pollStatusOf(sid,p.id), on=inSquad.has(p.id);
+        const dim=(st==='absent'||st==='injured')?'opacity:.55;':'';
+        return '<div class="pselrow" style="'+dim+'"><span class="pselnum">'+(p.number||'?')+'</span>'+
+          '<span style="width:18px;text-align:center;flex-shrink:0">'+pollChip(st)+'</span>'+
+          '<span class="pselname">'+esc(p.firstName)+' '+esc((p.lastName[0]||''))+'.</span>'+
+          '<div class="pselsegs"><button class="pselseg'+(on?' on':'')+'" onclick="togMvConvoke('+sid+','+p.id+')">'+(on?'\u2713 '+tr('mvConvoked'):tr('mvConvoke'))+'</button></div></div>';
+      }).join('');
+  }
+  sh+='</div></div>';
+
+  // ÉTAPE 3 : Feuille de match
+  sh+='<div class="step'+(_mvStep===3?' open':'')+'">'+
+    stepHeadM(3,'mvStepSheetTitle',false,tr('sumSheetHint'))+
+    '<div class="step-bd"><div style="display:flex;gap:6px;flex-wrap:wrap">'+
+      '<button class="btn btn-mg btn-sm" onclick="printMatchSheet('+sid+')">'+tr('btnPrintSheet')+'</button>'+
+      '<button class="btn btn-out btn-sm" onclick="copyMatchSheetText('+sid+')">'+tr('btnCopySheet')+'</button>'+
+      '<button class="btn btn-gd btn-sm" onclick="flrOpenOptions(\'match\','+sid+',null,\'flr-opts-mv\')">'+tr('btnFlrSheet')+'</button>'+
+    '</div><div id="flr-opts-mv" style="display:none;margin-top:8px;padding:12px;background:var(--lg);border-radius:10px"></div>'+
+    '</div></div>';
+
+  document.getElementById('mv-body').innerHTML=mvTabsHtml(sid,true)+sh;
+}
+let _mvStep=1;
+function mvStep(n){ _mvStep=(_mvStep===n?0:n); rMatchBody(); }
 function openMV(sid, mid){
   _mvCtx={sid, mid};
   const s=S.sessions.find(x=>x.id===sid); if(!s) return;
@@ -4851,6 +5263,9 @@ function rMatchBody(){
   if(!_mvCtx) return;
   const {sid,mid}=_mvCtx;
   const isTM_ns=(mid!==null&&mid!==undefined);
+  // Un match de tournoi est déjà préparé au niveau du tournoi : pas d'onglet Config
+  const standalone=!isTM_ns;
+  if(standalone && _mvTab==='setup'){ rMVSetup(sid); return; }
   const t=getTarget(sid,mid); if(!t) return;
   const el=getEl(t.chrono||{});
   const isRunning=!!(t.chrono?.started);
@@ -4891,6 +5306,7 @@ function rMatchBody(){
   const subs=t.subs||[];
 
   document.getElementById('mv-body').innerHTML=
+    mvTabsHtml(sid, standalone)+
     // BOUTON TERMINER (matchs de tournoi uniquement)
     '<button class="btn btn-gd btn-w" style="margin-bottom:10px" onclick="terminerMatch('+sid+','+(mid!==null&&mid!==undefined?mid:'null')+')">'+tr('terminateMatch')+'</button>'+
     // SCORE
@@ -4944,14 +5360,7 @@ function rMatchBody(){
     '</div>'+
     // Staff du match (coachs présents) — matchs directs uniquement
     (!isTM_ns?rMatchStaff(sid):'')+
-    // Feuille de match — matchs directs uniquement
-    (!isTM_ns?'<div class="card"><div class="card-title">&#128196; '+tr('sheetCardTitle')+'</div>'+
-      '<div style="display:flex;gap:6px">'+
-      '<button class="btn btn-mg btn-sm" onclick="printMatchSheet('+sid+')">'+tr('btnPrintSheet')+'</button>'+
-      '<button class="btn btn-out btn-sm" onclick="copyMatchSheetText('+sid+')">'+tr('btnCopySheet')+'</button>'+
-      '<button class="btn btn-gd btn-sm" onclick="flrOpenOptions(\'match\','+sid+',null,\'flr-opts-mv\')">'+tr('btnFlrSheet')+'</button>'+
-      '</div><div id="flr-opts-mv" style="display:none;margin-top:8px;padding:12px;background:var(--lg);border-radius:10px"></div><div style="display:none">'+
-      '</div></div>':'')+
+    // Feuille de match : déplacée dans l'onglet Config. (étape 3) pour éviter le doublon
     // Notes
     '<div class="card"><div class="card-title">'+tr('notesReportTitle')+'</div>'+
       '<textarea class="fi" id="mv-notes" placeholder="'+tr('notesPh')+'" style="min-height:80px" onchange="saveMVNotes('+sid+','+(mid!==null&&mid!==undefined?mid:'null')+')">'+esc(t.notes||'')+'</textarea>'+
@@ -5132,6 +5541,53 @@ function rTVBody(sid){
   rTVContent(sid);
 }
 function setTVTab(tab,sid){ _tvTab=tab; rTVBody(sid); }
+// ── Statut sondage d'un joueur pour une séance (présent / absent / blessé) ──
+// Source unique : le cache des réponses parents (_pollIntentionsCache).
+// ── Filtre d'affichage par statut de sondage (préparation match/tournoi) ──
+// ⚠️ C'est un filtre d'AFFICHAGE seulement : un joueur masqué reste sélectionnable
+// dès qu'on réaffiche « Tous ». On n'empêche jamais de convoquer quelqu'un.
+let _selFilter='all'; // 'all' | 'present' | 'noreply'
+function setSelFilter(v, redraw){ _selFilter=v; if(typeof redraw==='function') redraw(); }
+function selFilterKeep(st){
+  if(_selFilter==='present') return st==='present';
+  if(_selFilter==='noreply') return !st;
+  return true;
+}
+// Barre de filtre + rappel que les masqués restent disponibles
+function selFilterBar(redrawCall, hiddenCount){
+  const b=(v,lbl)=>'<button class="btn btn-'+(_selFilter===v?'mg':'out')+' btn-xs" style="flex:1" onclick="setSelFilter(\''+v+'\','+redrawCall+')">'+lbl+'</button>';
+  return '<div style="display:flex;gap:5px;margin-bottom:6px">'+
+      b('all',tr('selFilterAll'))+b('present','\u2705 '+tr('selFilterPresent'))+b('noreply',tr('selFilterNoReply'))+
+    '</div>'+
+    (hiddenCount>0?'<div style="font-size:10.5px;color:var(--mut);font-style:italic;text-align:center;margin-bottom:6px">'+tr('selFilterHidden').replace('{n}',hiddenCount)+'</div>':'');
+}
+function pollStatusOf(sid, pid){
+  const r=(_pollIntentionsCache||{})[sid];
+  if(!r) return null;
+  const e=r[pid]||r[String(pid)];
+  return e&&e.status?e.status:null;
+}
+const POLL_CHIP={present:{ic:'\u2705',c:'#22C55E'}, absent:{ic:'\u274C',c:'#EE2837'}, injured:{ic:'\u{1F915}',c:'#F59E0B'}};
+function pollChip(st){
+  const d=POLL_CHIP[st];
+  return d?'<span title="'+tr('poll'+st.charAt(0).toUpperCase()+st.slice(1))+'" style="font-size:12px">'+d.ic+'</span>'
+          :'<span title="'+tr('mdNoReply')+'" style="font-size:11px;color:var(--mut)">\u2014</span>';
+}
+// Compte les réponses au sondage pour une séance
+function pollCounts(sid){
+  const c={present:0,absent:0,injured:0,none:0};
+  (S.players||[]).forEach(p=>{ const st=pollStatusOf(sid,p.id); if(c[st]!==undefined) c[st]++; else c.none++; });
+  return c;
+}
+// Charge les réponses si absentes du cache, puis rafraîchit la vue tournoi
+function ensurePollLoaded(sid, redraw){
+  if((_pollIntentionsCache||{})[sid]) return true;
+  if(_fb.cfg && _fb.code){
+    loadPollIntentions(sid);
+    setTimeout(()=>{ if(typeof redraw==='function') redraw(); }, 900);
+  }
+  return false;
+}
 function rTVContent(sid){
   const s=S.sessions.find(x=>x.id===sid); if(!s) return;
   const con=document.getElementById('tv-content');
@@ -5268,7 +5724,10 @@ function rTVContent(sid){
             '<div style="display:flex;flex-wrap:wrap;gap:5px">'+
             [...S.coaches].sort((a,b)=>a.lastName.localeCompare(b.lastName)).map(co=>{
               const on=assigned.includes(co.id);
-              return '<button class="btn btn-'+(on?'mg':'out')+' btn-xs" onclick="togTvCoach('+sid+',\''+esc(team)+'\','+co.id+')">'+(on?'\u2713 ':'')+esc(co.firstName)+' '+esc(co.lastName[0]||'')+'.</button>';
+              // Disponibilité déclarée : aide à choisir qui encadre
+              const av=getCoachAvail(sid, co.id);
+              const avIc=av?({yes:'\u2705',maybe:'\u2753',no:'\u274C'})[av]+' ':'';
+              return '<button class="btn btn-'+(on?'mg':'out')+' btn-xs" title="'+(av?tr('avail'+av.charAt(0).toUpperCase()+av.slice(1)):tr('mdNoReply'))+'" onclick="togTvCoach('+sid+',\''+esc(team)+'\','+co.id+')">'+(on?'\u2713 ':'')+avIc+esc(co.firstName)+' '+esc(co.lastName[0]||'')+'.</button>';
             }).join('')+'</div></div>';
         }).join('');
     }
@@ -5278,12 +5737,30 @@ function rTVContent(sid){
       const plSorted=[...S.players].sort((a,b)=>(a.number||999)-(b.number||999));
       const nbAssigned=rcls.reduce((n,t)=>n+((ps[t]||[]).length),0);
       const counters=rcls.map(t=>shortName(t)+': <b>'+((ps[t]||[]).length)+'</b>').join(' &bull; ')+' &bull; '+tr('unassignedLbl')+': <b>'+(S.players.length-nbAssigned)+'</b>';
+      // Synthèse du sondage : sur quoi s'appuyer pour composer les équipes
+      const pc=pollCounts(sid);
+      const hasPoll=(_pollIntentionsCache||{})[sid];
+      ensurePollLoaded(sid, ()=>{ if(document.getElementById('tv-body')) rTVBody(sid); });
+      const pollLine=hasPoll
+        ? '<div style="font-size:11px;background:#F1F8F4;border-radius:8px;padding:6px 10px;margin-bottom:8px;text-align:center">'+
+            '<span style="color:#1B5E20;font-weight:700">'+pc.present+' \u2705</span> &bull; '+
+            '<span style="color:#B71C1C;font-weight:700">'+pc.absent+' \u274C</span> &bull; '+
+            '<span style="color:#B45309;font-weight:700">'+pc.injured+' \u{1F915}</span> &bull; '+
+            '<span style="color:var(--mut)">'+pc.none+' '+tr('mdNoReply')+'</span></div>'
+        : '<div style="text-align:center;margin-bottom:8px"><div style="font-size:11px;color:var(--mut);font-style:italic;margin-bottom:4px">'+tr('tvNoPoll')+'</div>'+
+            '<button class="btn btn-out btn-sm" onclick="openPollShare('+sid+')">\u{1F4E3} '+tr('pollShareBtn')+'</button></div>';
       sh+='<div class="step-sec">&#128101; '+tr('playersTab')+'</div>'+
         '<div class="step-hint">'+tr('squadStepHint')+'</div>'+
         '<div style="font-size:11px;color:var(--dk);background:var(--lg);border-radius:8px;padding:6px 10px;margin-bottom:8px;text-align:center">'+counters+'</div>'+
-        plSorted.map(p=>{
+        pollLine+
+        selFilterBar('()=>rTVBody('+sid+')', plSorted.filter(p=>!selFilterKeep(pollStatusOf(sid,p.id))).length)+
+        plSorted.filter(p=>selFilterKeep(pollStatusOf(sid,p.id))).map(p=>{
           const cur=owner(p.id);
-          return '<div class="pselrow"><span class="pselnum">'+(p.number||'?')+'</span>'+
+          const st=pollStatusOf(sid,p.id);
+          // Un joueur annoncé absent/blessé est grisé : on le voit sans le masquer
+          const dim=(st==='absent'||st==='injured')?'opacity:.55;':'';
+          return '<div class="pselrow" style="'+dim+'"><span class="pselnum">'+(p.number||'?')+'</span>'+
+            '<span style="width:18px;text-align:center;flex-shrink:0">'+pollChip(st)+'</span>'+
             '<span class="pselname">'+esc(p.firstName)+' '+esc((p.lastName[0]||''))+'.</span>'+
             '<div class="pselsegs">'+rcls.map(team=>'<button class="pselseg'+(cur===team?' on':'')+'" onclick="togTvPreSel('+sid+',\''+esc(team)+'\','+p.id+')">'+shortName(team)+'</button>').join('')+'</div></div>';
         }).join('');
@@ -6535,7 +7012,7 @@ function fbApplyCore(snap){
   if(!NID.goals) NID.goals=1;
   S.tasks.forEach(t=>{ if(t.id===null||t.id===undefined||(typeof t.id==='number'&&isNaN(t.id))){ t.id=NID.tasks++; } });
   (S.players||[]).forEach(p=>{ p.photo=_fb.photos[p.id]||localPhotos[p.id]||p.photo||null; });
-  try{ localStorage.setItem(LS_DATA, JSON.stringify({S,NID})); }catch(e){}
+  persistLocal();
   fbSetStatus('online');
   softRefresh();
 }
@@ -6547,7 +7024,7 @@ function fbApplyPhotos(snap){
   let changed=false;
   (S.players||[]).forEach(p=>{ const ph=_fb.photos[p.id]; if(ph&&p.photo!==ph){ p.photo=ph; changed=true; } });
   if(changed){
-    try{ localStorage.setItem(LS_DATA, JSON.stringify({S,NID})); }catch(e){}
+    persistLocal();
     softRefresh();
   }
 }
@@ -7261,23 +7738,37 @@ function expCSV(type){
     csv+=S.players.map(p=>[p.number,p.firstName,p.lastName,p.dob,p.licenseNo,p.position?posLabel(p.position):'',p.parent,p.phone,p.parent2,p.phone2,p.email,p.notes].map(v=>'"'+(v||'')+'"').join(';')).join('\n');
     dl(csv,'RCL_'+APP_CAT+'_'+(EN?'Roster':'Effectif'));
   } else if(type==='coaches'){
-    let csv=(EN?'First name;Last name;Role;Phone;Email;License\n':'Pr\u00e9nom;Nom;R\u00f4le;T\u00e9l;Email;Licence\n');
-    csv+=S.coaches.map(co=>[co.firstName,co.lastName,co.role?tr('role_'+co.role):'',co.phone,co.email,co.licenseNo].map(v=>'"'+(v||'')+'"').join(';')).join('\n');
+    // Colonnes de base + suivi des formations (ajoutées EN FIN : l'import lit par position)
+    const cat=ensureTrainingCatalog();
+    let csv=(EN?'First name;Last name;Role;Phone;Email;License':'Pr\u00e9nom;Nom;R\u00f4le;T\u00e9l;Email;Licence');
+    csv+=';'+(EN?'Training progress':'Progression formations');
+    csv+=';'+cat.map(t=>t.name.replace(/;/g,',')).join(';');
+    csv+=';'+(EN?'Additional training':'Formations compl\u00e9mentaires')+'\n';
+    csv+=S.coaches.map(co=>{
+      const m=coachTrainingMap(co), pr=coachTrainingProgress(co);
+      const base=[co.firstName,co.lastName,co.role?tr('role_'+co.role):'',co.phone,co.email,co.licenseNo];
+      const prog=pr.done+'/'+pr.total;
+      const cells=cat.map(t=>m[t.id]==='done'?(EN?'Done':'Fait'):m[t.id]==='equiv'?(EN?'Equivalence':'\u00c9quivalence'):'');
+      const extras=(co.extraTrainings||[]).map(x=>x.name).join(' | ');
+      return [...base,prog,...cells,extras].map(v=>'"'+(v||'')+'"').join(';');
+    }).join('\n');
     dl(csv,'RCL_'+APP_CAT+'_'+(EN?'Staff':'Coachs'));
   } else if(type==='training'){
     let csv=(EN?'Date;Day;Theme;Skills;Rules;Positives;Improvements;Notes\n':'Date;Jour;Th\u00e8me;Skills;R\u00e8gles;Positifs;Am\u00e9liorations;Notes\n');
     csv+=S.sessions.filter(s=>s.type==='Entra\u00eenement').sort((a,b)=>a.date.localeCompare(b.date)).map(s=>[s.date,wdOnly(s.date),s.theme,s.skills,s.rules,s.positives,s.improvements,s.notes].map(v=>'"'+(v||'')+'"').join(';')).join('\n');
     dl(csv,'RCL_'+APP_CAT+'_'+(EN?'Training':'Entrainements'));
   } else if(type==='matches'){
-    let csv=(EN?'Date;Opponent;Venue;RCL Score;Opp Score;Player;No;Role;Play time (s);Play time (mm:ss);Nb subs\n':'Date;Adversaire;Lieu;Score RCL;Score Adv;Joueur;N\u00b0;R\u00f4le;Temps jeu (s);Temps jeu (mm:ss);Nb remplacements\n');
+    // Contexte du match ajouté EN FIN de ligne (l'import lit les colonnes par position)
+    let csv=(EN?'Date;Opponent;Venue;RCL Score;Opp Score;Player;No;Role;Play time (s);Play time (mm:ss);Nb subs;Match type;Competition;Round;Meet;Kick-off;Pitch\n':'Date;Adversaire;Lieu;Score RCL;Score Adv;Joueur;N\u00b0;R\u00f4le;Temps jeu (s);Temps jeu (mm:ss);Nb remplacements;Type de match;Comp\u00e9tition;Journ\u00e9e;RDV;Coup d\u2019envoi;Terrain\n');
     const rows=[];
     S.sessions.filter(s=>s.type==='Match').sort((a,b)=>a.date.localeCompare(b.date)).forEach(s=>{
       const squad=s.squad||[];
-      if(!squad.length) rows.push([s.date,s.opponent,s.venue?venueLabel(s.venue):'',s.scoreRCL,s.scoreAdv,'','','','','',s.subs?.length||0].map(v=>'"'+(v===undefined?'':v)+'"').join(';'));
+      const ctx=[s.matchKind?matchKindLabel(s.matchKind):'',s.competition||'',s.round||'',s.timeMeet||'',s.timeKick||'',s.field||''];
+      if(!squad.length) rows.push([s.date,s.opponent,s.venue?venueLabel(s.venue):'',s.scoreRCL,s.scoreAdv,'','','','','',s.subs?.length||0,...ctx].map(v=>'"'+(v===undefined?'':v)+'"').join(';'));
       else squad.forEach(sp=>{
         const p=S.players.find(x=>x.id===sp.pid)||{};
         const pt=Math.round(sp.tTotal||0);
-        rows.push([s.date,s.opponent,s.venue?venueLabel(s.venue):'',s.scoreRCL,s.scoreAdv,p.firstName+' '+p.lastName,p.number,sp.role,pt,fmtT(pt),(s.subs||[]).filter(sb=>sb.outId===sp.pid||sb.inId===sp.pid).length].map(v=>'"'+(v===undefined?'':v)+'"').join(';'));
+        rows.push([s.date,s.opponent,s.venue?venueLabel(s.venue):'',s.scoreRCL,s.scoreAdv,p.firstName+' '+p.lastName,p.number,sp.role,pt,fmtT(pt),(s.subs||[]).filter(sb=>sb.outId===sp.pid||sb.inId===sp.pid).length,...ctx].map(v=>'"'+(v===undefined?'':v)+'"').join(';'));
       });
     });
     dl(csv+rows.join('\n'),'RCL_'+APP_CAT+'_'+(EN?'Matches':'Matchs'));
