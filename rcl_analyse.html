@@ -173,6 +173,36 @@ function dateParts(dStr){
   return { mois:MONTHS_FR[d.getMonth()]+' '+d.getFullYear(), annee:''+d.getFullYear(), jour:dStr };
 }
 
+// ── Dimensions transverses (poste, principe de jeu, contexte du match) ──
+function playerPos(S,pid){ const p=(S.players||[]).find(x=>x.id===pid); return p&&p.position?p.position:'—'; }
+// Regroupement des 9 critères en 4 principes de jeu (même logique que l'app)
+const PRINCIPLES_MAP={
+  recup:{lbl:'Récupération & pression', crits:['tackling','jackling','engagement']},
+  avancer:{lbl:'Avancer & soutien',      crits:['ballHandling','teamPlay','speed']},
+  lecture:{lbl:'Lecture du jeu & discipline', crits:['rules','fairPlay']},
+  rythme:{lbl:'Rythme & continuité',     crits:['passes','speed','engagement']}
+};
+function critPrinciples(critKey){
+  return Object.values(PRINCIPLES_MAP).filter(p=>p.crits.includes(critKey)).map(p=>p.lbl);
+}
+const MK_LBL={championship:'Championnat',friendly:'Amical',final:'Phase finale',cup:'Coupe',other:'Autre'};
+function matchCtx(s){
+  return {
+    'Type de match': s&&s.matchKind?(MK_LBL[s.matchKind]||s.matchKind):'',
+    'Compétition': s&&s.competition?s.competition:'',
+    'Journée': s&&s.round?s.round:''
+  };
+}
+// Semaine ISO (pour suivre une charge hebdomadaire)
+function isoWeek(dStr){
+  if(!dStr) return '';
+  const d=new Date(dStr+'T00:00:00'); if(isNaN(d)) return '';
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day);
+  const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));
+  const wk=Math.ceil((((t-y0)/86400000)+1)/7);
+  return t.getUTCFullYear()+'-S'+String(wk).padStart(2,'0');
+}
 // Base 1 : PRÉSENCES (une ligne par présence enregistrée)
 function flattenAttendance(S){
   const rows=[];
@@ -182,11 +212,14 @@ function flattenAttendance(S){
     const dp=dateParts(s.date);
     rows.push({
       'Joueur':playerName(S,a.playerId),
+      'Poste':playerPos(S,a.playerId),
       'Type séance':s.type||'',
       'Séance':sessionLabel(s),
       'Date':s.date||'',
+      'Semaine':isoWeek(s.date),
       'Mois':dp.mois,
       'Année':dp.annee,
+      ...matchCtx(s),
       'Statut':STATUS_LBL[a.status]||a.status||'',
       'Présent (1/0)':a.status==='P'?1:0
     });
@@ -206,11 +239,14 @@ function flattenPlayingTime(S){
         const sec=sp.tTotal||0;
         rows.push({
           'Joueur':playerName(S,sp.pid),
+          'Poste':playerPos(S,sp.pid),
           'Type séance':s.type||'',
           'Séance':sessionLabel(s),
           'Date':s.date||'',
+          'Semaine':isoWeek(s.date),
           'Mois':dp.mois,
           'Année':dp.annee,
+          ...matchCtx(s),
           'Rôle':sp.role==='field'?'Titulaire':(sp.role==='bench'?'Remplaçant':'Non retenu'),
           'Minutes':Math.round(sec/60*10)/10,
           'Matchs joués (1)':1
@@ -230,14 +266,21 @@ function flattenEvaluations(S){
     CRIT.forEach(c=>{
       const val=ev[c.k];
       if(val===undefined||val===null||val===0) return; // 0 = non évalué
-      rows.push({
-        'Joueur':playerName(S,ev.playerId),
-        'Critère':c.l,
-        'Niveau':val,
-        'Date':s?s.date:'',
-        'Mois':dp.mois,
-        'Année':dp.annee,
-        'Séance':sessionLabel(s)
+      // Une ligne par principe de jeu concerné : permet d'analyser par critère ET par principe
+      const princs=critPrinciples(c.k);
+      (princs.length?princs:['—']).forEach(pr=>{
+        rows.push({
+          'Joueur':playerName(S,ev.playerId),
+          'Poste':playerPos(S,ev.playerId),
+          'Critère':c.l,
+          'Principe de jeu':pr,
+          'Niveau':val,
+          'Date':s?s.date:'',
+          'Semaine':isoWeek(s?s.date:''),
+          'Mois':dp.mois,
+          'Année':dp.annee,
+          'Séance':sessionLabel(s)
+        });
       });
     });
   });
@@ -307,6 +350,79 @@ function flattenCoachAttendance(S){
   return rows;
 }
 
+
+// Base 6 : DISPONIBILITÉ COACHS (déclarée à l'avance — permet le Prévu vs Réel)
+const AVAIL_LBL={yes:'Disponible',maybe:'Peut-être',no:'Indisponible'};
+function flattenCoachAvailability(S){
+  const rows=[];
+  (S.coachAvailability||[]).forEach(a=>{
+    const s=(S.sessions||[]).find(x=>x.id===a.sessionId);
+    if(!s||!a.avail) return;
+    const dp=dateParts(s.date);
+    rows.push({
+      'Coach':coachName(S,a.coachId),
+      'Rôle':coachRole(S,a.coachId),
+      'Type séance':s.type||'',
+      'Séance':sessionLabel(s),
+      'Date':s.date||'',
+      'Semaine':isoWeek(s.date),
+      'Mois':dp.mois,
+      'Année':dp.annee,
+      'Disponibilité':AVAIL_LBL[a.avail]||a.avail,
+      'Dispo (1/0)':a.avail==='yes'?1:0,
+      // Croisement clé : a-t-il été réellement présent ?
+      'Présent réel (1/0)':(S.coachAttendance||[]).some(x=>x.sessionId===s.id&&x.coachId===a.coachId&&x.status==='P')?1:0
+    });
+  });
+  return rows;
+}
+
+// Base 7 : FORMATIONS DES COACHS (une ligne par coach × formation obligatoire)
+function flattenTrainings(S){
+  const rows=[], cat=S.trainingCatalog||[];
+  const THEME_LBL={injury:'Prévention des blessures',welfare:'Bien-être / Médical',coaching:'Coaching',safeguarding:'Protection'};
+  (S.coaches||[]).forEach(co=>{
+    // trainings peut être un tableau (ancien format) ou un objet id→statut
+    const t=co.trainings, m={};
+    if(Array.isArray(t)) t.forEach(id=>m[id]='done'); else if(t&&typeof t==='object') Object.assign(m,t);
+    cat.forEach(f=>{
+      const st=m[f.id];
+      rows.push({
+        'Coach':co.firstName+' '+(co.lastName||''),
+        'Rôle':coachRole(S,co.id),
+        'Thème':THEME_LBL[f.theme]||f.theme||'Autre',
+        'Formation':f.name,
+        'Statut':st==='done'?'Fait':st==='equiv'?'Équivalence':'À faire',
+        'Acquise (1/0)':st?1:0
+      });
+    });
+  });
+  return rows;
+}
+
+// Base 8 : TÂCHES (suivi de la charge administrative par coach)
+function flattenTasks(S){
+  const rows=[], ST={todo:'À faire',doing:'En cours',done:'Fait'};
+  (S.tasks||[]).forEach(t=>{
+    const co=(S.coaches||[]).find(x=>String(x.id)===String(t.assignee));
+    const d=t.createdAt?new Date(t.createdAt):null;
+    const ds=d&&!isNaN(d)?d.toISOString().slice(0,10):'';
+    const dp=dateParts(ds);
+    rows.push({
+      'Coach':co?(co.firstName+' '+(co.lastName||'')):'Non assigné',
+      'Tâche':t.title||'',
+      'Statut':ST[t.status]||t.status||'',
+      'Origine':t.autoTrainingId?'Formation (auto)':'Manuelle',
+      'Créée le':ds,
+      'Semaine':isoWeek(ds),
+      'Mois':dp.mois,
+      'Terminée (1/0)':t.status==='done'?1:0,
+      'Tâches (1)':1
+    });
+  });
+  return rows;
+}
+
 // Définition des bases + modèles rapides
 function buildDatasets(S){
   return {
@@ -357,6 +473,36 @@ function buildDatasets(S){
         {name:'Taux présence par coach', rows:['Coach'], cols:[], vals:[{field:'Présent (1/0)',agg:'moyenne'}]},
         {name:'Présences par mois', rows:['Coach'], cols:['Mois'], vals:[{field:'Présent (1/0)',agg:'somme'}]},
         {name:'Par type de séance', rows:['Coach'], cols:['Type séance'], vals:[{field:'Présent (1/0)',agg:'moyenne'}]}
+      ]
+    },
+    coachAvailability:{
+      label:'Dispo coachs',
+      desc:'Disponibilité déclarée à l\u2019avance. Croise le prévu et le réel pour voir la fiabilité.',
+      rows:flattenCoachAvailability(S),
+      presets:[
+        {name:'Fiabilité : dispo vs présence', rows:['Coach'], cols:[], vals:[{field:'Dispo (1/0)',agg:'somme'},{field:'Présent réel (1/0)',agg:'somme'}]},
+        {name:'Couverture par séance', rows:['Séance'], cols:['Disponibilité'], vals:[{field:'Dispo (1/0)',agg:'nombre'}]},
+        {name:'Taux de dispo par coach', rows:['Coach'], cols:[], vals:[{field:'Dispo (1/0)',agg:'moyenne'}]}
+      ]
+    },
+    trainings:{
+      label:'Formations coachs',
+      desc:'Une ligne par coach et par formation obligatoire. Suivi de la conformité.',
+      rows:flattenTrainings(S),
+      presets:[
+        {name:'Progression par coach', rows:['Coach'], cols:[], vals:[{field:'Acquise (1/0)',agg:'moyenne'}]},
+        {name:'Par thème', rows:['Coach'], cols:['Thème'], vals:[{field:'Acquise (1/0)',agg:'moyenne'}]},
+        {name:'Qui manque quoi', rows:['Formation'], cols:['Statut'], vals:[{field:'Acquise (1/0)',agg:'nombre'}]}
+      ]
+    },
+    tasks:{
+      label:'Tâches',
+      desc:'Charge administrative par coach : à faire, en cours, terminé.',
+      rows:flattenTasks(S),
+      presets:[
+        {name:'Charge par coach', rows:['Coach'], cols:['Statut'], vals:[{field:'Tâches (1)',agg:'somme'}]},
+        {name:'Taux d\u2019achèvement', rows:['Coach'], cols:[], vals:[{field:'Terminée (1/0)',agg:'moyenne'}]},
+        {name:'Manuelles vs automatiques', rows:['Origine'], cols:['Statut'], vals:[{field:'Tâches (1)',agg:'somme'}]}
       ]
     }
   };
