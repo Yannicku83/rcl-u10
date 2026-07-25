@@ -79,7 +79,6 @@ nav{position:fixed;bottom:0;left:0;right:0;max-width:500px;margin:0 auto;height:
 .s-live{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--red);animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
 /* PLAYER CARDS */
 .pc{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer}
@@ -369,26 +368,6 @@ textarea.fi{resize:vertical;min-height:60px}
 .ssum-availbtns{display:flex;gap:3px;justify-content:center}
 .ssum-availbtns button{flex:1;font-size:13px;padding:5px 0;border-radius:6px;cursor:pointer;max-width:34px}
 .ssum-legend{font-size:9.5px;color:var(--mut);text-align:center;margin-top:3px;font-style:italic}
-.res-acc{background:var(--card);border-radius:10px;margin-bottom:8px;box-shadow:var(--sh);overflow:hidden}
-.res-acc-hd{display:flex;align-items:center;gap:9px;padding:13px 14px;cursor:pointer;user-select:none}
-.res-acc-hd:active{background:var(--lg)}
-.res-acc-caret{font-size:10px;color:var(--mg);width:12px;flex-shrink:0}
-.res-acc-ic{font-size:17px;flex-shrink:0}
-.res-acc-title{flex:1;font-size:14px;font-weight:800;color:var(--dk)}
-.res-acc-count{font-size:11px;font-weight:700;color:var(--mg);background:var(--lg);border-radius:20px;padding:2px 9px;flex-shrink:0}
-.res-acc-body{padding:0 12px 10px}
-.res-sub{margin:4px 0 6px}
-.res-sub-hd{display:flex;align-items:center;gap:8px;padding:8px 6px;cursor:pointer;user-select:none;border-left:3px solid var(--lg)}
-.res-sub-hd:active{background:var(--lg)}
-.res-sub-title{flex:1;font-size:12.5px;font-weight:700;color:var(--mg)}
-.res-sub-body{padding:6px 0 2px 10px}
-.ssum-grid{display:flex;gap:6px;margin-top:8px}
-.ssum-col{flex:1;background:var(--zone,#F7FAFD);border-radius:8px;padding:6px 4px;text-align:center;min-width:0}
-.ssum-hd{font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ssum-val{font-size:13px;font-weight:800;color:var(--dk);white-space:nowrap}
-.ssum-availbtns{display:flex;gap:3px;justify-content:center}
-.ssum-availbtns button{flex:1;font-size:13px;padding:5px 0;border-radius:6px;cursor:pointer;max-width:34px}
-.ssum-legend{font-size:9.5px;color:var(--mut);text-align:center;margin-top:3px;font-style:italic}
 .todo-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
 .todo-item{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--brd);border-radius:9px;padding:7px 9px;margin-bottom:5px}
 .todo-item-main{flex:1;min-width:0}
@@ -492,6 +471,7 @@ textarea.fi{resize:vertical;min-height:60px}
     </div>
     <span style="color:var(--mut);font-size:16px">&rsaquo;</span>
   </div>
+  <div id="home-alerts"></div>
   <div id="home-matchday"></div>
   <div id="avail-home-card" onclick="openAvail()" style="display:none;margin-bottom:14px;cursor:pointer;background:var(--card);border-radius:12px;padding:12px 14px;box-shadow:var(--sh);align-items:center;gap:12px">
     <div style="font-size:24px">&#128197;</div>
@@ -586,16 +566,6 @@ textarea.fi{resize:vertical;min-height:60px}
     <button class="chat-back" onclick="closeTasksPage();openTaskForm()" title="Ajouter" style="font-size:26px">+</button>
   </div>
   <div id="tasks-body" style="flex:1;overflow-y:auto;padding:14px"></div>
-</div>
-
-<!-- AVAILABILITY OVERLAY -->
-<div id="avail-ov" class="chat-ov">
-  <div class="chat-topbar">
-    <button class="chat-back" onclick="closeAvail()">&#8592; <span id="avail-back-lbl">Accueil</span></button>
-    <span>&#128197; <span id="avail-topttl">Ma disponibilité</span></span>
-    <span style="width:32px"></span>
-  </div>
-  <div id="avail-body" style="flex:1;overflow-y:auto;padding:14px"></div>
 </div>
 
 <!-- AVAILABILITY OVERLAY -->
@@ -708,7 +678,7 @@ textarea.fi{resize:vertical;min-height:60px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.03';
+const APP_VER='3.23';
 /* ═══════════════════════════════════════════════════════════════════════════
    RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
    ───────────────────────────────────────────────────────────────────────────
@@ -727,6 +697,12 @@ const APP_VER='3.03';
    S.coachAvailability[]{sessionId, coachId, avail:'yes'|'maybe'|'no'} (dispo déclarée à l'avance)
    S.tasks[]            {id, title, assignee(coachId), status:'todo'|'doing'|'done', createdAt}
    S.resources[]        {id, title, cat, subcat, url, note}  (documents, accordéon replié)
+   S.trainingCatalog[]  {id, name, theme} : formations OBLIGATOIRES (par thème, modifiable)
+   coach.trainings      {catalogId:'done'|'equiv'} : 'equiv' = acquise par équivalence
+   coach.extraTrainings [{id,name}] : formations complémentaires libres
+   session.matchKind    'championship'|'friendly'|'final'|'cup'|'other' (+ competition, round,
+                        timeMeet, timeKick, field) : contexte d'un match, onglet Config.
+   task.autoTrainingId  tâche générée automatiquement pour une formation manquante
    S.mvpResults[]       {sessionId, team, playersChoice{}, coachesChoice{}, closed}  (Joueur du match)
    S.goals[]            objectifs d'équipe
    NID                  compteurs d'auto-incrément pour les id (gid('type'))
@@ -739,6 +715,14 @@ const APP_VER='3.03';
    sessionReal(s)             → réel {coaches, players} selon le type de séance
    currentCoachId()           → id du coach connecté (via _chat.name, tolérant casse/accents)
    chatIsMine(author)         → true si le message m'appartient (compare sur le prénom)
+   coachTrainingMap(co)       → {catalogId:statut} (lit l'ancien format tableau ET le nouveau)
+   pollStatusOf(sid,pid)      → réponse au sondage d'un joueur ('present'|'absent'|'injured')
+   syncTrainingTasks()        → aligne les tâches auto sur les formations manquantes.
+                                IDEMPOTENT : la relancer ne crée jamais de doublon.
+                                Bidirectionnel : tâche « Fait » → formation cochée.
+   parseDateFlexible(v)       → lit JJ/MM/AAAA, AAAA-MM-JJ, n° Excel… → 'AAAA-MM-JJ'
+   importFindExisting(...)    → détection de doublon à l'import (licence OU nom ; date+type)
+                                _importMode = 'update' | 'skip' | 'add'
 
    ── AFFICHAGE (rendu par fonctions r*) ──
    rHome()      accueil : cartes compactes (Analyse, Ressources, Ma dispo, Tâches) +
@@ -788,7 +772,6 @@ const POLL_FB_CFG = {
 // ═══ PRÉ-CONFIGURATION (rempli par le générateur, sinon null) ═══
 // Si défini, l'app se connecte automatiquement et n'affiche qu'un écran "Entre ton nom + Connecter"
 const PRECONFIG = {"fb":{"apiKey":"AIzaSyAalJZAZRhpmTAlJ5lNzTiA05TxbHuAgfo","authDomain":"rcluxembourg-26-27.firebaseapp.com","projectId":"rcluxembourg-26-27","storageBucket":"rcluxembourg-26-27.firebasestorage.app","messagingSenderId":"131221936812","appId":"1:131221936812:web:76d8d9dfb6eaf2bae59d09","measurementId":"G-RY6RCEGXG6"},"club":"rcl-u10-2026","chatCode":"U10"}; /*PRECONFIG_INJECT*/
-let S = { players:[], sessions:[], attendance:[], evaluations:[], coaches:[], coachAttendance:[], coachAvailability:[], tasks:[], goals:[], resources:[], mvpResults:[] };
 let S = { players:[], sessions:[], attendance:[], evaluations:[], coaches:[], coachAttendance:[], coachAvailability:[], tasks:[], goals:[], resources:[], mvpResults:[] };
 let NID = { players:1, sessions:1, attendance:1, evaluations:1, coaches:1, coachAttendance:1 };
 let _curSType = 'Entra\u00eenement';
@@ -846,7 +829,11 @@ function updateHeaderDate(){
 // ═══════════════════════════════════════════
 const I18N = {
   fr: {
-  'todoTitle':'Tâches des coachs','todoAllTitle':'Toutes les tâches','todoBackHome':'Accueil','todoEmpty':'Aucune tâche. Ajoute-en une !','todoNewTask':'Nouvelle tâche','todoTaskLbl':'Description','todoTaskPh':'Ex : Préparer les plots pour samedi','todoAssignLbl':'Assigner à','todoUnassigned':'Non assignée','todoNeedTitle':'Décris la tâche','todoAdded':'✅ Tâche ajoutée','todoDeleted':'Tâche supprimée','todoConfirmDelete':'Supprimer cette tâche ?','todoBack':'Reculer','todoNext':'Avancer','todoDelete':'Supprimer','task_todo':'À faire','task_doing':'En cours','task_done':'Fait',
+  'alPollPendingMulti':'{n} séances sans réponse au sondage','alNoCoverMulti':'{n} séances sans coach annoncé','alSeeAll':'voir les {n} autres','alSeeLess':'réduire',
+  'anPtAvg':'Moyenne :','anPtSpread':'écart max :','anPtUnder':'{n} joueur(s) sous 70 % de la moyenne \u2014 à faire jouer davantage','anPtBalanced':'Temps de jeu équilibré dans le groupe',
+  'saveFailTitle':'Sauvegarde impossible','saveFailQuota':'La mémoire du navigateur est pleine. Supprime des photos de joueurs ou d\u2019anciennes séances.','saveFailGeneric':'Le navigateur refuse d\u2019enregistrer (navigation privée ?).','saveFailSynced':'\u2705 Tes données sont bien synchronisées en ligne, rien n\u2019est perdu.','saveFailNotSynced':'\u26A0\uFE0F Aucune synchro en ligne : exporte tout de suite par sécurité.','saveFailExport':'Exporter une sauvegarde','saveFailRetry':'Réessayer',
+  'selFilterAll':'Tous','selFilterPresent':'Présents','selFilterNoReply':'Sans réponse','selFilterHidden':'{n} joueur(s) masqué(s) — reviens sur « Tous » pour les convoquer','alTitle':'Rappels','alPollPending':'{n} sans réponse au sondage pour le {d}','alNoCover':'Aucun coach annoncé pour le {d}','alStaleEval':'{n} joueur(s) sans évaluation récente','alOldTasks':'{n} tâche(s) à faire depuis plus d\u2019un mois','seasonSheetTitle':'Fiche de saison','seasonKeyFigures':'Chiffres clés','seasonAttendance':'Présence','seasonEvals':'évaluations','seasonAwards':'Distinctions',
+  'todoTitle':'Tâches des coachs','todoAllTitle':'Toutes les tâches','todoBackHome':'Accueil','todoEmpty':'Aucune tâche. Ajoute-en une !','todoNewTask':'Nouvelle tâche','todoTaskLbl':'Description','todoTaskPh':'Ex : Préparer les plots pour samedi','todoAssignLbl':'Assigner à','todoUnassigned':'Non assignée','todoScopeMine':'Mes tâches','todoScopeTeam':'Équipe','todoNeedTitle':'Décris la tâche','todoAdded':'✅ Tâche ajoutée','todoDeleted':'Tâche supprimée','todoConfirmDelete':'Supprimer cette tâche ?','todoBack':'Reculer','todoNext':'Avancer','todoDelete':'Supprimer','task_todo':'À faire','task_doing':'En cours','task_done':'Fait',
   'statPlayers':'Joueurs',
   'statTrainings':'Entraîn.',
   'statMatches':'Matchs',
@@ -1094,7 +1081,6 @@ const I18N = {
   'matchNbLbl':'matchs dans ce tournoi',
   'participatesLbl':'participé(s) au squad',
   'upcomingTitle':'Prochains événements','mdToday':'AUJOURD\u2019HUI','mdManage':'Gérer','mdAttendance':'Présences','mdNoReply':'sans réponse','mdLoadingPoll':'Chargement des réponses…','mdInSquad':'dans le groupe','mdNoSquad':'Groupe à composer','mdMatches':'match(s)','mdTeams':'équipe(s)',
-  'upcomingTitle':'Prochains événements','mdToday':'AUJOURD\u2019HUI','mdManage':'Gérer','mdAttendance':'Présences','mdNoReply':'sans réponse','mdLoadingPoll':'Chargement des réponses…','mdInSquad':'dans le groupe','mdNoSquad':'Groupe à composer','mdMatches':'match(s)','mdTeams':'équipe(s)',
   'noUpcoming':'Aucun match ou tournoi à venir',
   'todayLbl':'Aujourd\'hui',
   'tomorrowLbl':'Demain',
@@ -1111,7 +1097,7 @@ const I18N = {
   'roleLbl':'Rôle','role_coach':'Coach','role_manager':'Manager','role_assistant':'Assistant',
   'noCoachYet':'Aucun coach enregistré','confirmDeleteCoach':'Supprimer ce coach ?',
   'toastCoachAdded':'✅ Coach ajouté','toastCoachUpdated':'✅ Coach modifié',
-  'availYes':'Dispo','availMaybe':'Peut-être','availNo':'Absent','coverCoaches':'coach(s)','colAvail':'Dispo','colForecast':'Prévu','colReal':'Réel','ssumLegend':'🎯 coach·joueur prévus &bull; ✅ réels','myAvailTitle':'Ma disponibilité','myAvailPreview':'{n} prochaine(s) séance(s) à renseigner','availIntro':'Indique ta disponibilité pour tes prochaines séances. Les autres coachs voient la couverture.','availNeedCoach':'Connecte-toi avec ton prénom de coach pour renseigner ta disponibilité.','availNoSession':'Aucune séance à venir.','availNobody':'Personne n\u2019a encore répondu.','coachesSectionTitle':'Coachs','staffMatchTitle':'Staff du match','noCoachAssigned':'Aucun coach assigné',
+  'availYes':'Dispo','availMaybe':'Peut-être','availNo':'Absent','coverCoaches':'coach(s)','colAvail':'Dispo','colAvailLogin':'Qui es-tu ?','availNeedCoachShort':'Identifie-toi pour renseigner ta dispo','colForecast':'Prévu','colReal':'Réel','ssumLegend':'🎯 coach·joueur prévus &bull; ✅ réels','myAvailTitle':'Ma disponibilité','myAvailPreview':'{n} prochaine(s) séance(s) à renseigner','availIntro':'Indique ta disponibilité pour tes prochaines séances. Les autres coachs voient la couverture.','availNeedCoach':'Connecte-toi avec ton prénom de coach pour renseigner ta disponibilité.','availNoSession':'Aucune séance à venir.','availNobody':'Personne n\u2019a encore répondu.','coachesSectionTitle':'Coachs','staffMatchTitle':'Staff du match','noCoachAssigned':'Aucun coach assigné',
   'assignedCoachesLbl':'Coachs présents',
   'licenseLbl':'N° licence','trMandatoryTitle':'Formations obligatoires effectuées','trTheme_injury':'Prévention des blessures & gestion des risques','trTheme_welfare':'Bien-être du joueur / Médical','trTheme_coaching':'Coaching','trTheme_safeguarding':'Protection (Safeguarding)','trThemeOther':'Autres','trEquivTag':'équivalence','trCycleHint':'Touche la case : 1 fois = fait \u2713, 2 fois = par équivalence \u2248, 3 fois = à faire','trCatalogThemePrompt':'Thème (numéro) :','trCatalogResetBtn':'Rétablir la liste par défaut','trCatalogResetConfirm':'Rétablir la liste par défaut ? Les coches actuelles des coachs seront effacées.','trCatalogReset':'✅ Liste rétablie','trTaskPrefix':'Formation :','trTasksAutoNote':'Les tâches correspondantes sont créées et suivies automatiquement.','trTaskAutoLocked':'Tâche liée à une formation : valide la formation pour la retirer.','trExtraTitle':'Formations complémentaires effectuées','trExtraAdd':'Ajouter une formation','trExtraEmpty':'Aucune formation complémentaire','trExtraPrompt':'Nom de la formation complémentaire :','trCatalogAdd':'Ajouter à la liste obligatoire','trCatalogPrompt':'Nom de la formation obligatoire :','trCatalogRemove':'Retirer de la liste obligatoire','trCatalogRemoveConfirm':'Retirer « {n} » de la liste obligatoire ? Cela concerne tous les coachs.','trCatalogHint':'Liste modifiable : adapte-la aux exigences de ta fédération.','trRemaining':'{n} formation(s) restante(s)','trAllDone':'Toutes les formations obligatoires sont faites',
   'liveSyncTitle':'Synchro live (Firebase)',
@@ -1153,7 +1139,7 @@ const I18N = {
   'pollLoading':'Chargement…','pollNotFound':'Sondage introuvable ou expiré','pollError':'Une erreur est survenue','pollPickChild':'Choisis ton enfant','pollChooseChild':'— Sélectionne —','pollAlreadyIn':'déjà inscrits','pollPresent':'Présent','pollAbsent':'Absent','pollInjured':'Blessé','pollResults':'Qui vient ?','pollThanks':'Merci, réponse enregistrée !','pollSaveErr':'⚠️ Enregistrement impossible, réessaie','pollChangeHint':'Touche un autre choix pour modifier ta réponse','pollYourAnswer':'Ta réponse :','pollIntentionsTitle':'Réponses des parents','pollApplyBtn':'Pré-remplir les présences','pollApplyHint':'Applique les réponses des parents comme point de départ. Confirme chaque présence le jour J.','pollApplyConfirm':'Pré-remplir les présences avec les réponses des parents ?','pollApplied':'✅ Présences pré-remplies',
   'mvpBtn':'Joueur du match','potmBtn':'Générer l\u2019image','mvpWriteSynthesis':'Rédiger la synthèse','mvpEditSynthesis':'Modifier la synthèse','mvpSynthesisTitle':'Synthèse des commentaires','mvpAllComments':'Commentaires des joueurs','mvpNoComments':'Aucun commentaire reçu.','mvpSynthesisLbl':'Ta synthèse (apparaîtra sur l\u2019image)','mvpSynthesisPh':'Ex : Beau jeu en équipe et bonne défense','mvpSynthesisHint':'Résume les commentaires des joueurs en une phrase pour l\u2019image.','mvpSynthesisSaved':'✅ Synthèse enregistrée','potmGenerating':'Création de l\u2019image…','potmDone':'✅ Image téléchargée','potmError':'Erreur lors de la génération','potmNeedResult':'Clôture d\u2019abord le vote pour désigner les gagnants','mvpShareBtn':'Partager le lien de vote','mvpReopenBtn':'Rouvrir le vote','mvpReopenConfirm':'Rouvrir ce vote ? Les joueurs pourront voter à nouveau.','mvpReopened':'Vote rouvert','mvpPlayersChoice':'Choix des joueurs','mvpCoachesChoice':'Choix des coachs','mvpVotes':'votes','mvpNoVotes':'Aucun vote pour l\u2019instant','mvpTallyHint':'Décompte (caché aux joueurs jusqu\u2019à la clôture)','mvpCloseBtn':'Clôturer le vote','mvpClosed':'✅ Vote clôturé','mvpNone':'Aucun','mvpTieTitle':'Égalité','mvpTieHint':'Il y a une égalité en tête. Choisis le gagnant :','mvpConfirmWinner':'Désigner gagnant','mvpSetCoachChoice':'Définir le choix des coachs','mvpEditCoachChoice':'Modifier le choix des coachs','mvpCoachChoosePlayer':'Joueur choisi','mvpCoachReason':'Explication','mvpNeedPlayer':'Choisis un joueur','mvpCoachSaved':'✅ Choix des coachs enregistré',
   'voteTitle':'Joueur du match','voteShareMsg':'Vote pour le joueur du match {event} :','voteShareIntro':'Partage ce lien avec les joueurs. Chacun vote pour un coéquipier (pas pour lui-même) avec une explication.','voteWhoAreYou':'Qui es-tu ?','voteWhoHint':'Choisis ton prénom (tu ne pourras pas voter pour toi-même).','voteContinue':'Continuer','voteAs':'Tu votes en tant que','voteChange':'changer','voteForWho':'Pour qui votes-tu ?','voteWhy':'Pourquoi ?','voteWhyPh':'Ex : super défense et beau jeu en équipe','voteSubmit':'Voter','voteThanks':'Merci pour ton vote !','voteThanksSub':'Le résultat sera annoncé par le coach.','voteNeedVoter':'Choisis ton prénom','voteNeedChoice':'Choisis un joueur','voteNeedReason':'Explique ton choix','voteClosed':'Le vote est terminé. Merci !',
-  'resTitle':'Ressources','resHomeBtn':'Ressources & documents','resHomeHint':'Règlements, docs du club, tournois','resCountSingular':'document','resCountPlural':'documents','resEmpty':'Aucun document pour l\u2019instant. Ajoute un lien vers un règlement, une doc du club, etc.','resAdd':'Ajouter un document','resNewTitle':'Nouveau document','resTitleLbl':'Titre','resTitlePh':'Ex : Règlement tournoi U10','resCatLbl':'Catégorie','resSubcatLbl':'Sous-catégorie (optionnel)','resSubcatPh':'Ex : U10, Saison 2026…','resUrlLbl':'Lien (URL)','resUrlHint':'Colle le lien de partage depuis Google Drive, Dropbox, le site de la fédération, etc.','resNoteLbl':'Note (optionnel)','resNotePh':'Ex : Version 2026','resOpen':'Ouvrir','resNoPreview':'Aperçu non disponible pour ce lien. Ouvre-le directement.','resOpenExt':'Ouvrir le document','resNeedTitle':'Indique un titre','resNeedUrl':'Indique un lien','resAdded':'✅ Document ajouté','resDeleted':'Document supprimé','resConfirmDelete':'Supprimer ce document ?',
+  'resTitle':'Ressources','resHomeBtn':'Ressources & documents','resHomeHint':'Règlements, docs du club, tournois','resCountSingular':'document','resCountPlural':'documents','resEmpty':'Aucun document pour l\u2019instant. Ajoute un lien vers un règlement, une doc du club, etc.','resAdd':'Ajouter un document','resNewTitle':'Nouveau document','resTitleLbl':'Titre','resTitlePh':'Ex : Règlement tournoi U10','resCatLbl':'Catégorie','resSubcatLbl':'Sous-catégorie (optionnel)','resSubcatPh':'Ex : U10, Saison 2026…','resUrlLbl':'Lien (URL)','resUrlHint':'Colle le lien de partage depuis Google Drive, Dropbox, le site de la fédération, etc.','resNoteLbl':'Note (optionnel)','resNotePh':'Ex : Version 2026','resOpen':'Ouvrir','resNoPreview':'Aperçu non disponible pour ce lien. Ouvre-le directement.','resOpenExt':'Ouvrir le document','resNeedTitle':'Indique un titre','resNeedUrl':'Indique un lien','resAdded':'✅ Document ajouté','resSaved':'✅ Document modifié','resEditTitle':'Modifier le document','resRenameSub':'Renommer la sous-catégorie','resRenameSubPrompt':'Nouveau nom de la sous-catégorie (vide = aucune) :','resSubRenamed':'✅ Sous-catégorie renommée','resDeleted':'Document supprimé','resConfirmDelete':'Supprimer ce document ?',
   'resCat_reglement':'Règlements','resCat_club':'Documents du club','resCat_tournoi':'Tournois','resCat_formation':'Formation','resCat_autre':'Autres',
   'anTabTeam':'Équipe','anTabPlayer':'Par joueur','anTabGoals':'Objectifs','anTabGuide':'Guide','anHomeBtn':'Analyse & progression','anHomeHint':'Suivi de la progression du groupe','anHomeAttendance':'présence','anHomeEvals':'suivis','pivotError':'Erreur lors de la préparation des données',
   'princ_recup':'Récupération & pression','princ_avancer':'Avancer & soutien','princ_lecture':'Lecture du jeu & discipline','princ_rythme':'Rythme & continuité',
@@ -1204,7 +1190,11 @@ const I18N = {
   'squadStepHint':'Qui joue dans quelle équipe (place les joueurs au banc le jour J)'
 },
   en: {
-  'todoTitle':'Coach tasks','todoAllTitle':'All tasks','todoBackHome':'Home','todoEmpty':'No tasks yet. Add one!','todoNewTask':'New task','todoTaskLbl':'Description','todoTaskPh':'e.g. Bring cones for Saturday','todoAssignLbl':'Assign to','todoUnassigned':'Unassigned','todoNeedTitle':'Describe the task','todoAdded':'✅ Task added','todoDeleted':'Task deleted','todoConfirmDelete':'Delete this task?','todoBack':'Back','todoNext':'Forward','todoDelete':'Delete','task_todo':'To do','task_doing':'In progress','task_done':'Done',
+  'alPollPendingMulti':'{n} sessions without poll replies','alNoCoverMulti':'{n} sessions with no coach available','alSeeAll':'show {n} more','alSeeLess':'show less',
+  'anPtAvg':'Average:','anPtSpread':'max gap:','anPtUnder':'{n} player(s) below 70% of the average \u2014 give them more game time','anPtBalanced':'Playing time is balanced across the squad',
+  'saveFailTitle':'Cannot save','saveFailQuota':'Browser storage is full. Remove player photos or old sessions.','saveFailGeneric':'The browser refuses to save (private browsing?).','saveFailSynced':'\u2705 Your data is synced online, nothing is lost.','saveFailNotSynced':'\u26A0\uFE0F No online sync: export a backup right now.','saveFailExport':'Export a backup','saveFailRetry':'Retry',
+  'selFilterAll':'All','selFilterPresent':'Available','selFilterNoReply':'No reply','selFilterHidden':'{n} player(s) hidden \u2014 switch back to \u201CAll\u201D to call them up','alTitle':'Reminders','alPollPending':'{n} without a poll reply for {d}','alNoCover':'No coach available for {d}','alStaleEval':'{n} player(s) without a recent assessment','alOldTasks':'{n} task(s) pending for over a month','seasonSheetTitle':'Season report','seasonKeyFigures':'Key figures','seasonAttendance':'Attendance','seasonEvals':'assessments','seasonAwards':'Awards',
+  'todoTitle':'Coach tasks','todoAllTitle':'All tasks','todoBackHome':'Home','todoEmpty':'No tasks yet. Add one!','todoNewTask':'New task','todoTaskLbl':'Description','todoTaskPh':'e.g. Bring cones for Saturday','todoAssignLbl':'Assign to','todoUnassigned':'Unassigned','todoScopeMine':'My tasks','todoScopeTeam':'Team','todoNeedTitle':'Describe the task','todoAdded':'✅ Task added','todoDeleted':'Task deleted','todoConfirmDelete':'Delete this task?','todoBack':'Back','todoNext':'Forward','todoDelete':'Delete','task_todo':'To do','task_doing':'In progress','task_done':'Done',
   'statPlayers':'Players',
   'statTrainings':'Train.',
   'statMatches':'Matches',
@@ -1455,7 +1445,6 @@ const I18N = {
   'matchNbLbl':'matches in this tournament',
   'participatesLbl':'in squad',
   'upcomingTitle':'Upcoming events','mdToday':'TODAY','mdManage':'Manage','mdAttendance':'Attendance','mdNoReply':'no reply','mdLoadingPoll':'Loading replies…','mdInSquad':'in squad','mdNoSquad':'Squad to set','mdMatches':'match(es)','mdTeams':'team(s)',
-  'upcomingTitle':'Upcoming events','mdToday':'TODAY','mdManage':'Manage','mdAttendance':'Attendance','mdNoReply':'no reply','mdLoadingPoll':'Loading replies…','mdInSquad':'in squad','mdNoSquad':'Squad to set','mdMatches':'match(es)','mdTeams':'team(s)',
   'noUpcoming':'No upcoming match or tournament',
   'todayLbl':'Today',
   'tomorrowLbl':'Tomorrow',
@@ -1472,7 +1461,7 @@ const I18N = {
   'roleLbl':'Role','role_coach':'Coach','role_manager':'Manager','role_assistant':'Assistant',
   'noCoachYet':'No coach registered','confirmDeleteCoach':'Delete this coach?',
   'toastCoachAdded':'✅ Coach added','toastCoachUpdated':'✅ Coach updated',
-  'availYes':'Avail.','availMaybe':'Maybe','availNo':'Not avail.','coverCoaches':'coach(es)','colAvail':'Avail.','colForecast':'Expected','colReal':'Actual','ssumLegend':'🎯 expected coach·player &bull; ✅ actual','myAvailTitle':'My availability','myAvailPreview':'{n} upcoming session(s) to answer','availIntro':'Set your availability for upcoming sessions. Other coaches can see the cover.','availNeedCoach':'Connect with your coach first name to set your availability.','availNoSession':'No upcoming session.','availNobody':'Nobody has replied yet.','coachesSectionTitle':'Coaches','staffMatchTitle':'Match staff','noCoachAssigned':'No coach assigned',
+  'availYes':'Avail.','availMaybe':'Maybe','availNo':'Not avail.','coverCoaches':'coach(es)','colAvail':'Avail.','colAvailLogin':'Who are you?','availNeedCoachShort':'Sign in to set your availability','colForecast':'Expected','colReal':'Actual','ssumLegend':'🎯 expected coach·player &bull; ✅ actual','myAvailTitle':'My availability','myAvailPreview':'{n} upcoming session(s) to answer','availIntro':'Set your availability for upcoming sessions. Other coaches can see the cover.','availNeedCoach':'Connect with your coach first name to set your availability.','availNoSession':'No upcoming session.','availNobody':'Nobody has replied yet.','coachesSectionTitle':'Coaches','staffMatchTitle':'Match staff','noCoachAssigned':'No coach assigned',
   'assignedCoachesLbl':'Coaches present',
   'licenseLbl':'License No.','trMandatoryTitle':'Mandatory training completed','trTheme_injury':'Injury prevention & risk management','trTheme_welfare':'Player Welfare / Medical','trTheme_coaching':'Coaching','trTheme_safeguarding':'Safeguarding','trThemeOther':'Other','trEquivTag':'equivalence','trCycleHint':'Tap the box: once = done \u2713, twice = by equivalence \u2248, three times = to do','trCatalogThemePrompt':'Theme (number):','trCatalogResetBtn':'Restore default list','trCatalogResetConfirm':'Restore the default list? Coaches\u2019 current ticks will be cleared.','trCatalogReset':'✅ List restored','trTaskPrefix':'Training:','trTasksAutoNote':'Matching tasks are created and kept in sync automatically.','trTaskAutoLocked':'Task linked to a training: validate the training to remove it.','trExtraTitle':'Additional training completed','trExtraAdd':'Add training','trExtraEmpty':'No additional training','trExtraPrompt':'Name of the additional training:','trCatalogAdd':'Add to mandatory list','trCatalogPrompt':'Name of the mandatory training:','trCatalogRemove':'Remove from mandatory list','trCatalogRemoveConfirm':'Remove \u201C{n}\u201D from the mandatory list? This affects every coach.','trCatalogHint':'Editable list \u2014 adjust it to your union\u2019s requirements.','trRemaining':'{n} training(s) remaining','trAllDone':'All mandatory training completed',
   'liveSyncTitle':'Live sync (Firebase)',
@@ -1514,7 +1503,7 @@ const I18N = {
   'pollLoading':'Loading…','pollNotFound':'Poll not found or expired','pollError':'An error occurred','pollPickChild':'Choose your child','pollChooseChild':'— Select —','pollAlreadyIn':'already in','pollPresent':'Present','pollAbsent':'Absent','pollInjured':'Injured','pollResults':'Who\u2019s coming?','pollThanks':'Thanks, response saved!','pollSaveErr':'⚠️ Could not save, please retry','pollChangeHint':'Tap another option to change your answer','pollYourAnswer':'Your answer:','pollIntentionsTitle':'Parent responses','pollApplyBtn':'Pre-fill attendance','pollApplyHint':'Applies parent responses as a starting point. Confirm each attendance on match day.','pollApplyConfirm':'Pre-fill attendance with parent responses?','pollApplied':'✅ Attendance pre-filled',
   'mvpBtn':'Player of the match','potmBtn':'Generate image','mvpWriteSynthesis':'Write summary','mvpEditSynthesis':'Edit summary','mvpSynthesisTitle':'Comments summary','mvpAllComments':'Player comments','mvpNoComments':'No comments received.','mvpSynthesisLbl':'Your summary (shown on the image)','mvpSynthesisPh':'e.g. Great team play and solid defense','mvpSynthesisHint':'Summarize the players\u2019 comments in one sentence for the image.','mvpSynthesisSaved':'✅ Summary saved','potmGenerating':'Creating image…','potmDone':'✅ Image downloaded','potmError':'Error while generating','potmNeedResult':'Close the vote first to set the winners','mvpShareBtn':'Share voting link','mvpReopenBtn':'Reopen voting','mvpReopenConfirm':'Reopen this vote? Players will be able to vote again.','mvpReopened':'Voting reopened','mvpPlayersChoice':'Players\u2019 choice','mvpCoachesChoice':'Coaches\u2019 choice','mvpVotes':'votes','mvpNoVotes':'No votes yet','mvpTallyHint':'Tally (hidden from players until closing)','mvpCloseBtn':'Close voting','mvpClosed':'✅ Voting closed','mvpNone':'None','mvpTieTitle':'Tie','mvpTieHint':'There is a tie at the top. Pick the winner:','mvpConfirmWinner':'Set winner','mvpSetCoachChoice':'Set coaches\u2019 choice','mvpEditCoachChoice':'Edit coaches\u2019 choice','mvpCoachChoosePlayer':'Chosen player','mvpCoachReason':'Reason','mvpNeedPlayer':'Pick a player','mvpCoachSaved':'✅ Coaches\u2019 choice saved',
   'voteTitle':'Player of the match','voteShareMsg':'Vote for the player of the match {event}:','voteShareIntro':'Share this link with players. Each votes for a teammate (not themselves) with a reason.','voteWhoAreYou':'Who are you?','voteWhoHint':'Pick your first name (you won\u2019t be able to vote for yourself).','voteContinue':'Continue','voteAs':'You are voting as','voteChange':'change','voteForWho':'Who do you vote for?','voteWhy':'Why?','voteWhyPh':'e.g. great defense and nice team play','voteSubmit':'Vote','voteThanks':'Thanks for your vote!','voteThanksSub':'The result will be announced by the coach.','voteNeedVoter':'Pick your first name','voteNeedChoice':'Pick a player','voteNeedReason':'Explain your choice','voteClosed':'Voting is closed. Thanks!',
-  'resTitle':'Resources','resHomeBtn':'Resources & documents','resHomeHint':'Rules, club docs, tournaments','resCountSingular':'document','resCountPlural':'documents','resEmpty':'No documents yet. Add a link to a rulebook, club doc, etc.','resAdd':'Add a document','resNewTitle':'New document','resTitleLbl':'Title','resTitlePh':'e.g. U10 tournament rules','resCatLbl':'Category','resSubcatLbl':'Sub-category (optional)','resSubcatPh':'e.g. U10, Season 2026…','resUrlLbl':'Link (URL)','resUrlHint':'Paste the share link from Google Drive, Dropbox, the federation website, etc.','resNoteLbl':'Note (optional)','resNotePh':'e.g. 2026 version','resOpen':'Open','resNoPreview':'Preview not available for this link. Open it directly.','resOpenExt':'Open document','resNeedTitle':'Enter a title','resNeedUrl':'Enter a link','resAdded':'✅ Document added','resDeleted':'Document deleted','resConfirmDelete':'Delete this document?',
+  'resTitle':'Resources','resHomeBtn':'Resources & documents','resHomeHint':'Rules, club docs, tournaments','resCountSingular':'document','resCountPlural':'documents','resEmpty':'No documents yet. Add a link to a rulebook, club doc, etc.','resAdd':'Add a document','resNewTitle':'New document','resTitleLbl':'Title','resTitlePh':'e.g. U10 tournament rules','resCatLbl':'Category','resSubcatLbl':'Sub-category (optional)','resSubcatPh':'e.g. U10, Season 2026…','resUrlLbl':'Link (URL)','resUrlHint':'Paste the share link from Google Drive, Dropbox, the federation website, etc.','resNoteLbl':'Note (optional)','resNotePh':'e.g. 2026 version','resOpen':'Open','resNoPreview':'Preview not available for this link. Open it directly.','resOpenExt':'Open document','resNeedTitle':'Enter a title','resNeedUrl':'Enter a link','resAdded':'✅ Document added','resSaved':'✅ Document updated','resEditTitle':'Edit document','resRenameSub':'Rename sub-category','resRenameSubPrompt':'New sub-category name (empty = none):','resSubRenamed':'✅ Sub-category renamed','resDeleted':'Document deleted','resConfirmDelete':'Delete this document?',
   'resCat_reglement':'Rulebooks','resCat_club':'Club documents','resCat_tournoi':'Tournaments','resCat_formation':'Training','resCat_autre':'Other',
   'anTabTeam':'Team','anTabPlayer':'Per player','anTabGoals':'Goals','anTabGuide':'Guide','anHomeBtn':'Analysis & progress','anHomeHint':'Track the group’s progress','anHomeAttendance':'attendance','anHomeEvals':'tracked','pivotError':'Error while preparing data',
   'princ_recup':'Recovery & pressure','princ_avancer':'Advance & support','princ_lecture':'Game reading & discipline','princ_rythme':'Tempo & continuity',
@@ -1646,7 +1635,6 @@ function load(){
   if(!S.coaches) S.coaches=[];
   if(!S.coachAttendance) S.coachAttendance=[];
   if(!S.coachAvailability) S.coachAvailability=[];
-  if(!S.coachAvailability) S.coachAvailability=[];
   if(!S.tasks) S.tasks=[];
   if(!S.goals) S.goals=[];
   if(!S.resources) S.resources=[];
@@ -1748,8 +1736,6 @@ function st(tab){
   if(analyseOv&&analyseOv.classList.contains('open')) analyseOv.classList.remove('open');
   const availOv=document.getElementById('avail-ov');
   if(availOv&&availOv.classList.contains('open')) availOv.classList.remove('open');
-  const availOv=document.getElementById('avail-ov');
-  if(availOv&&availOv.classList.contains('open')) availOv.classList.remove('open');
   const resOv=document.getElementById('resources-ov');
   if(resOv&&resOv.classList.contains('open')) resOv.classList.remove('open');
   const rvOv=document.getElementById('resviewer-ov');
@@ -1791,6 +1777,167 @@ function calNav(delta){
 // ═══════════════════════════════════════════
 // TABLEAU DE BORD "JOUR DE MATCH" (accueil, visible uniquement le jour J)
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// RAPPELS & ALERTES (accueil)
+// Détecte ce qui mérite ton attention, sans jamais bloquer : c'est informatif.
+// Chaque alerte : {icon, txt, color, action} — action = code à exécuter au clic.
+// ═══════════════════════════════════════════
+const ALERT_EVAL_DAYS=60;   // évaluation jugée ancienne au-delà de 2 mois
+const ALERT_POLL_DAYS=3;    // on alerte sur les sondages à J-3
+const ALERT_MAX=4;          // rappels visibles avant le lien « voir tout »
+let _alertsAll=false;
+function buildAlerts(){
+  const out=[], todayStr=today();
+  const dayDiff=(a,b)=>Math.round((new Date(a+'T00:00:00')-new Date(b+'T00:00:00'))/86400000);
+  // Séances proches : on REGROUPE par type d'alerte au lieu d'une ligne par séance.
+  // Sinon un weekend chargé (3 séances) produisait 6 lignes qui noyaient l'accueil.
+  const soon=S.sessions.filter(s=>s.date>=todayStr && dayDiff(s.date,todayStr)<=ALERT_POLL_DAYS);
+  // 1. Sondages sans réponse
+  const noPoll=soon.filter(s=>S.players.length && pollCounts(s.id).none>0);
+  if(noPoll.length===1){
+    const s=noPoll[0];
+    out.push({icon:'\u{1F4E3}', color:'#F59E0B',
+      txt:tr('alPollPending').replace('{n}',pollCounts(s.id).none).replace('{d}',fdShort(s.date)),
+      action:'goAtt('+s.id+')'});
+  } else if(noPoll.length>1){
+    out.push({icon:'\u{1F4E3}', color:'#F59E0B',
+      txt:tr('alPollPendingMulti').replace('{n}',noPoll.length),
+      action:'goAtt('+noPoll[0].id+')'});
+  }
+  // 2. Séances sans coach disponible
+  const noCover=soon.filter(s=>S.coaches.length && coachCoverCount(s.id)===0);
+  if(noCover.length===1){
+    out.push({icon:'\u{1F9E5}', color:'#EE2837',
+      txt:tr('alNoCover').replace('{d}',fdShort(noCover[0].date)), action:'openAvail()'});
+  } else if(noCover.length>1){
+    out.push({icon:'\u{1F9E5}', color:'#EE2837',
+      txt:tr('alNoCoverMulti').replace('{n}',noCover.length), action:'openAvail()'});
+  }
+  // 3. Joueurs sans évaluation récente
+  const stale=(S.players||[]).filter(p=>{
+    const evs=(S.evaluations||[]).filter(e=>e.playerId===p.id)
+      .map(e=>(S.sessions.find(x=>x.id===e.sessionId)||{}).date).filter(Boolean).sort();
+    if(!evs.length) return true;
+    return dayDiff(todayStr, evs[evs.length-1])>ALERT_EVAL_DAYS;
+  });
+  if(stale.length && S.players.length){
+    out.push({icon:'\u2B50', color:'#005B96',
+      txt:tr('alStaleEval').replace('{n}',stale.length), action:'st(\'eval\')'});
+  }
+  // 4. Tâches en retard (à faire depuis plus de 30 jours)
+  const oldTasks=(S.tasks||[]).filter(t=>t.status==='todo' && t.createdAt && dayDiff(todayStr, new Date(t.createdAt).toISOString().slice(0,10))>30);
+  if(oldTasks.length){
+    out.push({icon:'\u23F3', color:'#B45309',
+      txt:tr('alOldTasks').replace('{n}',oldTasks.length), action:'openTasksPage()'});
+  }
+  return out;
+}
+function rAlerts(){
+  const el=document.getElementById('home-alerts'); if(!el) return;
+  const list=buildAlerts();
+  if(!list.length){ el.innerHTML=''; return; }
+  // Plafonné à ALERT_MAX : au-delà, un lien « voir tout » déplie le reste
+  const MAXV=_alertsAll?list.length:ALERT_MAX;
+  const shown=list.slice(0,MAXV), hidden=list.length-shown.length;
+  el.innerHTML='<div class="card" style="margin-bottom:14px;padding:10px 12px">'+
+    '<div style="font-size:11px;font-weight:800;color:var(--dk);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px">\u{1F514} '+tr('alTitle')+' ('+list.length+')</div>'+
+    shown.map(a=>'<div onclick="'+a.action+'" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--brd);cursor:pointer">'+
+        '<span style="font-size:15px;flex-shrink:0">'+a.icon+'</span>'+
+        '<span style="flex:1;font-size:12px;color:'+a.color+';font-weight:600">'+a.txt+'</span>'+
+        '<span style="color:var(--mut);font-size:13px">\u203A</span></div>').join('')+
+    (hidden>0
+      ? '<div onclick="_alertsAll=true;rAlerts()" style="text-align:center;padding:6px 0 2px;font-size:11px;font-weight:700;color:var(--mg);cursor:pointer;border-top:1px solid var(--brd)">+ '+tr('alSeeAll').replace('{n}',hidden)+'</div>'
+      : (_alertsAll&&list.length>ALERT_MAX
+        ? '<div onclick="_alertsAll=false;rAlerts()" style="text-align:center;padding:6px 0 2px;font-size:11px;font-weight:700;color:var(--mut);cursor:pointer;border-top:1px solid var(--brd)">'+tr('alSeeLess')+'</div>'
+        : ''))+
+  '</div>';
+}
+// ═══════════════════════════════════════════
+// FICHE DE SAISON (communication parents)
+// Récapitulatif par joueur : assiduité, temps de jeu, progression, distinctions.
+// Réutilise le système d'impression existant (#print-sheet + window.print()).
+// ═══════════════════════════════════════════
+function seasonSheetData(pid){
+  const p=(S.players||[]).find(x=>x.id===pid); if(!p) return null;
+  const st=playerAttendanceStats(pid);
+  // Temps de jeu cumulé (matchs + tournois)
+  const times=playingTimeByPlayer();
+  const secs=times[pid]||0;
+  // Progression : niveau moyen par principe (dernière évaluation vs première)
+  const evs=(S.evaluations||[]).filter(e=>e.playerId===pid)
+    .map(e=>({ev:e, date:(S.sessions.find(x=>x.id===e.sessionId)||{}).date||''}))
+    .filter(x=>x.date).sort((a,b)=>a.date.localeCompare(b.date));
+  const principles=PRINCIPLES.map(pr=>{
+    const series=evs.map(x=>principleAvg(x.ev,pr)).filter(v=>v!==null);
+    return {k:pr.k, icon:pr.icon, label:principleLabel(pr.k),
+      first:series.length?series[0]:null,
+      last:series.length?series[series.length-1]:null};
+  });
+  // Distinctions (joueur du match / du tournoi)
+  const awards=[];
+  (S.mvpResults||[]).forEach(r=>{
+    const s=S.sessions.find(x=>x.id===r.sessionId);
+    const lbl=s?(s.type==='Tournoi'?(s.name||tr('type_Tournoi')):(tr('vsLbl')+' '+(s.opponent||''))):'';
+    if(r.playersChoice&&r.playersChoice.playerId===pid) awards.push({type:tr('mvpPlayersChoice'), lbl, date:s?s.date:''});
+    if(r.coachesChoice&&r.coachesChoice.playerId===pid) awards.push({type:tr('mvpCoachesChoice'), lbl, date:s?s.date:''});
+  });
+  return {p, st, secs, principles, awards, nbEvals:evs.length};
+}
+function printSeasonSheet(pid){
+  const d=seasonSheetData(pid); if(!d) return;
+  const {p, st, secs, principles, awards, nbEvals}=d;
+  const pct=v=>v===null||v===undefined?'\u2014':v+'%';
+  const box=(val,lbl)=>'<div style="flex:1;text-align:center;padding:8px;border:1px solid #ddd;border-radius:6px">'+
+    '<div style="font-size:20px;font-weight:800;color:#004A7C">'+val+'</div>'+
+    '<div style="font-size:10px;color:#666">'+lbl+'</div></div>';
+  document.getElementById('print-sheet').innerHTML=
+    '<div class="ps-hdr">'+(sheetLogo()?'<img src="'+sheetLogo()+'">':'')+
+      '<div><div class="ps-title">RCL '+APP_CAT+' \u2014 '+tr('seasonSheetTitle')+'</div>'+
+      '<div class="ps-sub">'+esc(p.firstName)+' '+esc(p.lastName)+(p.number?' \u2014 #'+p.number:'')+'</div></div></div>'+
+    // Chiffres clés
+    '<div class="ps-block"><div class="ps-lbl">'+tr('seasonKeyFigures')+'</div>'+
+      '<div style="display:flex;gap:6px">'+
+        box(pct(st.globalPct), tr('seasonAttendance'))+
+        box(st.trainCount||0, tr('statTrainings'))+
+        box(st.matchCount||0, tr('statMatches'))+
+        box(fmtMinutes(secs), tr('anPlayingTimeTitle'))+
+      '</div></div>'+
+    // Progression par principe
+    '<div class="ps-block"><div class="ps-lbl">'+tr('anPrinciplesTitle')+' ('+nbEvals+' '+tr('seasonEvals')+')</div>'+
+      (nbEvals
+        ? '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+          principles.map(pr=>'<tr>'+
+            '<td style="padding:4px 6px;border-bottom:1px solid #eee">'+pr.icon+' '+esc(pr.label)+'</td>'+
+            '<td style="padding:4px 6px;border-bottom:1px solid #eee;text-align:right;color:#666">'+
+              (pr.first!==null?lvlLabel(Math.round(pr.first)):'\u2014')+'</td>'+
+            '<td style="padding:4px 6px;border-bottom:1px solid #eee;text-align:center;color:#999">\u2192</td>'+
+            '<td style="padding:4px 6px;border-bottom:1px solid #eee;text-align:left;font-weight:700;color:#004A7C">'+
+              (pr.last!==null?lvlLabel(Math.round(pr.last)):'\u2014')+'</td></tr>').join('')+
+          '</table>'
+        : '<div style="font-size:12px;color:#666">'+tr('anNoEvals')+'</div>')+
+    '</div>'+
+    // Distinctions
+    (awards.length
+      ? '<div class="ps-block"><div class="ps-lbl">\u{1F3C6} '+tr('seasonAwards')+'</div>'+
+        '<div style="font-size:12px;line-height:1.7">'+awards.map(a=>'\u2022 '+esc(a.type)+' \u2014 '+esc(a.lbl)+(a.date?' ('+fdShort(a.date)+')':'')).join('<br>')+'</div></div>'
+      : '')+
+    '<div class="ps-foot">'+tr('sheetGenerated')+' '+new Date().toLocaleDateString(LANG==='en'?'en-GB':'fr-FR')+' \u2014 '+APP_NAME+'</div>';
+  window.print();
+}
+function seasonSheetText(pid){
+  const d=seasonSheetData(pid); if(!d) return '';
+  const {p, st, secs, principles, awards}=d;
+  let t=tr('seasonSheetTitle')+' \u2014 '+p.firstName+' '+p.lastName+(p.number?' #'+p.number:'')+'\n';
+  t+='\u{1F4C5} '+tr('seasonAttendance')+' : '+(st.globalPct!==null?st.globalPct+'%':'\u2014')+'\n';
+  t+='\u23F1 '+tr('anPlayingTimeTitle')+' : '+fmtMinutes(secs)+'\n';
+  principles.forEach(pr=>{ if(pr.last!==null) t+=pr.icon+' '+pr.label+' : '+lvlLabel(Math.round(pr.last))+'\n'; });
+  if(awards.length) t+='\u{1F3C6} '+awards.map(a=>a.type+' ('+a.lbl+')').join(', ')+'\n';
+  return t;
+}
+function copySeasonSheet(pid){
+  const t=seasonSheetText(pid); if(!t) return;
+  navigator.clipboard?.writeText(t).then(()=>toast(tr('sheetCopied')),()=>toast(tr('impError')));
+}
 function rMatchDay(){
   const el=document.getElementById('home-matchday'); if(!el) return;
   const todayStr=today();
@@ -1801,7 +1948,7 @@ function rMatchDay(){
   let html='';
   events.forEach(s=>{
     const isMatch=s.type==='Match';
-    const icon=isMatch?'\u{1F534}':'\u{1F3C6}';
+    const icon=typeIcon(s.type);
     const title=isMatch?('vs '+esc(s.opponent||'?')+(s.venue?' \u2014 '+venueLabel(s.venue):'')):esc(s.name||tr('type_Tournoi'));
 
     // Compter les réponses au sondage (si en cache) + les présences confirmées
@@ -1861,10 +2008,20 @@ function rMatchDay(){
 function rMyAvail(){
   const card=document.getElementById('avail-home-card'); if(!card) return;
   const cid=currentCoachId();
-  if(!cid){ card.style.display='none'; return; } // visible seulement si connecté comme coach
   const todayStr=today();
   const upcoming=S.sessions.filter(s=>s.date>=todayStr).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
   if(!upcoming.length){ card.style.display='none'; return; }
+  if(!cid){
+    // Pas encore identifié sur CET appareil (l'identité est stockée par appareil) :
+    // on invite à se connecter au lieu de masquer la carte sans explication
+    card.style.display='flex';
+    card.setAttribute('onclick','showCoachWelcome()');
+    document.getElementById('avail-home-btn').textContent=tr('myAvailTitle');
+    document.getElementById('avail-home-preview').textContent=tr('availNeedCoachShort');
+    document.getElementById('avail-home-badges').innerHTML='';
+    return;
+  }
+  card.setAttribute('onclick','openAvail()');
   card.style.display='flex';
   // Compter : sans réponse (rouge) et maybe (orange)
   const pending=upcoming.filter(s=>!getCoachAvail(s.id, cid)).length;
@@ -1898,7 +2055,7 @@ function rAvailPage(){
   let html='<div style="font-size:12px;color:var(--mut);margin-bottom:12px">'+tr('availIntro')+'</div>';
   upcoming.forEach(s=>{
     const cur=getCoachAvail(s.id, cid);
-    const icon=s.type==='Match'?'\u{1F534}':s.type==='Tournoi'?'\u{1F3C6}':'\u{1F3C9}';
+    const icon=typeIcon(s.type);
     const label=s.type==='Match'?('vs '+esc(s.opponent||'?')):s.type==='Tournoi'?esc(s.name||tr('type_Tournoi')):esc(s.theme||tr('type_Entra\u00eenement'));
     // Liste des coachs dispo/maybe pour cette séance (visibilité de la couverture)
     const yesNames=(S.coachAvailability||[]).filter(a=>a.sessionId===s.id&&a.avail==='yes').map(a=>{const co=S.coaches.find(x=>x.id===a.coachId);return co?co.firstName:null;}).filter(Boolean);
@@ -2104,15 +2261,25 @@ function sessionSummaryGrid(s){
   const rl=sessionReal(s);
   const cid=currentCoachId();
   const cur=cid?getCoachAvail(s.id, cid):'';
-  // Colonne 1 : boutons dispo (uniquement si séance à venir ET coach connecté)
+  // Colonne 1 : dispo du coach connecté (séances à venir uniquement).
+  // ⚠️ L'identité du coach est stockée PAR APPAREIL : sur un nouvel appareil (PC),
+  // tant qu'on ne s'est pas identifié, on affiche un bouton de connexion plutôt que
+  // de masquer la colonne sans explication (sinon l'affichage semble cassé).
   let col1='';
-  if(!isPast && cid){
-    col1='<div class="ssum-col"><div class="ssum-hd">'+tr('colAvail')+'</div>'+
-      '<div class="ssum-availbtns">'+COACH_AVAIL.map(a=>
-        '<button onclick="event.stopPropagation();setCoachAvail('+s.id+','+cid+',\''+a.v+'\');rSessions();rMyAvail&&rMyAvail()" '+
-        'title="'+tr(a.lbl)+'" style="border:1.5px solid '+(cur===a.v?a.c:'var(--brd)')+';'+
-        'background:'+(cur===a.v?a.c:'#fff')+';color:'+(cur===a.v?'#fff':'var(--mut)')+'">'+a.ic+'</button>'
-      ).join('')+'</div></div>';
+  if(!isPast){
+    if(cid){
+      col1='<div class="ssum-col"><div class="ssum-hd">'+tr('colAvail')+'</div>'+
+        '<div class="ssum-availbtns">'+COACH_AVAIL.map(a=>
+          '<button onclick="event.stopPropagation();setCoachAvail('+s.id+','+cid+',\''+a.v+'\');rSessions();rMyAvail&&rMyAvail()" '+
+          'title="'+tr(a.lbl)+'" style="border:1.5px solid '+(cur===a.v?a.c:'var(--brd)')+';'+
+          'background:'+(cur===a.v?a.c:'#fff')+';color:'+(cur===a.v?'#fff':'var(--mut)')+'">'+a.ic+'</button>'
+        ).join('')+'</div></div>';
+    } else {
+      col1='<div class="ssum-col"><div class="ssum-hd">'+tr('colAvail')+'</div>'+
+        '<button onclick="event.stopPropagation();showCoachWelcome()" '+
+        'style="width:100%;font-size:10.5px;font-weight:700;padding:6px 2px;border-radius:8px;'+
+        'border:1.5px dashed var(--mg);background:#fff;color:var(--mg);cursor:pointer">'+tr('colAvailLogin')+'</button></div>';
+    }
   }
   // Colonne 2 : prévisionnel (coach · joueur)
   const col2='<div class="ssum-col"><div class="ssum-hd">'+tr('colForecast')+'</div>'+
@@ -2240,16 +2407,21 @@ function rTodo(){
   const allTasks=S.tasks||[];
   if(!allTasks.length){ card.style.display='none'; return; }
   card.style.display='flex';
-  // Tâches du coach connecté si identifié, sinon toutes
   const cid=currentCoachId();
-  const mine=cid ? allTasks.filter(t=>t.assignee===cid) : allTasks;
-  const tasks=mine.length?mine:allTasks; // si le coach n'a aucune tâche perso, montrer le global
+  // Comparaison souple : l'assignee peut être un nombre ou du texte (import CSV / anciennes données)
+  const mine=cid ? allTasks.filter(t=>t.assignee!=null && String(t.assignee)===String(cid)) : [];
+  const pending=l=>l.filter(t=>t.status==='todo'||t.status==='doing').length;
+  // On affiche MES tâches seulement si j'ai du travail en attente ; sinon on montre celles de
+  // l'équipe, pour que la carte reste utile (sinon : 0/0 alors que l'équipe a du retard).
+  const scopeMine=pending(mine)>0;
+  const tasks=scopeMine?mine:allTasks;
   const todo=tasks.filter(t=>t.status==='todo').length;
   const doing=tasks.filter(t=>t.status==='doing').length;
   const done=tasks.filter(t=>t.status==='done').length;
   document.getElementById('todo-home-btn').textContent=tr('todoTitle');
-  // Preview : "X à faire · Y en cours · Z fait"
+  // Preview : portée + "X à faire · Y en cours · Z fait"
   document.getElementById('todo-home-preview').textContent=
+    (scopeMine?tr('todoScopeMine'):tr('todoScopeTeam'))+' \u00b7 '+
     todo+' '+tr('task_todo').toLowerCase()+' \u00b7 '+doing+' '+tr('task_doing').toLowerCase()+' \u00b7 '+done+' '+tr('task_done').toLowerCase();
   // Badges : à faire (rouge) + en cours (orange) — on n'alerte pas sur "fait"
   let badges='';
@@ -2583,48 +2755,6 @@ function svgRadar(axes, teamAxes){
   svg+='</svg>';
   return svg;
 }
-// Radar des principes de jeu : profil du joueur (bleu) vs moyenne équipe (gris pointillé)
-// axes = [{label, value 0-4, teamValue 0-4|null}], max=4
-function svgRadar(axes, teamAxes){
-  const size=220, cx=size/2, cy=size/2, R=78, max=4;
-  const n=axes.length;
-  if(n<3) return '';
-  const angle=i=>(-Math.PI/2)+(2*Math.PI*i/n); // départ en haut
-  const pt=(i,val)=>{
-    const r=R*(Math.max(0,Math.min(max,val))/max);
-    return [cx+Math.cos(angle(i))*r, cy+Math.sin(angle(i))*r];
-  };
-  let svg='<svg viewBox="0 0 '+size+' '+size+'" width="100%" height="220" style="display:block;max-width:280px;margin:0 auto">';
-  // Grille : anneaux concentriques
-  for(let g=1;g<=max;g++){
-    const rr=R*(g/max);
-    let poly='';
-    for(let i=0;i<n;i++){ const a=angle(i); poly+=(cx+Math.cos(a)*rr)+','+(cy+Math.sin(a)*rr)+' '; }
-    svg+='<polygon points="'+poly.trim()+'" fill="none" stroke="#E0E9F0" stroke-width="1"/>';
-  }
-  // Rayons
-  for(let i=0;i<n;i++){ const [x,y]=pt(i,max); svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x+'" y2="'+y+'" stroke="#E0E9F0" stroke-width="1"/>'; }
-  // Polygone équipe (gris pointillé)
-  if(teamAxes && teamAxes.some(v=>v!==null)){
-    let tp='';
-    for(let i=0;i<n;i++){ const v=teamAxes[i]!==null?teamAxes[i]:0; const [x,y]=pt(i,v); tp+=x+','+y+' '; }
-    svg+='<polygon points="'+tp.trim()+'" fill="none" stroke="#9BB0C2" stroke-width="1.5" stroke-dasharray="4 3"/>';
-  }
-  // Polygone joueur (bleu rempli)
-  let pp='';
-  for(let i=0;i<n;i++){ const [x,y]=pt(i,axes[i].value); pp+=x+','+y+' '; }
-  svg+='<polygon points="'+pp.trim()+'" fill="rgba(0,91,150,.22)" stroke="#005B96" stroke-width="2.5"/>';
-  // Points + labels
-  for(let i=0;i<n;i++){
-    const [x,y]=pt(i,axes[i].value);
-    svg+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="#005B96"/>';
-    const [lx,ly]=pt(i,max*1.28);
-    const anchor=Math.abs(lx-cx)<8?'middle':(lx<cx?'end':'start');
-    svg+='<text x="'+lx+'" y="'+ly+'" font-size="11" font-weight="700" fill="#0F2A40" text-anchor="'+anchor+'" dominant-baseline="middle">'+axes[i].icon+'</text>';
-  }
-  svg+='</svg>';
-  return svg;
-}
 function svgSparkline(values, color, h){
   h=h||44;
   const valid=values.map((v,i)=>({v,i})).filter(p=>p.v!==null&&p.v!==undefined);
@@ -2755,18 +2885,6 @@ function rAnalysePlayerDetail(){
   if(!evals.length){
     html+='<div class="an-empty">'+tr('anNoEvals')+'</div>';
   } else {
-    // Radar : profil global du joueur (dernières valeurs) vs moyenne équipe
-    const radarAxes=PRINCIPLES.map(pr=>{
-      const series=evals.map(e=>principleAvg(e,pr)).filter(v=>v!==null);
-      const current=series.length?series[series.length-1]:0;
-      return {icon:pr.icon, value:current!==null?current:0};
-    });
-    const radarTeam=PRINCIPLES.map(pr=>principleAvgOverEvals(teamEvals, pr));
-    html+=svgRadar(radarAxes, radarTeam);
-    html+='<div style="font-size:10.5px;color:var(--mut);text-align:center;margin:2px 0 10px">'+
-      '<span style="color:#005B96;font-weight:700">\u25A0</span> '+esc(p.firstName)+
-      ' &nbsp; <span style="color:#9BB0C2;font-weight:700">- -</span> '+tr('anVsTeam')+'</div>';
-    // Détail par principe (sparklines dans le temps)
     // Radar : profil global du joueur (dernières valeurs) vs moyenne équipe
     const radarAxes=PRINCIPLES.map(pr=>{
       const series=evals.map(e=>principleAvg(e,pr)).filter(v=>v!==null);
@@ -3576,6 +3694,7 @@ async function generatePotmImage(sid, team){
 // ═══════════════════════════════════════════
 const RESOURCE_CATS=['club','tournoi','formation','autre'];
 let _resOpenState={}; // état replié/déplié des sections (catégories/sous-catégories)
+let _todoOpenState={}; // état replié/déplié de la page tâches (statuts/coachs)
 // Suggestions de sous-catégories déjà utilisées (pour le datalist du formulaire)
 function resSubcatSuggestions(){
   const subs=[...new Set((S.resources||[]).map(r=>(r.subcat||'').trim()).filter(Boolean))].sort();
@@ -3607,10 +3726,6 @@ function rResources(){
       '<div style="margin-top:14px"><button class="btn btn-mg" onclick="openResourceForm()">+ '+tr('resAdd')+'</button></div></div>';
     return;
   }
-  // Filet de sécurité : anciennes ressources en 'reglement' → 'autre'
-  res.forEach(r=>{ if(r.cat==='reglement') r.cat='autre'; });
-  // Grouper par catégorie, puis par sous-catégorie (accordéon replié par défaut)
-  _resOpenState=_resOpenState||{};
   // Filet de sécurité : anciennes ressources en 'reglement' → 'autre'
   res.forEach(r=>{ if(r.cat==='reglement') r.cat='autre'; });
   // Grouper par catégorie, puis par sous-catégorie (accordéon replié par défaut)
@@ -3649,6 +3764,7 @@ function rResources(){
             '<div class="res-sub-hd" onclick="toggleResSection(\''+subKey.replace(/'/g,"\\'")+'\')">'+
               '<span class="res-acc-caret">'+(subOpen?'\u25BC':'\u25B6')+'</span>'+
               '<span class="res-sub-title">'+esc(sn)+'</span>'+
+              '<button class="todo-mini" style="flex-shrink:0" title="'+tr('resRenameSub')+'" onclick="event.stopPropagation();renameSubcat(\''+cat+'\',\''+esc(sn).replace(/'/g,"\\'")+'\')">\u270F\uFE0F</button>'+
               '<span class="res-acc-count">'+items.length+'</span>'+
             '</div>';
           if(subOpen){ html+='<div class="res-sub-body">'; items.forEach(r=>{ html+=resourceItemHtml(r); }); html+='</div>'; }
@@ -3663,12 +3779,13 @@ function rResources(){
 }
 // Rendu d'une ressource individuelle
 function resourceItemHtml(r){
-  return '<div style="background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px">'+
+  return '<div style="background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:8px">'+
     '<div style="flex:1;min-width:0">'+
       '<div style="font-size:14px;font-weight:600;color:var(--text)">'+esc(r.title)+'</div>'+
       (r.note?'<div style="font-size:11px;color:var(--mut);margin-top:2px">'+esc(r.note)+'</div>':'')+
     '</div>'+
     '<button class="btn btn-mg btn-sm" style="flex-shrink:0" onclick="openResourceViewer('+r.id+')">'+tr('resOpen')+'</button>'+
+    '<button class="todo-mini" style="flex-shrink:0" title="'+tr('btnEdit')+'" onclick="openResourceForm('+r.id+')">\u270F\uFE0F</button>'+
     '<button class="todo-mini todo-del" onclick="resourceDelete('+r.id+')" style="flex-shrink:0">\u00D7</button>'+
   '</div>';
 }
@@ -3677,6 +3794,21 @@ function toggleResSection(key){
   _resOpenState=_resOpenState||{};
   _resOpenState[key]=!_resOpenState[key];
   rResources();
+}
+// Renomme une sous-catégorie entière (met à jour tous ses documents)
+function renameSubcat(cat, oldName){
+  const current=oldName||'';
+  const nv=prompt(tr('resRenameSubPrompt'), current);
+  if(nv===null) return; // annulé
+  const newName=nv.trim();
+  (S.resources||[]).forEach(r=>{ if(r.cat===cat && (r.subcat||'')===current) r.subcat=newName; });
+  save();
+  // Garder l'état déplié sur la nouvelle sous-catégorie
+  _resOpenState=_resOpenState||{};
+  _resOpenState['cat:'+cat]=true;
+  if(newName) _resOpenState['sub:'+cat+':'+newName]=true;
+  rResources();
+  toast(tr('resSubRenamed'));
 }
 
 function openResourceForm(editId){
@@ -3695,8 +3827,8 @@ function openResourceForm(editId){
     '<input type="hidden" id="res-edit-id" value="'+(editId||'')+'">'+
     '<div class="fg"><label class="fl">'+tr('resTitleLbl')+'</label><input class="fi" id="res-title" placeholder="'+tr('resTitlePh')+'" value="'+val('title')+'"></div>'+
     '<div class="fg"><label class="fl">'+tr('resCatLbl')+'</label><select class="fs" id="res-cat">'+catOpts+'</select></div>'+
-    '<div class="fg"><label class="fl">'+tr('resSubcatLbl')+'</label><input class="fi" id="res-subcat" placeholder="'+tr('resSubcatPh')+'" list="res-subcat-list"><datalist id="res-subcat-list">'+resSubcatSuggestions()+'</datalist></div>'+
-    '<div class="fg"><label class="fl">'+tr('resUrlLbl')+'</label><input class="fi" id="res-url" placeholder="https://drive.google.com/..."></div>'+
+    '<div class="fg"><label class="fl">'+tr('resSubcatLbl')+'</label><input class="fi" id="res-subcat" placeholder="'+tr('resSubcatPh')+'" list="res-subcat-list" value="'+val('subcat')+'"><datalist id="res-subcat-list">'+resSubcatSuggestions()+'</datalist></div>'+
+    '<div class="fg"><label class="fl">'+tr('resUrlLbl')+'</label><input class="fi" id="res-url" placeholder="https://drive.google.com/..." value="'+val('url')+'"></div>'+
     '<div style="font-size:11px;color:var(--mut);margin-bottom:10px">'+tr('resUrlHint')+'</div>'+
     '<div class="fg"><label class="fl">'+tr('resNoteLbl')+'</label><input class="fi" id="res-note" placeholder="'+tr('resNotePh')+'" value="'+val('note')+'"></div>'+
     '<div style="display:flex;gap:8px"><button class="btn btn-mg btn-w" onclick="saveResource()">'+(r?tr('btnSave'):tr('btnAdd'))+'</button>'+
@@ -3712,19 +3844,34 @@ function saveResource(){
   if(!/^https?:\/\//i.test(url)) url='https://'+url;
   const cat=document.getElementById('res-cat')?.value||'autre';
   const subcat=(document.getElementById('res-subcat')?.value||'').trim();
-  const subcat=(document.getElementById('res-subcat')?.value||'').trim();
   const note=(document.getElementById('res-note')?.value||'').trim();
   if(!S.resources) S.resources=[];
   if(!NID.resources||isNaN(NID.resources)) NID.resources=1;
-  S.resources.push({id:gid('resources'), title, cat, subcat, url, note, createdAt:Date.now()});
-  save();
-  const f=document.getElementById('resource-form'); if(f) f.remove();
-  // Déplier la catégorie où on vient d'ajouter (pour voir le résultat)
+  const editId=parseInt(document.getElementById('res-edit-id')?.value||'')||null;
   _resOpenState=_resOpenState||{};
-  _resOpenState['cat:'+cat]=true;
-  if(subcat) _resOpenState['sub:'+cat+':'+subcat]=true;
-  rResources();
-  toast(tr('resAdded'));
+  if(editId){
+    // MODIFICATION : mettre à jour la ressource existante (permet aussi de la déplacer)
+    const r=S.resources.find(x=>x.id===editId);
+    if(r){ r.title=title; r.cat=cat; r.subcat=subcat; r.url=url; r.note=note; }
+    save();
+    const f=document.getElementById('resource-form'); if(f) f.remove();
+    _resOpenState['cat:'+cat]=true;
+    if(subcat) _resOpenState['sub:'+cat+':'+subcat]=true;
+    rResources();
+    toast(tr('resSaved'));
+  } else {
+    // CRÉATION : ajouter, garder la catégorie dépliée, et RELANCER un formulaire vide
+    S.resources.push({id:gid('resources'), title, cat, subcat, url, note, createdAt:Date.now()});
+    save();
+    _resOpenState['cat:'+cat]=true;
+    if(subcat) _resOpenState['sub:'+cat+':'+subcat]=true;
+    rResources();
+    toast(tr('resAdded'));
+    // Laisser la main : rouvrir un formulaire vide, en gardant la catégorie/sous-cat choisie
+    openResourceForm();
+    const cs=document.getElementById('res-cat'); if(cs) cs.value=cat;
+    const ss=document.getElementById('res-subcat'); if(ss) ss.value=subcat;
+  }
 }
 function resourceDelete(id){
   confirmBox(tr('resConfirmDelete'), ()=>{
@@ -3867,7 +4014,6 @@ async function welcomeConnect(){
   if(norm==='admin'){
     _chat.name='Admin';
     _chat.isAdmin=true;
-    _chat.isAdmin=true;
     if(PRECONFIG && PRECONFIG.chatCode && !_chat.code) _chat.code=PRECONFIG.chatCode;
     chatSaveCfg();
     document.getElementById('welcome-ov').classList.remove('open');
@@ -3897,7 +4043,6 @@ async function welcomeConnect(){
 
   // Prénom reconnu → connexion (on garde le prénom exact du coach dans la base)
   _chat.name=match.firstName+(match.lastName?' '+match.lastName:'');
-  _chat.isAdmin=false;
   _chat.isAdmin=false;
   if(PRECONFIG && PRECONFIG.chatCode && !_chat.code) _chat.code=PRECONFIG.chatCode;
   chatSaveCfg();
@@ -4195,6 +4340,7 @@ function sessionTitle(s){
 
 function rHome(){
   rTodo();
+  rAlerts();
   rMatchDay();
   rMyAvail();
   const gStat=playerAttendanceStats(null);
@@ -4725,9 +4871,6 @@ function rSessions(scrollPivot){
         '<div class="s-sub">&#128101; '+pc2+'/'+S.players.length+' '+tr('presentsLbl')+' &bull; &#11088; '+ec2+' '+tr('evalLbl')+'</div>'+
         sessionCoachLine(s, s.date<today())+
         sessionSummaryGrid(s)+'</div>'+
-        '<div class="s-sub">&#128101; '+pc2+'/'+S.players.length+' '+tr('presentsLbl')+' &bull; &#11088; '+ec2+' '+tr('evalLbl')+'</div>'+
-        sessionCoachLine(s, s.date<today())+
-        sessionSummaryGrid(s)+'</div>'+
         '<div id="sd-'+s.id+'" class="dbox">'+
           '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
             '<button class="btn btn-mg btn-sm" onclick="event.stopPropagation();st(\'attendance\');setTimeout(()=>{document.getElementById(\'att-sel\').value='+s.id+';rAtt();},80)">\u2705 '+tr('btnPresences')+'</button>'+
@@ -4752,7 +4895,6 @@ function rSessions(scrollPivot){
         '<div class="s-sub">'+
           (isLive?'<span class="s-live">&#9679; LIVE '+fmtT(el)+'</span> &bull; ':'')+
           field+' '+tr('fieldPlayersLbl')+' &bull; '+(s.squad||[]).length+' '+tr('calledLbl')+'</div>'+sessionCoachLine(s, s.date<today())+sessionSummaryGrid(s)+'</div>'+
-          field+' '+tr('fieldPlayersLbl')+' &bull; '+(s.squad||[]).length+' '+tr('calledLbl')+'</div>'+sessionCoachLine(s, s.date<today())+sessionSummaryGrid(s)+'</div>'+
         '<div id="sd-'+s.id+'" class="dbox">'+
           '<button class="btn btn-mg btn-w" style="margin-bottom:8px" onclick="event.stopPropagation();openMV('+s.id+',null)">'+typeIcon('Match')+' '+tr('btnManageMatch')+'</button>'+
           '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
@@ -4774,7 +4916,6 @@ function rSessions(scrollPivot){
         '<div class="s-top"><div><div class="s-date">'+fdFull(s.date)+'</div>'+
         '<div class="s-theme">&#127942; '+esc(s.name||tr('type_Tournoi'))+'</div></div>'+
         '<span class="s-type tt">'+typeLabel('Tournoi')+'</span></div>'+
-        '<div class="s-sub">'+played+'/'+total+' '+tr('matchesPlayedLbl')+' &bull; '+teamCount+' '+tr('teamsLbl')+'</div>'+sessionCoachLine(s, s.date<today())+sessionSummaryGrid(s)+'</div>'+
         '<div class="s-sub">'+played+'/'+total+' '+tr('matchesPlayedLbl')+' &bull; '+teamCount+' '+tr('teamsLbl')+'</div>'+sessionCoachLine(s, s.date<today())+sessionSummaryGrid(s)+'</div>'+
         '<div id="sd-'+s.id+'" class="dbox">'+
           '<button class="btn btn-mg btn-w" style="margin-bottom:8px" onclick="event.stopPropagation();openTV('+s.id+')">&#127942; '+tr('btnManageTournoi')+'</button>'+
@@ -6517,11 +6658,9 @@ function chatLoadCfg(){
   try{
     const raw=localStorage.getItem(LS_CHATCFG);
     if(raw){ const o=JSON.parse(raw); _chat.code=o.code||null; _chat.name=o.name||null; _chat.isAdmin=!!o.isAdmin; }
-    if(raw){ const o=JSON.parse(raw); _chat.code=o.code||null; _chat.name=o.name||null; _chat.isAdmin=!!o.isAdmin; }
   }catch(e){}
 }
 function chatSaveCfg(){
-  try{ localStorage.setItem(LS_CHATCFG, JSON.stringify({code:_chat.code, name:_chat.name, isAdmin:!!_chat.isAdmin})); }catch(e){}
   try{ localStorage.setItem(LS_CHATCFG, JSON.stringify({code:_chat.code, name:_chat.name, isAdmin:!!_chat.isAdmin})); }catch(e){}
 }
 
@@ -6596,17 +6735,6 @@ function chatIsMine(author){
   const meFirst=normalizeName(_chat.name.split(' ')[0]);
   return aFirst===meFirst;
 }
-// Détermine si un message m'appartient — tolérant aux variations de nom
-// (prénom seul vs nom complet, casse, accents), pour reconnaître mes anciens messages
-function chatIsMine(author){
-  if(!author || !_chat || !_chat.name) return false;
-  const a=normalizeName(author), me=normalizeName(_chat.name);
-  if(a===me) return true;
-  // Comparer sur le prénom (1re partie) : "Yannick" ≈ "Yannick CHAIX"
-  const aFirst=normalizeName(author.split(' ')[0]);
-  const meFirst=normalizeName(_chat.name.split(' ')[0]);
-  return aFirst===meFirst;
-}
 function rChat(){
   const body=document.getElementById('chat-body');
   if(!body) return;
@@ -6639,10 +6767,7 @@ function rChat(){
     _chat.msgs.forEach(m=>{
       const mine=chatIsMine(m.author);
       const canDel=_chat.isAdmin || mine;
-      const mine=chatIsMine(m.author);
-      const canDel=_chat.isAdmin || mine;
       const time=m.ts?new Date(m.ts).toLocaleTimeString(LANG==='en'?'en-GB':'fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
-      const delAttr=canDel?' onclick="chatAskDelete(\''+esc(m.id)+'\')" style="cursor:pointer" title="'+tr('chatTapDelete')+'"':'';
       const delAttr=canDel?' onclick="chatAskDelete(\''+esc(m.id)+'\')" style="cursor:pointer" title="'+tr('chatTapDelete')+'"':'';
       html+='<div class="chat-msg'+(mine?' mine':'')+'">'+
         (mine?'':'<div class="chat-author">'+esc(m.author)+'</div>')+
@@ -6751,13 +6876,8 @@ function chatCanDelete(m){
   if(!m) return false;
   return _chat.isAdmin || chatIsMine(m.author); // admin supprime tout, sinon ses propres messages
 }
-function chatCanDelete(m){
-  if(!m) return false;
-  return _chat.isAdmin || chatIsMine(m.author); // admin supprime tout, sinon ses propres messages
-}
 function chatAskDelete(msgId){
   const m=_chat.msgs.find(x=>x.id===msgId);
-  if(!m || !chatCanDelete(m)) return; // sécurité : admin ou auteur uniquement
   if(!m || !chatCanDelete(m)) return; // sécurité : admin ou auteur uniquement
   confirmBox(tr('chatConfirmDelete'), async ()=>{
     try{
@@ -6885,7 +7005,6 @@ function fbApplyCore(snap){
   S=d.S; NID=d.NID||NID;
   if(!S.coaches) S.coaches=[];
   if(!S.coachAttendance) S.coachAttendance=[];
-  if(!S.coachAvailability) S.coachAvailability=[];
   if(!S.coachAvailability) S.coachAvailability=[];
   if(!S.tasks) S.tasks=[];
   if(!S.goals) S.goals=[];
