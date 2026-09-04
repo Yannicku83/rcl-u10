@@ -705,7 +705,7 @@ body.stadium main{padding-bottom:96px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.27';
+const APP_VER='3.28';
 /* ═══════════════════════════════════════════════════════════════════════════
    RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
    ───────────────────────────────────────────────────────────────────────────
@@ -798,7 +798,7 @@ const POLL_FB_CFG = {
 };
 // ═══ PRÉ-CONFIGURATION (rempli par le générateur, sinon null) ═══
 // Si défini, l'app se connecte automatiquement et n'affiche qu'un écran "Entre ton nom + Connecter"
-const PRECONFIG = {"fb":{"apiKey":"AIzaSyAalJZAZRhpmTAlJ5lNzTiA05TxbHuAgfo","authDomain":"rcluxembourg-26-27.firebaseapp.com","projectId":"rcluxembourg-26-27","storageBucket":"rcluxembourg-26-27.firebasestorage.app","messagingSenderId":"131221936812","appId":"1:131221936812:web:76d8d9dfb6eaf2bae59d09","measurementId":"G-RY6RCEGXG6"},"club":"rcl-u10-2026","chatCode":"U10"}; /*PRECONFIG_INJECT*/
+const PRECONFIG = {"fb":{"apiKey":"AIzaSyAalJZAZRhpmTAlJ5lNzTiA05TxbHuAgfo","authDomain":"rcluxembourg-26-27.firebaseapp.com","projectId":"rcluxembourg-26-27","storageBucket":"rcluxembourg-26-27.firebasestorage.app","messagingSenderId":"131221936812","appId":"1:131221936812:web:76d8d9dfb6eaf2bae59d09","measurementId":"G-RY6RCEGXG6"},"club":"U10","chatCode":"rcl-u10-2026"}; /*PRECONFIG_INJECT*/
 let S = { players:[], sessions:[], attendance:[], evaluations:[], coaches:[], coachAttendance:[], coachAvailability:[], tasks:[], goals:[], resources:[], mvpResults:[] };
 let NID = { players:1, sessions:1, attendance:1, evaluations:1, coaches:1, coachAttendance:1 };
 let _curSType = 'Entra\u00eenement';
@@ -2404,24 +2404,41 @@ function coverBadge(sid){
   return '<span style="font-size:10px;font-weight:700;color:#fff;background:'+color+';border-radius:20px;padding:2px 8px;white-space:nowrap">\u{1F9E5} '+txt+'</span>';
 }
 // Boutons de dispo pour le coach connecté (sur une séance)
+// Coachs ayant DÉCLARÉ leur disponibilité pour une séance (avant le jour J)
+function availCoachNames(sid, kind){
+  return (S.coachAvailability||[]).filter(a=>a.sessionId===sid&&a.avail===kind)
+    .map(a=>{const co=S.coaches.find(x=>x.id===a.coachId);
+             return co?esc(co.firstName)+' '+esc((co.lastName[0]||''))+'.':null;}).filter(Boolean);
+}
 function sessionCoachLine(s, quietIfEmpty){
-  // Ligne compacte des coachs pour un \u00e9v\u00e9nement
+  // Ligne compacte des coachs pour un événement.
+  // ⚠️ La source dépend du moment : AVANT la séance, la seule info existante est la
+  // disponibilité déclarée (coachAvailability) ; la présence réelle (coachAttendance)
+  // n'est pointée que le jour J. Auparavant on ne lisait que la présence réelle, d'où
+  // un « aucun coach annoncé » trompeur alors que 3 coachs s'étaient déclarés dispo.
   if(!S.coaches.length) return '';
+  const isPast=s.date<today();
+  const yes=availCoachNames(s.id,'yes'), maybe=availCoachNames(s.id,'maybe');
+  // Rendu commun des disponibilités déclarées
+  const availTxt=()=>yes.map(n=>'\u2705 '+n).concat(maybe.map(n=>'\u2753 '+n)).join(', ');
   let txt='', empty=false;
   if(s.type==='Entra\u00eenement'){
     const names=S.coachAttendance.filter(a=>a.sessionId===s.id&&a.status==='P')
       .map(a=>{const co=S.coaches.find(x=>x.id===a.coachId);return co?esc(co.firstName)+' '+esc((co.lastName[0]||''))+'.':null;}).filter(Boolean);
-    empty=!names.length;
-    txt=names.length?names.join(', '):tr('noCoachAnnounced');
+    if(names.length){ txt=names.join(', '); }              // présence pointée : elle prime
+    else if(!isPast && (yes.length||maybe.length)){ txt=availTxt(); }  // à venir : dispos déclarées
+    else { empty=true; txt=tr('noCoachAnnounced'); }
   } else if(s.type==='Match'){
     const names=coachNames(s.coachIds);
-    empty=!names.length;
-    txt=names.length?names.join(', '):tr('noCoachAssigned');
+    if(names.length){ txt=names.join(', '); }
+    else if(!isPast && (yes.length||maybe.length)){ txt=availTxt(); }
+    else { empty=true; txt=tr('noCoachAssigned'); }
   } else if(s.type==='Tournoi'){
     const ca=s.coachAssign||{};
     const parts=Object.entries(ca).filter(([,ids])=>ids&&ids.length).map(([team,ids])=>esc(team)+': '+coachNames(ids).join(', '));
-    empty=!parts.length;
-    txt=parts.length?parts.join(' \u2022 '):tr('noCoachAssigned');
+    if(parts.length){ txt=parts.join(' \u2022 '); }
+    else if(!isPast && (yes.length||maybe.length)){ txt=availTxt(); }
+    else { empty=true; txt=tr('noCoachAssigned'); }
   }
   if(empty&&quietIfEmpty) return '';
   return '<div style="font-size:10.5px;color:var(--mg);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">&#128227; '+txt+'</div>';
