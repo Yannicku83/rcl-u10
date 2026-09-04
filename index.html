@@ -705,7 +705,7 @@ body.stadium main{padding-bottom:96px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.25';
+const APP_VER='3.27';
 /* ═══════════════════════════════════════════════════════════════════════════
    RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
    ───────────────────────────────────────────────────────────────────────────
@@ -813,6 +813,57 @@ const CRIT = [
   {k:'speed',l:'Vitesse'},{k:'passes',l:'Passes'},
   {k:'rules',l:'Respect des r\u00e8gles'},{k:'fairPlay',l:'Fair-play'}
 ];
+// ═══════════════════════════════════════════
+// LANGUES PARLÉES (joueurs ET coachs)
+// Au Luxembourg les enfants parlent souvent 2 à 4 langues : savoir qui parle quoi
+// aide à donner une consigne comprise, et à confier un nouveau à un coéquipier
+// qui parle sa langue. Stocké en tableau de codes : ['lb','fr','en'].
+// ═══════════════════════════════════════════
+const LANGS=[
+  {c:'lb', f:'\u{1F1F1}\u{1F1FA}', n:'Lëtzebuergesch'},
+  {c:'fr', f:'\u{1F1EB}\u{1F1F7}', n:'Français'},
+  {c:'de', f:'\u{1F1E9}\u{1F1EA}', n:'Deutsch'},
+  {c:'en', f:'\u{1F1EC}\u{1F1E7}', n:'English'},
+  {c:'pt', f:'\u{1F1F5}\u{1F1F9}', n:'Português'},
+  {c:'es', f:'\u{1F1EA}\u{1F1F8}', n:'Español'},
+  {c:'it', f:'\u{1F1EE}\u{1F1F9}', n:'Italiano'},
+  {c:'nl', f:'\u{1F1F3}\u{1F1F1}', n:'Nederlands'},
+  {c:'pl', f:'\u{1F1F5}\u{1F1F1}', n:'Polski'},
+  {c:'uk', f:'\u{1F1FA}\u{1F1E6}', n:'Українська'},
+  {c:'ro', f:'\u{1F1F7}\u{1F1F4}', n:'Română'},
+  {c:'ar', f:'\u{1F1F8}\u{1F1E6}', n:'العربية'}
+];
+function langFlag(code){ const l=LANGS.find(x=>x.c===code); return l?l.f:''; }
+function langName(code){ const l=LANGS.find(x=>x.c===code); return l?l.n:code; }
+// Suite de drapeaux d'une personne (compacte, pour les listes)
+function langFlags(person){
+  const arr=(person&&person.langs)||[];
+  if(!arr.length) return '';
+  return '<span title="'+esc(arr.map(langName).join(', '))+'" style="letter-spacing:1px">'+arr.map(langFlag).join('')+'</span>';
+}
+// État temporaire pendant l'édition d'une fiche
+let _formLangs=[];
+function toggleFormLang(code, boxId){
+  const i=_formLangs.indexOf(code);
+  if(i>=0) _formLangs.splice(i,1); else _formLangs.push(code);
+  rFormLangs(boxId);
+}
+// Grille de sélection : on touche un drapeau pour l'activer
+function rFormLangs(boxId){
+  const box=document.getElementById(boxId); if(!box) return;
+  box.innerHTML='<label class="fl">'+tr('langsLbl')+
+    (_formLangs.length?' <span style="font-weight:400;color:var(--mut)">('+_formLangs.length+')</span>':'')+'</label>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:5px">'+
+    LANGS.map(l=>{
+      const on=_formLangs.includes(l.c);
+      return '<button type="button" onclick="toggleFormLang(\''+l.c+'\',\''+boxId+'\')" '+
+        'title="'+esc(l.n)+'" style="display:flex;align-items:center;gap:4px;padding:7px 9px;border-radius:9px;cursor:pointer;'+
+        'border:1.5px solid '+(on?'var(--mg)':'var(--brd)')+';background:'+(on?'var(--lg)':'#fff')+';'+
+        'font-size:15px;line-height:1">'+l.f+
+        '<span style="font-size:10.5px;font-weight:700;color:'+(on?'var(--dk)':'var(--mut)')+'">'+l.c.toUpperCase()+'</span></button>';
+    }).join('')+'</div>'+
+    '<div style="font-size:10.5px;color:var(--mut);margin-top:4px">'+tr('langsHint')+'</div>';
+}
 const POSITIONS = ['Pilier','Talonneur','3\u00e8me ligne','Demi m\u00eal\u00e9e','Demi ouverture','Ailier','Centre','Arri\u00e8re','Polyvalent'];
 const STATUS_BTNS=[{c:'P',l:'P'},{c:'A',l:'Abs'},{c:'B',l:'Bl'}];
 // Langue d'affichage des dates (FR / EN)
@@ -876,6 +927,7 @@ function updateHeaderDate(){
 // ═══════════════════════════════════════════
 const I18N = {
   fr: {
+  'langsLbl':'Langues parlées','langsHint':'Touche les drapeaux — plusieurs choix possibles',
   'kioskBanner':'MODE TABLETTE \u2014 passe l\u2019appareil au joueur suivant','kioskIntro':'Pour faire tourner une tablette entre les joueurs : l\u2019écran revient automatiquement au joueur suivant après chaque vote.','kioskOpen':'Ouvrir en mode tablette','kioskNextIn':'Au joueur suivant dans {n} s…','kioskNextNow':'Joueur suivant',
   'stadiumOn':'\u{1F3DF} Mode stade activé — grosses touches','stadiumOff':'Mode stade désactivé',
   'alPollPendingMulti':'{n} séances sans réponse au sondage','alNoCoverMulti':'{n} séances sans coach annoncé','alSeeAll':'voir les {n} autres','alSeeLess':'réduire',
@@ -894,7 +946,7 @@ const I18N = {
   'searchPlaceholder':'Rechercher...',
   'noPlayerFound':'Introuvable',
   'noPlayerYet':'Aucun joueur enregistré',
-  'jersey':'Maillot N°',
+  
   'positionLbl':'Poste',
   'firstName':'Prénom',
   'lastName':'Nom',
@@ -1239,6 +1291,7 @@ const I18N = {
   'squadStepHint':'Qui joue dans quelle équipe (place les joueurs au banc le jour J)'
 },
   en: {
+  'langsLbl':'Spoken languages','langsHint':'Tap the flags — several can be selected',
   'kioskBanner':'TABLET MODE \u2014 hand the device to the next player','kioskIntro':'To pass a tablet around the squad: the screen returns to the next player automatically after each vote.','kioskOpen':'Open in tablet mode','kioskNextIn':'Next player in {n}s…','kioskNextNow':'Next player',
   'stadiumOn':'\u{1F3DF} Stadium mode on — bigger buttons','stadiumOff':'Stadium mode off',
   'alPollPendingMulti':'{n} sessions without poll replies','alNoCoverMulti':'{n} sessions with no coach available','alSeeAll':'show {n} more','alSeeLess':'show less',
@@ -1257,7 +1310,7 @@ const I18N = {
   'searchPlaceholder':'Search...',
   'noPlayerFound':'Not found',
   'noPlayerYet':'No player registered',
-  'jersey':'Jersey No.',
+  
   'positionLbl':'Position',
   'firstName':'First name',
   'lastName':'Last name',
@@ -1756,7 +1809,9 @@ function toast(m){
 }
 function fd(d){ if(!d) return ''; const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString(LANG==='en'?'en-GB':'fr-FR',{weekday:'short',day:'2-digit',month:'short'}); }
 function today(){ return new Date().toISOString().split('T')[0]; }
-function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// Échappement HTML. String(...) : la valeur peut être un nombre (n° de maillot, score…)
+// — sans conversion, .replace() planterait sur un nombre.
+function esc(s){ return (s===null||s===undefined?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function avg(ev){ const v=CRIT.map(c=>ev[c.k]).filter(x=>x>0); return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'\u2013'; }
 function pCnt(sid){ return S.attendance.filter(a=>a.sessionId===sid&&a.status==='P').length; }
 function eCnt(sid){ return S.evaluations.filter(e=>e.sessionId===sid).length; }
@@ -4694,7 +4749,7 @@ function rCoaches(){
     const extras=co.extraTrainings||[];
     return '<div class="pc" onclick="togCD('+co.id+')">'+
       cavatar+
-      '<div class="pinfo"><div class="pname">'+esc(co.firstName)+' '+esc(co.lastName)+'</div>'+
+      '<div class="pinfo"><div class="pname">'+esc(co.firstName)+' '+esc(co.lastName)+' '+langFlags(co)+'</div>'+
       '<div class="pmeta">'+roleTxt+progBadge+'</div></div>'+
       '<span style="color:var(--mut);font-size:14px">&rsaquo;</span></div>'+
       '<div id="cd-'+co.id+'" class="dbox">'+
@@ -4741,11 +4796,14 @@ function openCF(eid){
     '<div class="frow"><div class="fg"><label class="fl">'+tr('phoneLbl')+'</label><input class="fi" id="cf-tel" value="'+esc(co?.phone||'')+'"></div>'+
     '<div class="fg"><label class="fl">'+tr('emailLbl')+'</label><input class="fi" id="cf-em" value="'+esc(co?.email||'')+'"></div></div>'+
     '<div class="fg"><label class="fl">'+tr('licenseLbl')+'</label><input class="fi" id="cf-lic" value="'+esc(co?.licenseNo||'')+'"></div>'+
+    '<div class="fg" id="cf-langs"></div>'+
     '<div id="cf-trainings"></div>'+
     '<div style="display:flex;gap:8px"><button class="btn btn-mg btn-w" onclick="saveC('+(eid||'null')+')">'+(co?tr('btnSave'):tr('btnAdd'))+'</button>'+
     '<button class="btn btn-out" onclick="document.getElementById(\'pf-con\').innerHTML=\'\'">'+tr('btnCancel')+'</button></div></div>';
   document.getElementById('pf-con').scrollIntoView({behavior:'smooth'});
   // Copie de travail des formations (validée seulement à l'enregistrement)
+  _formLangs=((co&&co.langs)||[]).slice();
+  rFormLangs('cf-langs');
   _cfTrainings={...coachTrainingMap(co||{})};
   _cfExtras=(co?.extraTrainings||[]).map(x=>({...x}));
   rCFTrainings();
@@ -4756,6 +4814,7 @@ function saveC(eid){
   const d={firstName:fn,lastName:ln,role:document.getElementById('cf-role').value,
     phone:document.getElementById('cf-tel').value.trim(),email:document.getElementById('cf-em').value.trim(),
     licenseNo:document.getElementById('cf-lic').value.trim(),
+    langs:_formLangs.slice(),
     trainings:{..._cfTrainings},
     extraTrainings:_cfExtras.map(x=>({...x})),
     photo:(_pfPhotoData!==undefined?_pfPhotoData:_pfPhotoOrig)};
@@ -4839,8 +4898,8 @@ function rPlayers(){
     const moy=allV.length?(allV.reduce((a,b)=>a+b,0)/allV.length).toFixed(1):null;
 
     const avatar=p.photo?
-      '<div class="pavatar"><img src="'+p.photo+'"><div class="pnum-badge">'+(p.number||'?')+'</div></div>':
-      '<div class="pnum">'+(p.number||'?')+'</div>';
+      '<div class="pavatar"><img src="'+p.photo+'"><div class="pnum-badge">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div></div>':
+      '<div class="pnum">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div>';
 
     // Ligne stats : Entr. XX% • XX% matchs • XX% tournois
     let statsLine='';
@@ -4856,7 +4915,7 @@ function rPlayers(){
 
     return '<div class="pc" onclick="togPD('+p.id+')">'+
       avatar+
-      '<div class="pinfo"><div class="pname">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
+      '<div class="pinfo"><div class="pname">'+esc(p.firstName)+' '+esc(p.lastName)+' '+langFlags(p)+'</div>'+
       '<div class="pmeta">'+(p.position?posLabel(p.position):tr('posPlaceholder'))+(moy?' &bull; '+starsStr(Math.round(parseFloat(moy))):'')+'</div>'+
       (statsLine?'<div style="font-size:10px;color:var(--mut);margin-top:3px">'+statsLine+'</div>':'')+
       '</div>'+
@@ -4892,8 +4951,8 @@ function openPF(eid){
       '<input type="file" accept="image/*" id="pf-photo-input" style="display:none" onchange="handlePhotoSelect(event)">'+
     '</div></div>'+
     '<div class="pf-photo-hint">'+(p?.photo?tr('tapChangePhoto'):tr('tapAddPhoto'))+'</div>'+
-    '<div class="frow"><div class="fg"><label class="fl">'+tr('jersey')+'</label><input class="fi" id="pf-n" type="number" value="'+(p?.number||'')+'"></div>'+
-    '<div class="fg"><label class="fl">'+tr('positionLbl')+'</label><select class="fs" id="pf-po"><option value="">—</option>'+POSITIONS.map(pos=>'<option value="'+pos+'"'+(p?.position===pos?' selected':'')+'>'+posLabel(pos)+'</option>').join('')+'</select></div></div>'+
+    '<div class="fg"><label class="fl">'+tr('positionLbl')+'</label><select class="fs" id="pf-po"><option value="">—</option>'+POSITIONS.map(pos=>'<option value="'+pos+'"'+(p?.position===pos?' selected':'')+'>'+posLabel(pos)+'</option>').join('')+'</select></div>'+
+    '<div class="fg" id="pf-langs"></div>'+
     '<div class="frow"><div class="fg"><label class="fl">'+tr('firstName')+'</label><input class="fi" id="pf-fn" value="'+esc(p?.firstName||'')+'" placeholder="'+tr('firstNamePh')+'"></div>'+
     '<div class="fg"><label class="fl">'+tr('lastName')+'</label><input class="fi" id="pf-ln" value="'+esc(p?.lastName||'')+'" placeholder="'+tr('lastNamePh')+'"></div></div>'+
     '<div class="frow"><div class="fg"><label class="fl">'+tr('dob')+'</label><input class="fi" id="pf-dob" type="date" value="'+(p?.dob||'')+'"></div>'+
@@ -4907,17 +4966,21 @@ function openPF(eid){
     '<div style="display:flex;gap:8px"><button class="btn btn-mg btn-w" onclick="saveP('+(eid||'null')+')">'+(p?tr('btnSave'):tr('btnAdd'))+'</button>'+
     '<button class="btn btn-out" onclick="closePF()">'+tr('btnCancel')+'</button></div></div>';
   document.getElementById('pf-con').scrollIntoView({behavior:'smooth'});
+  _formLangs=((p&&p.langs)||[]).slice();
+  rFormLangs('pf-langs');
 }
 function closePF(){ document.getElementById('pf-con').innerHTML=''; }
 function saveP(eid){
   const fn=document.getElementById('pf-fn').value.trim(),ln=document.getElementById('pf-ln').value.trim();
   if(!fn||!ln){ toast(tr('toastNameRequired')); return; }
   const photo=_pfPhotoData!==undefined?_pfPhotoData:_pfPhotoOrig;
-  const d={firstName:fn,lastName:ln,number:parseInt(document.getElementById('pf-n').value)||null,
+  const d={firstName:fn,lastName:ln,number:(eid?(S.players.find(x=>x.id===eid)||{}).number:null)||null, // maillot conservé (import/export) mais plus saisi
+    
     position:document.getElementById('pf-po').value,dob:document.getElementById('pf-dob').value,
     parent:document.getElementById('pf-par').value.trim(),phone:document.getElementById('pf-tel').value.trim(),
     parent2:document.getElementById('pf-par2').value.trim(),phone2:document.getElementById('pf-tel2').value.trim(),
     email:document.getElementById('pf-em').value.trim(),notes:document.getElementById('pf-no').value.trim(),
+    langs:_formLangs.slice(),
     licenseNo:document.getElementById('pf-lic').value.trim(),photo};
   if(eid){const i=S.players.findIndex(p=>p.id===eid);if(i>=0)S.players[i]={...S.players[i],...d};toast(tr('toastPlayerUpdated'));}
   else{S.players.push({id:gid('players'),...d});toast(tr('toastPlayerAdded'));}
@@ -5297,7 +5360,7 @@ function rMVSetup(sid){
       [...S.players].sort((a,b)=>(a.number||999)-(b.number||999)).filter(p=>selFilterKeep(pollStatusOf(sid,p.id))).map(p=>{
         const st=pollStatusOf(sid,p.id), on=inSquad.has(p.id);
         const dim=(st==='absent'||st==='injured')?'opacity:.55;':'';
-        return '<div class="pselrow" style="'+dim+'"><span class="pselnum">'+(p.number||'?')+'</span>'+
+        return '<div class="pselrow" style="'+dim+'"><span class="pselnum">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</span>'+
           '<span style="width:18px;text-align:center;flex-shrink:0">'+pollChip(st)+'</span>'+
           '<span class="pselname">'+esc(p.firstName)+' '+esc((p.lastName[0]||''))+'.</span>'+
           '<div class="pselsegs"><button class="pselseg'+(on?' on':'')+'" onclick="togMvConvoke('+sid+','+p.id+')">'+(on?'\u2713 '+tr('mvConvoked'):tr('mvConvoke'))+'</button></div></div>';
@@ -5387,7 +5450,7 @@ function rMatchBody(){
       actions='<button class="btn btn-out btn-xs" onclick="setRole('+sid+','+(mid!==null&&mid!==undefined?mid:'null')+','+p.id+',\'bench\')">'+tr('addBenchBtn')+'</button>';
     }
     return '<div class="squad-row">'+dot+
-      '<div class="pnum-sm">'+(p.number||'?')+'</div>'+
+      '<div class="pnum-sm">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div>'+
       '<div class="squad-name">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
       (sp?'<span id="pt-'+p.id+'" class="play-time '+ptClass+'">'+ptStr+'</span>':'')+
       '<div>'+actions+'</div></div>';
@@ -5563,7 +5626,7 @@ function openSubOut(sid,mid,outId){
     '<div class="sub-title">'+tr('subTitle')+' '+esc(outP?.firstName||'')+' '+esc(outP?.lastName||'')+' ('+fmtT(el)+')<br><span style="font-size:11px;font-weight:400;color:var(--mut)">'+tr('subSubtitle')+'</span></div>'+
     '<div class="sub-players">'+bench.map(sp=>{const p=S.players.find(x=>x.id===sp.pid);if(!p)return '';
       return '<div class="sub-player-btn" onclick="doSub('+sid+','+(mid!==null&&mid!==undefined?mid:'null')+','+outId+','+p.id+')">'+
-        '<div class="spn">'+(p.number||'?')+'</div><div class="spl">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
+        '<div class="spn">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div><div class="spl">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
         '<div class="spt">'+tr('benchShort')+' '+(sp.tTotal>0?fmtT(sp.tTotal):'')+'</div></div>';}).join('')+'</div>'+
     '<button class="btn btn-out btn-w" style="margin-top:10px" onclick="closeSubSheet()">'+tr('btnCancel')+'</button>';
   openSubSheet();
@@ -5581,7 +5644,7 @@ function openSubIn(sid,mid,inId){
     '<div class="sub-players">'+field.map(sp=>{const p=S.players.find(x=>x.id===sp.pid);if(!p)return '';
       const pt=getPlayerTime(t.squad,t.chrono||{},p.id);
       return '<div class="sub-player-btn" onclick="doSub('+sid+','+(mid!==null&&mid!==undefined?mid:'null')+','+p.id+','+inId+')">'+
-        '<div class="spn">'+(p.number||'?')+'</div><div class="spl">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
+        '<div class="spn">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div><div class="spl">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
         '<div class="spt">'+fmtT(pt)+'</div></div>';}).join('')+'</div>'+
     '<div style="margin-top:10px;display:flex;gap:8px"><button class="btn btn-mg btn-w" onclick="doSub('+sid+','+(mid!==null&&mid!==undefined?mid:'null')+',null,'+inId+')">'+tr('enterNoSub')+'</button>'+
     '<button class="btn btn-out" onclick="closeSubSheet()">'+tr('btnCancel')+'</button></div>';
@@ -5849,7 +5912,7 @@ function rTVContent(sid){
           const st=pollStatusOf(sid,p.id);
           // Un joueur annoncé absent/blessé est grisé : on le voit sans le masquer
           const dim=(st==='absent'||st==='injured')?'opacity:.55;':'';
-          return '<div class="pselrow" style="'+dim+'"><span class="pselnum">'+(p.number||'?')+'</span>'+
+          return '<div class="pselrow" style="'+dim+'"><span class="pselnum">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</span>'+
             '<span style="width:18px;text-align:center;flex-shrink:0">'+pollChip(st)+'</span>'+
             '<span class="pselname">'+esc(p.firstName)+' '+esc((p.lastName[0]||''))+'.</span>'+
             '<div class="pselsegs">'+rcls.map(team=>'<button class="pselseg'+(cur===team?' on':'')+'" onclick="togTvPreSel('+sid+',\''+esc(team)+'\','+p.id+')">'+shortName(team)+'</button>').join('')+'</div></div>';
@@ -6071,7 +6134,7 @@ function rAtt(){
       pl.map(p=>{
         const sp=squad.find(x=>x.pid===p.id);
         if(!sp) return '<div class="att-row">'+
-          '<div class="pnum-sm">'+(p.number||'?')+'</div>'+
+          '<div class="pnum-sm">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div>'+
           '<div class="att-nm">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
           '<div style="font-size:11px;color:var(--mut)">'+tr('noSquadShort')+'</div></div>';
         const pt=sp.tTotal||0;
@@ -6081,7 +6144,7 @@ function rAtt(){
         const roleLbl=sp.role==='field'?tr('inSquadField'):tr('inSquadBench');
         const ptLbl=pt>0?' &bull; '+fmtT(pt):'';
         return '<div class="att-row">'+
-          '<div class="pnum-sm">'+(p.number||'?')+'</div>'+
+          '<div class="pnum-sm">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div>'+
           '<div class="att-nm">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
           '<div style="font-size:11px;font-weight:600">'+roleIcon+' '+roleLbl+ptLbl+'</div></div>';
       }).join('')+'</div>';
@@ -6107,7 +6170,7 @@ function rAtt(){
         const matchCount=playerTournoiMatchCount(s,p.id);
         const totalRclM=rclMatches.length;
         if(matchCount===0) return '<div class="att-row">'+
-          '<div class="pnum-sm">'+(p.number||'?')+'</div>'+
+          '<div class="pnum-sm">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div>'+
           '<div class="att-nm">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
           '<div style="font-size:11px;color:var(--mut)">'+tr('noSquadShort')+'</div></div>';
         const totalPt=allMatches.reduce((acc,m)=>{
@@ -6115,7 +6178,7 @@ function rAtt(){
           return acc+(sp?sp.tTotal||0:0);
         },0);
         return '<div class="att-row">'+
-          '<div class="pnum-sm">'+(p.number||'?')+'</div>'+
+          '<div class="pnum-sm">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div>'+
           '<div class="att-nm">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
           '<div style="font-size:11px;font-weight:600">'+
             '<span style="color:var(--mg)">&#9899;</span> '+matchCount+(totalRclM>0?'/'+totalRclM:'')+' '+tr('matchNbLbl')+
@@ -6140,7 +6203,7 @@ function rAtt(){
     '<div class="card" style="padding:10px 14px;margin-top:10px">'+
     pl.map(p=>{
       const at=S.attendance.find(a=>a.sessionId===sid&&a.playerId===p.id); const cur=at?.status||'';
-      return '<div class="att-row"><div class="pnum-sm">'+(p.number||'?')+'</div>'+
+      return '<div class="att-row"><div class="pnum-sm">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div>'+
         '<div class="att-nm">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
         '<div class="sbs">'+STATUS_BTNS.map(st=>
           '<button class="sb'+(cur===st.c?' a'+st.c:'')+'" onclick="setSt('+sid+','+p.id+',\''+st.c+'\')" title="'+statusLabel(st.c)+'">'+statusShortLabel(st.c)+'</button>'
@@ -6672,7 +6735,7 @@ function rEval(){
       const avStars=(av&&av!=='\u2013')?starsStr(Math.round(parseFloat(av))):null;
       return '<div>'+
         '<div class="ep" onclick="togEP('+sid+','+p.id+')">'+
-          '<div class="pnum-sm">'+(p.number||'?')+'</div>'+
+          '<div class="pnum-sm">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div>'+
           '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">'+esc(p.firstName)+' '+esc(p.lastName)+'</div>'+
           '<div style="font-size:11px;color:var(--mut)">'+(ev?CRIT.filter(c=>ev[c.k]>0).length+'/'+CRIT.length+' '+tr('ratedCount'):tr('notEvaluated'))+'</div></div>'+
           (avStars?'<div style="font-size:14px;letter-spacing:-1px;color:var(--mg);margin-right:6px">'+avStars+'</div>':'')+
@@ -6693,7 +6756,7 @@ function buildEP(sid,pid){
   const avgV=avg(ev);
   const avgStars=avgV!=='\u2013'?starsStr(Math.round(parseFloat(avgV))):'\u2013';
   return '<div class="eval-panel">'+
-    '<div class="ep-hdr"><div class="pnum">'+(p.number||'?')+'</div>'+
+    '<div class="ep-hdr"><div class="pnum">'+esc(p.number||((p.firstName&&p.firstName[0]||'')+(p.lastName&&p.lastName[0]||'')))+'</div>'+
     '<div style="flex:1"><div style="font-size:15px;font-weight:700">'+esc(p.firstName)+' '+esc(p.lastName)+'</div><div style="font-size:11px;color:var(--mut)">'+(p.position?posLabel(p.position):'')+'</div></div>'+
     '<div style="text-align:right"><div class="avg-num" id="avp-'+sid+'-'+pid+'" style="font-size:18px;letter-spacing:-1px">'+avgStars+'</div><div class="avg-lbl">'+(avgV!=='\u2013'?lvlLabel(Math.round(parseFloat(avgV))):'')+'</div></div></div>'+
     CRIT.map(c=>
