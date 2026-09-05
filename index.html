@@ -705,7 +705,7 @@ body.stadium main{padding-bottom:96px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.28';
+const APP_VER='3.30';
 /* ═══════════════════════════════════════════════════════════════════════════
    RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
    ───────────────────────────────────────────────────────────────────────────
@@ -927,6 +927,8 @@ function updateHeaderDate(){
 // ═══════════════════════════════════════════
 const I18N = {
   fr: {
+  'planWarmupPh':'Contenu de l\u2019échauffement…','planGamePh':'Format de jeu, règles adaptées…',
+  'planWarmup':'Échauffement','planDrills':'Ateliers','planGames':'Jeu / règles adaptées','planAddDrill':'Ajouter un atelier','planAddGame':'Ajouter un jeu','planTotal':'Durée totale','planNoCoach':'— coach —','planContentPh':'Contenu de l\u2019atelier…',
   'langsLbl':'Langues parlées','langsHint':'Touche les drapeaux — plusieurs choix possibles',
   'kioskBanner':'MODE TABLETTE \u2014 passe l\u2019appareil au joueur suivant','kioskIntro':'Pour faire tourner une tablette entre les joueurs : l\u2019écran revient automatiquement au joueur suivant après chaque vote.','kioskOpen':'Ouvrir en mode tablette','kioskNextIn':'Au joueur suivant dans {n} s…','kioskNextNow':'Joueur suivant',
   'stadiumOn':'\u{1F3DF} Mode stade activé — grosses touches','stadiumOff':'Mode stade désactivé',
@@ -1291,6 +1293,8 @@ const I18N = {
   'squadStepHint':'Qui joue dans quelle équipe (place les joueurs au banc le jour J)'
 },
   en: {
+  'planWarmupPh':'Warm-up content…','planGamePh':'Game format, adapted rules…',
+  'planWarmup':'Warm-up','planDrills':'Drills','planGames':'Game / adapted rules','planAddDrill':'Add a drill','planAddGame':'Add a game','planTotal':'Total duration','planNoCoach':'— coach —','planContentPh':'What is worked on…',
   'langsLbl':'Spoken languages','langsHint':'Tap the flags — several can be selected',
   'kioskBanner':'TABLET MODE \u2014 hand the device to the next player','kioskIntro':'To pass a tablet around the squad: the screen returns to the next player automatically after each vote.','kioskOpen':'Open in tablet mode','kioskNextIn':'Next player in {n}s…','kioskNextNow':'Next player',
   'stadiumOn':'\u{1F3DF} Stadium mode on — bigger buttons','stadiumOff':'Stadium mode off',
@@ -5048,9 +5052,13 @@ function rSessions(scrollPivot){
           '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
             '<button class="btn btn-out btn-sm" onclick="event.stopPropagation();openCreateSession(\'Entra\u00eenement\','+s.id+')">&#9999; '+tr('btnEdit')+'</button>'+
             '<button class="btn btn-del btn-sm" style="margin-left:auto" onclick="event.stopPropagation();delS('+s.id+')">&#128465; '+tr('btnDelete')+'</button></div>'+
-          (s.skills?'<div style="font-size:12px;margin-bottom:3px"><b>'+tr('lblSkills')+':</b> '+esc(s.skills)+'</div>':'')+
+          // Plan structuré si présent, sinon repli sur l'ancien texte libre
+          (s.plan?planReadHtml(s)
+                :(s.skills?'<div style="font-size:12px;margin-bottom:3px"><b>'+tr('lblSkills')+':</b> '+esc(s.skills)+'</div>':'')+
+                 (s.rules?'<div style="font-size:12px;margin-bottom:3px"><b>'+tr('lblRules')+':</b> '+esc(s.rules)+'</div>':''))+
           (s.positives?'<div style="font-size:12px;margin-bottom:3px"><b>\u2705</b> '+esc(s.positives)+'</div>':'')+
-          (s.improvements?'<div style="font-size:12px"><b>\u26a0\ufe0f</b> '+esc(s.improvements)+'</div>':'')+'</div>';
+          (s.improvements?'<div style="font-size:12px;margin-bottom:3px"><b>\u26a0\ufe0f</b> '+esc(s.improvements)+'</div>':'')+
+          (s.notes?'<div style="font-size:12px;color:var(--mut)"><b>\u{1F4DD}</b> '+esc(s.notes)+'</div>':'')+'</div>';
     }).join('');
 
   } else if(type==='Match'){
@@ -5131,12 +5139,13 @@ function openTrainingForm(s){
     '<div class="card" id="sform"><div class="card-title">'+(s?tr('editTraining'):tr('newTraining'))+'</div>'+
     '<div class="fg"><label class="fl">'+tr('lblDate')+'</label><input class="fi" id="sf-d" type="date" value="'+(s?.date||today())+'"></div>'+
     '<div class="fg"><label class="fl">'+tr('lblTheme')+'</label><input class="fi" id="sf-th" value="'+esc(s?.theme||'')+'" placeholder="'+tr('themePh')+'"></div>'+
-    '<div class="fg"><label class="fl">'+tr('lblSkills')+'</label><textarea class="fi" id="sf-sk">'+esc(s?.skills||'')+'</textarea></div>'+
-    '<div class="fg"><label class="fl">'+tr('lblRules')+'</label><textarea class="fi" id="sf-ru">'+esc(s?.rules||'')+'</textarea></div>'+
+    '<div id="sf-plan"></div>'+
     '<div class="fg"><label class="fl">'+tr('lblPositives')+'</label><textarea class="fi" id="sf-po">'+esc(s?.positives||'')+'</textarea></div>'+
     '<div class="fg"><label class="fl">'+tr('lblImprovements')+'</label><textarea class="fi" id="sf-im">'+esc(s?.improvements||'')+'</textarea></div>'+
     '<div class="fg"><label class="fl">'+tr('lblCoachNotes')+'</label><textarea class="fi" id="sf-no">'+esc(s?.notes||'')+'</textarea></div>'+
     '<div style="display:flex;gap:8px"><button class="btn btn-mg btn-w" onclick="saveTraining('+(s?.id||'null')+')">'+(s?tr('btnSave'):tr('btnCreate'))+'</button><button class="btn btn-out" onclick="document.getElementById(\'sf-con\').innerHTML=\'\'">'+tr('btnCancel')+'</button></div></div>';
+  _plan=ensureSessionPlan(s||{});
+  rPlanForm();
 }
 function delMatch(id){
   confirmBox(tr('confirmDelMatch'), ()=>{  S.sessions=S.sessions.filter(s=>s.id!==id);
@@ -5155,11 +5164,115 @@ function delTournoi(id){
   });
 }
 
+// ═══════════════════════════════════════════
+// PLAN D'ENTRAÎNEMENT STRUCTURÉ
+// s.plan = { warmup:{min,coachId,txt}, drills:[…2 à 4…], games:[…1 à 2…] }
+// Chaque bloc porte une durée et un coach responsable, pour préparer une séance
+// à plusieurs encadrants et connaître le temps total.
+// ⚠️ Rétrocompatibilité : les anciennes séances n'ont que s.skills / s.rules (texte
+// libre). ensureSessionPlan() les convertit sans rien perdre, et saveTraining
+// réalimente s.skills / s.rules pour que l'export CSV reste valide.
+// ═══════════════════════════════════════════
+const PLAN_MIN_DRILLS=2, PLAN_MAX_DRILLS=4, PLAN_MIN_GAMES=1, PLAN_MAX_GAMES=2;
+function blankBlock(min){ return {min:min||15, coachId:null, txt:''}; }
+function ensureSessionPlan(s){
+  if(s && s.plan && Array.isArray(s.plan.drills) && Array.isArray(s.plan.games)) return s.plan;
+  const p={ warmup:blankBlock(15), drills:[], games:[] };
+  // Migration : l'ancien texte devient le contenu du 1er atelier / du 1er jeu
+  if(s && s.skills) p.drills.push({...blankBlock(15), txt:s.skills});
+  while(p.drills.length<PLAN_MIN_DRILLS) p.drills.push(blankBlock(15));
+  if(s && s.rules) p.games.push({...blankBlock(20), txt:s.rules});
+  while(p.games.length<PLAN_MIN_GAMES) p.games.push(blankBlock(20));
+  return p;
+}
+function planTotalMin(p){
+  if(!p) return 0;
+  return (p.warmup?.min||0)+(p.drills||[]).reduce((a,b)=>a+(b.min||0),0)+(p.games||[]).reduce((a,b)=>a+(b.min||0),0);
+}
+// Aplatit un plan en texte : alimente l'export CSV et l'affichage de secours
+function planToText(list){
+  return (list||[]).filter(b=>b.txt).map(b=>b.txt).join(' | ');
+}
+// ── Formulaire : état de travail ──
+let _plan=null;
+function planCoachOptions(sel){
+  return '<option value="">'+tr('planNoCoach')+'</option>'+
+    S.coaches.map(co=>'<option value="'+co.id+'"'+(String(sel)===String(co.id)?' selected':'')+'>'+
+      esc(co.firstName)+' '+esc((co.lastName||'')[0]||'')+'.</option>').join('');
+}
+// Un bloc = durée + coach + contenu. kind: 'warmup' | 'drills' | 'games'
+function planBlockHtml(kind, idx, b, removable){
+  const id=kind+(idx===null?'':idx);
+  return '<div style="border:1px solid var(--brd);border-radius:10px;padding:9px;margin-bottom:7px;background:#fff">'+
+    '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">'+
+      '<input class="fi" style="width:64px;text-align:center;padding:7px 4px" type="number" min="0" step="5" '+
+        'id="pl-'+id+'-min" value="'+(b.min||0)+'" onchange="planSet(\''+kind+'\','+idx+',\'min\',this.value)">'+
+      '<span style="font-size:11px;color:var(--mut);flex-shrink:0">min</span>'+
+      '<select class="fs" style="flex:1;padding:7px" id="pl-'+id+'-coach" onchange="planSet(\''+kind+'\','+idx+',\'coachId\',this.value)">'+
+        planCoachOptions(b.coachId)+'</select>'+
+      (removable?'<button type="button" onclick="planRemove(\''+kind+'\','+idx+')" title="'+tr('btnDelete')+'" '+
+        'style="border:none;background:none;color:var(--red);font-size:17px;cursor:pointer;padding:0 3px">\u00D7</button>':'')+
+    '</div>'+
+    '<textarea class="fi" id="pl-'+id+'-txt" rows="2" placeholder="'+tr(kind==='warmup'?'planWarmupPh':kind==='games'?'planGamePh':'planContentPh')+'" '+
+      'onchange="planSet(\''+kind+'\','+idx+',\'txt\',this.value)">'+esc(b.txt||'')+'</textarea>'+
+  '</div>';
+}
+function planSet(kind, idx, field, val){
+  const b = kind==='warmup' ? _plan.warmup : _plan[kind][idx];
+  if(!b) return;
+  b[field] = (field==='min') ? (parseInt(val)||0) : (field==='coachId' ? (val?parseInt(val):null) : val);
+  if(field==='min') rPlanForm(); // le total doit suivre
+}
+function planAdd(kind){
+  const max = kind==='drills'?PLAN_MAX_DRILLS:PLAN_MAX_GAMES;
+  if(_plan[kind].length>=max) return;
+  _plan[kind].push(blankBlock(kind==='drills'?15:20));
+  rPlanForm();
+}
+function planRemove(kind, idx){
+  const min = kind==='drills'?PLAN_MIN_DRILLS:PLAN_MIN_GAMES;
+  if(_plan[kind].length<=min) return;
+  _plan[kind].splice(idx,1);
+  rPlanForm();
+}
+function rPlanForm(){
+  const box=document.getElementById('sf-plan'); if(!box||!_plan) return;
+  const sec=(icon,titleKey,inner,extra)=>'<div style="margin-bottom:12px">'+
+    '<label class="fl" style="display:flex;align-items:center;gap:5px">'+icon+' '+tr(titleKey)+(extra||'')+'</label>'+inner+'</div>';
+  const addBtn=(kind,max,lbl)=>_plan[kind].length<max
+    ? '<button type="button" class="btn btn-out btn-sm btn-w" onclick="planAdd(\''+kind+'\')">+ '+tr(lbl)+'</button>' : '';
+  box.innerHTML=
+    '<div style="background:var(--lg);border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:12px;font-weight:700;color:var(--dk);text-align:center">'+
+      '\u23F1 '+tr('planTotal')+' : '+planTotalMin(_plan)+' min</div>'+
+    sec('\u{1F525}','planWarmup', planBlockHtml('warmup',null,_plan.warmup,false))+
+    sec('\u{1F3AF}','planDrills', _plan.drills.map((b,i)=>planBlockHtml('drills',i,b,_plan.drills.length>PLAN_MIN_DRILLS)).join('')+addBtn('drills',PLAN_MAX_DRILLS,'planAddDrill'),
+        ' <span style="font-weight:400;color:var(--mut)">('+_plan.drills.length+')</span>')+
+    sec('\u{1F3C9}','planGames', _plan.games.map((b,i)=>planBlockHtml('games',i,b,_plan.games.length>PLAN_MIN_GAMES)).join('')+addBtn('games',PLAN_MAX_GAMES,'planAddGame'),
+        ' <span style="font-weight:400;color:var(--mut)">('+_plan.games.length+')</span>');
+}
+// Rendu du plan en lecture (détail d'une séance)
+function planReadHtml(s){
+  const p=s.plan; if(!p) return '';
+  const nm=id=>{const co=S.coaches.find(x=>x.id===id);return co?esc(co.firstName)+' '+esc((co.lastName||'')[0]||'')+'.':'';};
+  const line=(icon,b)=>b&&(b.txt||b.min)?'<div style="display:flex;gap:6px;font-size:12px;margin-bottom:2px">'+
+      '<span style="flex-shrink:0">'+icon+'</span>'+
+      '<span style="flex:1">'+esc(b.txt||'')+'</span>'+
+      '<span style="color:var(--mut);flex-shrink:0;font-size:11px">'+(b.min?b.min+'\u2032':'')+(b.coachId?' \u00b7 '+nm(b.coachId):'')+'</span></div>':'';
+  let h=line('\u{1F525}',p.warmup);
+  (p.drills||[]).forEach(b=>h+=line('\u{1F3AF}',b));
+  (p.games||[]).forEach(b=>h+=line('\u{1F3C9}',b));
+  if(!h) return '';
+  return '<div style="margin:4px 0 6px">'+h+
+    '<div style="font-size:10.5px;color:var(--mut);margin-top:3px">\u23F1 '+planTotalMin(p)+' min</div></div>';
+}
 function saveTraining(eid){
   const date=document.getElementById('sf-d').value; if(!date){toast(tr('toastDateRequired'));return;}
   const d={date,type:'Entra\u00eenement',
-    theme:document.getElementById('sf-th').value.trim(),skills:document.getElementById('sf-sk').value.trim(),
-    rules:document.getElementById('sf-ru').value.trim(),positives:document.getElementById('sf-po').value.trim(),
+    theme:document.getElementById('sf-th').value.trim(),
+    plan:_plan,
+    // skills/rules restent alimentés (version texte) : export CSV et anciennes vues
+    skills:planToText(_plan&&_plan.drills), rules:planToText(_plan&&_plan.games),
+    positives:document.getElementById('sf-po').value.trim(),
     improvements:document.getElementById('sf-im').value.trim(),notes:document.getElementById('sf-no').value.trim()};
   if(eid){const i=S.sessions.findIndex(s=>s.id===eid);if(i>=0)S.sessions[i]={...S.sessions[i],...d};toast(tr('toastUpdated'));}
   else{S.sessions.push({id:gid('sessions'),...d});toast(tr('toastTrainingCreated'));}
