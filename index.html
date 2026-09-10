@@ -705,7 +705,7 @@ body.stadium main{padding-bottom:96px}
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const APP_VER='3.32';
+const APP_VER='3.33';
 /* ═══════════════════════════════════════════════════════════════════════════
    RCL COACHING — Application de gestion d'équipe de rugby jeunes (RCL Luxembourg)
    ───────────────────────────────────────────────────────────────────────────
@@ -927,6 +927,7 @@ function updateHeaderDate(){
 // ═══════════════════════════════════════════
 const I18N = {
   fr: {
+  'pollMsgTraining':'ENTRA\u00ceNEMENT \u2014 {date}, 9H45 \u00c0 11H30\n\nMerci d\u2019indiquer si votre enfant sera pr\u00e9sent \u00e0 l\u2019entra\u00eenement \u2014 c\u2019est indispensable pour que les coachs puissent pr\u00e9parer la s\u00e9ance et tirer le meilleur parti du temps pass\u00e9 sur le terrain.\n\nLa pr\u00e9sence aux entra\u00eenements sera aussi l\u2019un des crit\u00e8res pris en compte pour la s\u00e9lection des \u00e9quipes lors des tournois o\u00f9 le nombre d\u2019\u00e9quipes inscrites est limit\u00e9.','pollMsgLbl':'Message \u00e0 envoyer','pollMsgHint':'Ajuste la date et l\u2019horaire avant d\u2019envoyer.',
   'planAddWarm':'Ajouter un atelier d\u2019échauffement',
   'planWarmupPh':'Contenu de l\u2019échauffement…','planGamePh':'Format de jeu, règles adaptées…',
   'planWarmup':'Échauffement','planDrills':'Ateliers','planGames':'Jeu / règles adaptées','planAddDrill':'Ajouter un atelier','planAddGame':'Ajouter un jeu','planTotal':'Durée totale','planNoCoach':'— coach —','planContentPh':'Contenu de l\u2019atelier…',
@@ -1294,6 +1295,7 @@ const I18N = {
   'squadStepHint':'Qui joue dans quelle équipe (place les joueurs au banc le jour J)'
 },
   en: {
+  'pollMsgTraining':'TRAINING \u2014 {date}, 9:45 TO 11:30\n\nPlease indicate whether your child will attend training \u2014 this is required to enable the coaches to plan the session and ensure we make the most of our time on the pitch.\n\nTraining attendance will also be one of the factors taken into consideration when team selections need to be done for tournaments where we are limited to the number of teams we can register.','pollMsgLbl':'Message to send','pollMsgHint':'Edit the date and time before sending.',
   'planAddWarm':'Add a warm-up drill',
   'planWarmupPh':'Warm-up content…','planGamePh':'Game format, adapted rules…',
   'planWarmup':'Warm-up','planDrills':'Drills','planGames':'Game / adapted rules','planAddDrill':'Add a drill','planAddGame':'Add a game','planTotal':'Total duration','planNoCoach':'— coach —','planContentPh':'What is worked on…',
@@ -4279,13 +4281,22 @@ async function openPollShare(sid){
   const s=S.sessions.find(x=>x.id===sid);
   const label=s?sessionTitle(s):'';
   // Message pré-rempli pour WhatsApp/partage
-  const msg=tr('pollShareMsg').replace('{event}',label)+' '+link;
+  // Message par défaut : complet pour un entraînement (le coach ajuste l'horaire),
+  // court pour un match/tournoi. Il est ÉDITABLE avant envoi.
+  const isTraining = s && s.type==='Entra\u00eenement';
+  const dateTxt = s ? fdFull(s.date) : '';
+  const msg = (isTraining
+      ? tr('pollMsgTraining').replace('{date}', dateTxt)
+      : tr('pollShareMsg').replace('{event}', label)
+    ) + '\n' + link;
   const box=document.getElementById('poll-share-body');
   if(box){
     box.innerHTML=
-      '<div style="font-size:13px;color:var(--text);margin-bottom:12px;line-height:1.5">'+tr('pollShareIntro')+'</div>'+
-      '<div style="background:var(--bg);border:1px solid var(--brd);border-radius:8px;padding:10px;font-size:12px;color:var(--mut);word-break:break-all;margin-bottom:12px">'+esc(link)+'</div>'+
-      '<button class="btn btn-mg btn-w" style="margin-bottom:8px" onclick="pollShareWhatsApp(\''+encodeURIComponent(msg)+'\')">\u{1F4AC} '+tr('pollShareWA')+'</button>'+
+      '<div style="font-size:13px;color:var(--text);margin-bottom:10px;line-height:1.5">'+tr('pollShareIntro')+'</div>'+
+      '<label class="fl">'+tr('pollMsgLbl')+'</label>'+
+      '<textarea class="fi" id="poll-msg" rows="8" style="font-size:12px;line-height:1.45;margin-bottom:4px">'+esc(msg)+'</textarea>'+
+      '<div style="font-size:10.5px;color:var(--mut);margin-bottom:12px">'+tr('pollMsgHint')+'</div>'+
+      '<button class="btn btn-mg btn-w" style="margin-bottom:8px" onclick="pollShareWhatsAppEdited()">\u{1F4AC} '+tr('pollShareWA')+'</button>'+
       '<button class="btn btn-out btn-w" style="margin-bottom:8px" onclick="pollCopyLink(\''+encodeURIComponent(link)+'\')">\u{1F517} '+tr('pollCopyLink')+'</button>'+
       '<button class="btn btn-out btn-w" style="margin-bottom:8px" onclick="pollOpenPage(\''+encodeURIComponent(link)+'\')">\u{1F441} '+tr('pollOpenPage')+'</button>'+
       '<button class="btn btn-out btn-w" onclick="closePollShare()">'+tr('btnClose')+'</button>';
@@ -4294,6 +4305,11 @@ async function openPollShare(sid){
   if(ov) ov.classList.add('open');
 }
 function closePollShare(){ const ov=document.getElementById('poll-share-ov'); if(ov) ov.classList.remove('open'); }
+// Envoie le message tel qu'il a été édité dans le panneau (et non le texte d'origine)
+function pollShareWhatsAppEdited(){
+  const el=document.getElementById('poll-msg');
+  pollShareWhatsApp(encodeURIComponent(el?el.value:''));
+}
 function pollShareWhatsApp(encodedMsg){
   window.open('https://wa.me/?text='+encodedMsg, '_blank');
 }
@@ -5044,6 +5060,11 @@ function rSessions(scrollPivot){
     ca.innerHTML='<button class="btn btn-mg btn-w" style="margin-bottom:10px" onclick="openCreateSession(\''+type+'\')">+ '+typeLabel(type)+'</button>';
   }
   const list=sortChrono(S.sessions.filter(s=>s.type===type));
+  // Précharger les réponses au sondage des séances à venir, pour que la colonne
+  // « Prévu » affiche le vrai nombre de joueurs annoncés et non 0.
+  preloadPollsFor(list.filter(s=>s.date>=today()).slice(0,12), ()=>{
+    if(document.getElementById('s-list')) rSessions();
+  });
   const sl=document.getElementById('s-list');
   if(!list.length){ sl.innerHTML='<div class="empty"><div class="empty-ic">'+typeIcon(type)+'</div><p>'+tr('noSessionType').replace('{type}',typeLabel(type).toLowerCase())+'</p></div>'; return; }
 
@@ -5898,6 +5919,31 @@ function pollCounts(sid){
   return c;
 }
 // Charge les réponses si absentes du cache, puis rafraîchit la vue tournoi
+// Charge les réponses au sondage pour PLUSIEURS séances d'un coup, puis rafraîchit
+// une seule fois. Sans cela, la liste des séances affichait toujours « prévu · 0 »
+// joueurs : le cache n'était alimenté que sur la page Présences.
+// Garde-fous : uniquement les séances à venir (les seules où le prévisionnel a du
+// sens), pas de rechargement si déjà en cache, et un seul redraw différé.
+let _pollBatchPending=false;
+function preloadPollsFor(sessions, redraw){
+  if(!_fb.cfg || !_fb.code) return;
+  const todo=(sessions||[]).filter(s=>!( _pollIntentionsCache||{})[s.id]);
+  if(!todo.length || _pollBatchPending) return;
+  _pollBatchPending=true;
+  let done=0;
+  todo.forEach(s=>{
+    pollLoadResponses(s.id, (responses)=>{
+      _pollIntentionsCache=_pollIntentionsCache||{};
+      _pollIntentionsCache[s.id]=responses||{};
+      if(++done===todo.length){
+        _pollBatchPending=false;
+        if(typeof redraw==='function') redraw();
+      }
+    });
+  });
+  // Filet : si une réponse Firebase n'arrive jamais, on débloque quand même
+  setTimeout(()=>{ if(_pollBatchPending){ _pollBatchPending=false; if(typeof redraw==='function') redraw(); } }, 4000);
+}
 function ensurePollLoaded(sid, redraw){
   if((_pollIntentionsCache||{})[sid]) return true;
   if(_fb.cfg && _fb.code){
